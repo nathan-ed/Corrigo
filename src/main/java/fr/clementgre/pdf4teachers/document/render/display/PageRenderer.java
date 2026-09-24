@@ -5,6 +5,7 @@
 
 package fr.clementgre.pdf4teachers.document.render.display;
 
+import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.ScratchText;
 import fr.clementgre.pdf4teachers.components.menus.NodeMenuItem;
@@ -618,7 +619,7 @@ public class PageRenderer extends Pane {
     }
     
     public void showContextMenu(double pageX, double pageY, double screenX, double screenY){
-        NodeMenuItem pnfMenuItem = new NodeMenuItem("Add PNF", false);
+        NodeMenuItem pnfMenuItem = new NodeMenuItem(TR.tr("pnf.add"), false);
         pnfMenuItem.setOnAction(e -> PNFAnnotationManager.addPNF(this, pageX, pageY));
         menu.getItems().add(pnfMenuItem);
         
@@ -935,6 +936,8 @@ public class PageRenderer extends Pane {
             }else if(status == PageStatus.RENDERING){
                 loader.setVisible(true);
                 setCursor(Cursor.WAIT);
+                // The page may have been queued as a prefetch: it is now visible, render it first.
+                MainWindow.mainScreen.document.pdfPagesRender.prioritizePage(this);
             }else{
                 updateZoom();
             }
@@ -975,6 +978,10 @@ public class PageRenderer extends Pane {
     }
     
     private void render(CallBack callBack){
+        render(callBack, true);
+    }
+    // priority = false queues the render after the pages the user is looking at (prefetch).
+    private void render(CallBack callBack, boolean priority){
         renderedZoomFactor = getRenderingZoomFactor();
         
         MainWindow.mainScreen.document.pdfPagesRender.renderPage(this, renderedZoomFactor, (image) -> {
@@ -1001,36 +1008,20 @@ public class PageRenderer extends Pane {
             loader.setVisible(false);
             status = PageStatus.RENDERED;
             if(callBack != null) callBack.call();
-        });
+        }, priority);
+    }
+    // The pending render request was dropped from the queue: the page will be rendered again when shown.
+    public void cancelPendingRender(){
+        if(status != PageStatus.RENDERING) return;
+        status = PageStatus.HIDE;
+        loader.setVisible(false);
+        setCursor(Cursor.DEFAULT);
     }
     public void prefetchRender(){
         if(removed || status != PageStatus.HIDE) return;
         
         status = PageStatus.RENDERING;
-        renderedZoomFactor = getRenderingZoomFactor();
-        
-        MainWindow.mainScreen.document.pdfPagesRender.renderPage(this, renderedZoomFactor, (image) -> {
-            if(removed || status == PageStatus.HIDE) return;
-            
-            if(image == null){
-                status = PageStatus.FAIL;
-                return;
-            }
-            
-            setBackground(new Background(
-                    Collections.singletonList(new BackgroundFill(
-                            javafx.scene.paint.Color.WHITE,
-                            CornerRadii.EMPTY,
-                            Insets.EMPTY)),
-                    Collections.singletonList(new BackgroundImage(
-                            image,
-                            BackgroundRepeat.NO_REPEAT,
-                            BackgroundRepeat.NO_REPEAT,
-                            BackgroundPosition.CENTER,
-                            new BackgroundSize(getWidth(), getHeight(), false, false, false, true)))));
-            
-            status = PageStatus.RENDERED;
-        }, false);
+        render(null, false);
     }
     
     // COORDINATES

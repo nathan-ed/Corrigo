@@ -75,9 +75,6 @@ public class MainScreen extends Pane {
     public Document document;
     public String failedEditFile = "";
 
-    // Page number to force scroll to after opening a file (used for LEFT/RIGHT navigation)
-    private int forceScrollToPage = -1;
-
     private final Label info = new Label();
     private final Hyperlink infoLink = new Hyperlink();
     
@@ -555,11 +552,17 @@ public class MainScreen extends Pane {
         openFile(file, false);
     }
     public void openFile(File file, boolean resetScrollValue){
+        openFile(file, resetScrollValue, -1);
+    }
+    /**
+     * @param targetPage page to scroll to once the document is opened (used for LEFT/RIGHT navigation), or -1 to restore
+     *                   the scroll saved in the edition.
+     */
+    public void openFile(File file, boolean resetScrollValue, int targetPage){
         
         boolean hadOpenedFile = status.get() == Status.OPEN;
         double oldPaneScale = zoomOperator.getPaneScale();
         if(!closeFile(!Main.settings.autoSave.getValue(), false, false)){
-            forceScrollToPage = -1;
             return;
         }
         
@@ -586,7 +589,7 @@ public class MainScreen extends Pane {
                 else zoomOperator.fitWidth(true, false);
             }else zoomOperator.zoom(oldPaneScale, true);
             
-            boolean hasForcedPageJump = forceScrollToPage >= 0 && !MainWindow.userData.editPagesMode;
+            boolean hasForcedPageJump = targetPage >= 0 && !MainWindow.userData.editPagesMode;
             zoomOperator.vScrollBar.setValue(0);
             document.showPages(!hasForcedPageJump);
             try{
@@ -616,20 +619,21 @@ public class MainScreen extends Pane {
                 PlatformUtils.runLaterOnUIThread(500, () -> zoomOperator.updatePaneDimensions(0, 0.5));
             }else{
                 // Check if we should force scroll to a specific page (used for LEFT/RIGHT navigation)
-                if(forceScrollToPage >= 0){
-                    int targetPageNum = Math.min(forceScrollToPage, document.getPagesNumber() - 1);
-                    forceScrollToPage = -1; // Reset before scrolling
+                if(hasForcedPageJump){
+                    int targetPageNum = Math.min(targetPage, document.getPagesNumber() - 1);
 
                     // First update dimensions with default scroll (0 = top)
                     zoomOperator.updatePaneDimensions(0, 0.5);
 
                     // Then jump to the target page after the current JavaFX layout pass.
                     Platform.runLater(() -> {
-                        PageRenderer targetPage = document.getPage(targetPageNum);
-                        if(targetPage != null){
-                            zoomOperator.scrollToPage(targetPage);
+                        PageRenderer targetPageRenderer = document.getPage(targetPageNum);
+                        if(targetPageRenderer != null){
+                            // Don't let the pages at the top of the document, queued before the jump, delay the target page.
+                            document.cancelPendingRenders();
+                            zoomOperator.scrollToPage(targetPageRenderer);
                             document.prefetchPages(targetPageNum, targetPageNum + 1);
-                            MainWindow.filesTab.preloadNeighborExercisePages();
+                            MainWindow.filesTab.preloadNeighborPages(targetPageNum);
                         }
                     });
                 }else{
@@ -998,10 +1002,5 @@ public class MainScreen extends Pane {
         if(!isGridView()) return 1;
         int rest = document.getPagesNumber() % getGridModePagesPerRow();
         return rest == 0 ? getGridModePagesPerRow() : rest;
-    }
-
-    // Used by FileTab to force scroll to specific page when navigating between PDFs
-    public void setForceScrollToPage(int pageNumber){
-        this.forceScrollToPage = pageNumber;
     }
 }

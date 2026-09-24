@@ -61,6 +61,12 @@ public class TextTreeItem extends TreeItem<String> {
     private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
     // Must be between 0 and 100 in percents.
     private final DoubleProperty maxWidth = new SimpleDoubleProperty();
+    {
+        // Favorites and lasts are persisted in TextElementsData: save them whenever their style changes.
+        font.addListener((observable, oldValue, newValue) -> requestSaveIfSaved());
+        color.addListener((observable, oldValue, newValue) -> requestSaveIfSaved());
+        maxWidth.addListener((observable, oldValue, newValue) -> requestSaveIfSaved());
+    }
 
     private int type;
     private long uses;
@@ -80,7 +86,7 @@ public class TextTreeItem extends TreeItem<String> {
     private final ChangeListener<String> textChangeListener = (ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
         setText(newValue);
         updateGraphic(true);
-        if(getType() == TextTreeSection.LAST_TYPE || getType() == TextTreeSection.FAVORITE_TYPE) TextElementsData.requestSave();
+        requestSaveIfSaved();
     };
     private final ChangeListener<Paint> colorChangeListener = (ObservableValue<? extends Paint> observable, Paint oldValue, Paint newValue) -> {
         setColor((Color) newValue);
@@ -431,6 +437,7 @@ public class TextTreeItem extends TreeItem<String> {
 
         if(MainWindow.mainScreen.hasDocument(false)){
             uses++;
+            requestSaveIfSaved();
             TextElement realElement = toRealTextElement(x, y, page.getPage());
 
             if(link){
@@ -499,6 +506,7 @@ public class TextTreeItem extends TreeItem<String> {
     }
     public void setUses(long uses){
         this.uses = uses;
+        requestSaveIfSaved();
     }
     public long getCreationDate(){
         return creationDate;
@@ -514,6 +522,9 @@ public class TextTreeItem extends TreeItem<String> {
     }
     public void setMaxWidth(double maxWidth){
         this.maxWidth.set(maxWidth);
+    }
+    private void requestSaveIfSaved(){
+        if(type == TextTreeSection.LAST_TYPE || type == TextTreeSection.FAVORITE_TYPE) TextElementsData.requestSave();
     }
     public TextElement getCore(){
         return core;

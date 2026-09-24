@@ -7,6 +7,7 @@ package fr.clementgre.pdf4teachers.panel.sidebar.grades;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -84,5 +85,50 @@ class ExercisePageMappingTest {
     @Test
     void childKeysUseStableSeparator(){
         assertEquals("Q4/partA", ExercisePageMapping.childKey("Q4", "partA"));
+    }
+    
+    @Test
+    void exerciseKeysAreGradeNames(){
+        assertEquals(List.of("Exercice 1", "Exercice 2"), ExercisePageMapping.buildExerciseKeys(List.of("Exercice 1", " Exercice 2 ")));
+    }
+    
+    @Test
+    void blankOrDuplicateGradeNamesGetUniqueKeys(){
+        assertEquals(List.of("Q1", "Ex", "Ex (3)"), ExercisePageMapping.buildExerciseKeys(Arrays.asList("", "Ex", "Ex")));
+    }
+    
+    @Test
+    void legacyQuestionKeysAreMigratedByPosition(){
+        ExercisePageMapping legacy = new ExercisePageMapping();
+        legacy.setPageIndex("Q1", 1);
+        legacy.setPageIndex("Q3", 4);
+        
+        ExercisePageMapping migrated = ExercisePageMapping.fromLegacyQuestionKeys(legacy, List.of("A", "B", "C"));
+        
+        assertEquals(1, migrated.getPageIndex("A").orElseThrow());
+        assertTrue(migrated.getPageIndex("B").isEmpty());
+        assertEquals(4, migrated.getPageIndex("C").orElseThrow());
+    }
+    
+    @Test
+    void closestMappingKeepsPagesOfExercisesStillPresent(){
+        ExercisePageMapping other = new ExercisePageMapping();
+        other.setPageIndex("X", 0);
+        ExercisePageMapping evaluation = new ExercisePageMapping();
+        evaluation.setPageIndex("A", 1);
+        evaluation.setPageIndex("B", 2);
+        
+        ExercisePageMapping closest = ExercisePageMapping.findClosest(List.of(other, evaluation), List.of("A", "B", "New"));
+        assertSame(evaluation, closest);
+        
+        ExercisePageMapping copy = closest.copyFor(List.of("B", "New"));
+        assertEquals(Map.of("B", 2), copy.getPageIndexes());
+    }
+    
+    @Test
+    void noClosestMappingWithoutCommonExercise(){
+        ExercisePageMapping other = new ExercisePageMapping();
+        other.setPageIndex("X", 0);
+        assertNull(ExercisePageMapping.findClosest(List.of(other), List.of("A")));
     }
 }

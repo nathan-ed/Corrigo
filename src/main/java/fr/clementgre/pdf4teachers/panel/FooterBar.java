@@ -14,6 +14,7 @@ import fr.clementgre.pdf4teachers.panel.MainScreen.ZoomOperator;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.ExerciseCorrectionWorkflow;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.ExercisePageMapping;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.ExercisePageMappingDialog;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
 import fr.clementgre.pdf4teachers.utils.PlatformUtils;
 import fr.clementgre.pdf4teachers.utils.panes.PaneUtils;
@@ -38,7 +39,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.util.Duration;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalInt;
 
 public class FooterBar extends StackPane {
@@ -57,12 +60,16 @@ public class FooterBar extends StackPane {
     private final ToggleButton gridView = new ToggleButton("", SVGPathIcons.generateImage(SVGPathIcons.MULTI_PAGE, "white", 0, 25, lightGrayColorAdjust));
     private final ToggleButton editPagesMode = new ToggleButton(TR.tr("footerBar.editPages"));
     private final HBox exerciseCorrection = new HBox();
-    private final ToggleButton exerciseCorrectionMode = new ToggleButton("Exercise");
+    private final ToggleButton exerciseCorrectionMode = new ToggleButton(TR.tr("footerBar.exerciseMode"));
     private final ComboBox<String> exerciseSelector = new ComboBox<>();
-    private final Button exercisePages = new Button("Pages");
+    private final Button exercisePages = new Button(TR.tr("footerBar.exercisePages"));
     private final Label selectedElements = new Label();
-    private final ExercisePageMapping exercisePageMapping = new ExercisePageMapping();
-    private String selectedExerciseKey = "Q1";
+    // Exercise pages of each evaluation, by evaluation signature (see ExercisePageMapping.getSignature).
+    private final Map<String, ExercisePageMapping> exercisePageMappings = new LinkedHashMap<>();
+    // Mapping loaded from the old config format (Q1, Q2... keys), migrated to the first evaluation opened.
+    private ExercisePageMapping legacyExercisePageMapping;
+    private List<String> exerciseKeys = List.of();
+    private String selectedExerciseKey;
 
     private final Label statsElements = new Label();
     private final Label statsTexts = new Label();
@@ -319,7 +326,7 @@ public class FooterBar extends StackPane {
         exerciseCorrection.setAlignment(Pos.CENTER_LEFT);
         exerciseCorrection.setSpacing(5);
         
-        exerciseCorrectionMode.setTooltip(PaneUtils.genWrappedToolTip("Exercise correction mode: when switching files, jump to the selected exercise page."));
+        exerciseCorrectionMode.setTooltip(PaneUtils.genWrappedToolTip(TR.tr("footerBar.exerciseMode.tooltip")));
         PaneUtils.setHBoxPosition(exerciseCorrectionMode, -1, 19, new Insets(-2, 0, 0, 0));
         exerciseCorrectionMode.setOnAction(e -> {
             ExerciseCorrectionData.requestSave();
@@ -330,8 +337,8 @@ public class FooterBar extends StackPane {
             }
         });
         
-        exerciseSelector.setTooltip(PaneUtils.genWrappedToolTip("Exercise to correct."));
-        exerciseSelector.setPrefWidth(72);
+        exerciseSelector.setTooltip(PaneUtils.genWrappedToolTip(TR.tr("footerBar.exerciseSelector.tooltip")));
+        exerciseSelector.setPrefWidth(130); // Shows the exercise names
         exerciseSelector.setMaxHeight(19);
         exerciseSelector.setOnAction(e -> {
             if(updatingExerciseControls) return;
@@ -342,17 +349,17 @@ public class FooterBar extends StackPane {
             navigateToSelectedExercisePage();
         });
         
-        exercisePages.setTooltip(PaneUtils.genWrappedToolTip("Set the page for each exercise."));
+        exercisePages.setTooltip(PaneUtils.genWrappedToolTip(TR.tr("footerBar.exercisePages.tooltip")));
         PaneUtils.setHBoxPosition(exercisePages, -1, 19, new Insets(-2, 0, 0, 0));
         exercisePages.setOnAction(e -> {
             if(!MainWindow.mainScreen.hasDocument(false)) return;
             refreshExerciseChoices();
             List<String> exerciseKeys = getExerciseKeys();
             if(exerciseKeys.isEmpty()){
-                showToast(Color.web("#6a1b1b"), Color.WHITE, "Create the grading questions before assigning exercise pages.");
+                showToast(Color.web("#6a1b1b"), Color.WHITE, TR.tr("footerBar.exercisePages.noGrades"));
                 return;
             }
-            boolean applied = new ExercisePageMappingDialog(exercisePageMapping, exerciseKeys, MainWindow.mainScreen.document.getPagesNumber()).show();
+            boolean applied = new ExercisePageMappingDialog(getExercisePageMapping(), exerciseKeys, MainWindow.mainScreen.document.getPagesNumber()).show();
             if(!applied) return;
             ExerciseCorrectionData.requestSave();
             MainWindow.filesTab.preloadNeighborExercisePages();
@@ -367,7 +374,7 @@ public class FooterBar extends StackPane {
         selectedElements.visibleProperty().bind(MainWindow.mainScreen.selectedElementsCountProperty().greaterThan(1));
         selectedElements.managedProperty().bind(selectedElements.visibleProperty());
         MainWindow.mainScreen.selectedElementsCountProperty().addListener((observable, oldValue, newValue) -> {
-            selectedElements.setText(newValue.intValue() + " selected");
+            selectedElements.setText(TR.tr("footerBar.selectedElements", newValue.intValue()));
         });
         selectedElements.setText("");
         
@@ -376,15 +383,14 @@ public class FooterBar extends StackPane {
     }
     
     private List<String> getExerciseKeys(){
-        if(!exerciseSelector.getItems().isEmpty()) return List.copyOf(exerciseSelector.getItems());
-        return ExercisePageMapping.buildQuestionKeys(getQuestionCountFromGradeScale());
+        return exerciseKeys;
     }
     
     public void refreshExerciseChoices(){
         if(MainWindow.gradeTab == null || MainWindow.gradeTab.treeView == null) return;
         
         updatingExerciseControls = true;
-        List<String> exerciseKeys = ExercisePageMapping.buildQuestionKeys(getQuestionCountFromGradeScale());
+        exerciseKeys = ExercisePageMapping.buildExerciseKeys(getExerciseNamesFromGradeScale());
         exerciseSelector.getItems().setAll(exerciseKeys);
         if(exerciseKeys.contains(selectedExerciseKey)){
             exerciseSelector.getSelectionModel().select(selectedExerciseKey);
@@ -395,12 +401,22 @@ public class FooterBar extends StackPane {
         updatingExerciseControls = false;
     }
     
-    private int getQuestionCountFromGradeScale(){
-        if(GradeTreeView.getTotal() == null) return 0;
-        return GradeTreeView.getTotal().getChildren().size();
+    private List<String> getExerciseNamesFromGradeScale(){
+        if(GradeTreeView.getTotal() == null) return List.of();
+        return GradeTreeView.getTotal().getChildren().stream()
+                .map(item -> ((GradeTreeItem) item).getCore().getName())
+                .toList();
     }
     public int getExerciseCount(){
-        return getQuestionCountFromGradeScale();
+        return exerciseKeys.size();
+    }
+    // Key of the exercise at this index in the grade scale, or null.
+    public String getExerciseKey(int topLevelIndex){
+        if(topLevelIndex < 0 || topLevelIndex >= exerciseKeys.size()) return null;
+        return exerciseKeys.get(topLevelIndex);
+    }
+    public int getSelectedExerciseIndex(){
+        return exerciseKeys.indexOf(selectedExerciseKey);
     }
     
     public boolean isExerciseCorrectionMode(){
@@ -409,10 +425,36 @@ public class FooterBar extends StackPane {
     
     public OptionalInt getSelectedExercisePageIndex(){
         if(selectedExerciseKey == null) return OptionalInt.empty();
-        return exercisePageMapping.getPageIndex(selectedExerciseKey);
+        return getExercisePageMapping().getPageIndex(selectedExerciseKey);
     }
+    // Mapping of the evaluation currently open.
     public ExercisePageMapping getExercisePageMapping(){
-        return exercisePageMapping;
+        return exercisePageMappings.computeIfAbsent(ExercisePageMapping.getSignature(exerciseKeys), signature -> {
+            if(exerciseKeys.isEmpty()) return new ExercisePageMapping();
+            // The grade scale changed a bit (exercise added or renamed): keep the pages of the exercises that still exist.
+            ExercisePageMapping closest = ExercisePageMapping.findClosest(exercisePageMappings.values(), exerciseKeys);
+            if(closest != null){
+                ExerciseCorrectionData.requestSave();
+                return closest.copyFor(exerciseKeys);
+            }
+            if(legacyExercisePageMapping == null) return new ExercisePageMapping();
+            ExercisePageMapping migrated = ExercisePageMapping.fromLegacyQuestionKeys(legacyExercisePageMapping, exerciseKeys);
+            legacyExercisePageMapping = null;
+            ExerciseCorrectionData.requestSave();
+            return migrated;
+        });
+    }
+    public Map<String, ExercisePageMapping> getExercisePageMappings(){
+        return exercisePageMappings;
+    }
+    public ExercisePageMapping getLegacyExercisePageMapping(){
+        return legacyExercisePageMapping;
+    }
+    public void setLegacyExercisePageMapping(ExercisePageMapping legacyExercisePageMapping){
+        this.legacyExercisePageMapping = legacyExercisePageMapping;
+    }
+    public void setExerciseCorrectionMode(boolean enabled){
+        exerciseCorrectionMode.setSelected(enabled);
     }
     public String getSelectedExerciseKey(){
         return selectedExerciseKey;
@@ -428,7 +470,17 @@ public class FooterBar extends StackPane {
         }
     }
     public OptionalInt getExercisePageIndex(String exerciseKey){
-        return exercisePageMapping.getPageIndex(exerciseKey);
+        if(exerciseKey == null) return OptionalInt.empty();
+        return getExercisePageMapping().getPageIndex(exerciseKey);
+    }
+    
+    // Returns false if exercise correction mode is off, so that the key event can be used by something else.
+    public boolean selectNeighborExercise(int delta){
+        if(!isExerciseCorrectionMode() || !MainWindow.mainScreen.hasDocument(false) || exerciseSelector.getItems().isEmpty()) return false;
+        int index = Math.clamp(exerciseSelector.getSelectionModel().getSelectedIndex() + delta, 0, exerciseSelector.getItems().size() - 1);
+        exerciseSelector.getSelectionModel().select(index); // Fires the selector action: saves and navigates.
+        showToast(Color.web("#424242"), Color.WHITE, exerciseSelector.getSelectionModel().getSelectedItem());
+        return true;
     }
     
     public void navigateToSelectedExercisePage(){
@@ -436,7 +488,6 @@ public class FooterBar extends StackPane {
         OptionalInt pageIndex = ExerciseCorrectionWorkflow.getNavigationTarget(true, getSelectedExercisePageIndex(), MainWindow.mainScreen.document.getPagesNumber());
         if(pageIndex.isEmpty()) return;
         int targetPageIndex = pageIndex.getAsInt();
-        MainWindow.mainScreen.setForceScrollToPage(targetPageIndex);
         Platform.runLater(() -> {
             if(!MainWindow.mainScreen.hasDocument(false)) return;
             MainWindow.mainScreen.document.prefetchPages(targetPageIndex, ExerciseCorrectionWorkflow.getPrefetchLastPage(targetPageIndex, MainWindow.mainScreen.document.getPagesNumber()));

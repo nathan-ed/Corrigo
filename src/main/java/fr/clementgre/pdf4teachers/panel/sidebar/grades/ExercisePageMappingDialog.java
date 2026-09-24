@@ -6,6 +6,7 @@
 package fr.clementgre.pdf4teachers.panel.sidebar.grades;
 
 import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
+import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.utils.dialogs.alerts.ButtonPosition;
 import fr.clementgre.pdf4teachers.utils.dialogs.alerts.CustomAlert;
 import javafx.geometry.Insets;
@@ -33,7 +34,7 @@ public class ExercisePageMappingDialog {
     }
     
     public boolean show(){
-        CustomAlert dialog = new CustomAlert(Alert.AlertType.CONFIRMATION, "Exercise pages", "Exercise pages");
+        CustomAlert dialog = new CustomAlert(Alert.AlertType.CONFIRMATION, TR.tr("exercisePagesDialog.title"), TR.tr("exercisePagesDialog.title"));
         dialog.addOKButton(ButtonPosition.DEFAULT);
         dialog.addCancelButton(ButtonPosition.CLOSE);
         dialog.getDialogPane().setContent(buildContent());
@@ -50,8 +51,8 @@ public class ExercisePageMappingDialog {
         grid.setVgap(8);
         grid.setPadding(new Insets(10, 0, 10, 0));
         
-        grid.add(new Label("Exercise"), 0, 0);
-        grid.add(new Label("Page"), 1, 0);
+        grid.add(new Label(TR.tr("exercisePagesDialog.exercise")), 0, 0);
+        grid.add(new Label(TR.tr("exercisePagesDialog.page")), 1, 0);
         
         int row = 1;
         for(String exerciseKey : exerciseKeys){
@@ -83,7 +84,7 @@ public class ExercisePageMappingDialog {
             return true;
         }catch(IllegalArgumentException e){
             MainWindow.footerBar.showToast(javafx.scene.paint.Color.web("#6a1b1b"), javafx.scene.paint.Color.WHITE,
-                    e.getMessage() == null ? "Invalid page." : e.getMessage());
+                    TR.tr("footerBar.exercisePages.invalidPage", pagesCount));
             return false;
         }
     }

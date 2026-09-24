@@ -182,8 +182,8 @@ public class Edition{
                 config.base.put("skills", skills);
                 config.set("versionID", Main.VERSION_ID);
                 config.save();
-                removePreloadedEditFile(editFile);
             }
+            removePreloadedEditFile(editFile);
             
         }catch(IOException e){
             Log.eNotified(e, "Can't save edition");
@@ -232,7 +232,7 @@ public class Edition{
             PreloadedEditFile preloaded = preloadedEditions.get(cacheKey);
             if(preloaded != null && preloaded.lastModified == lastModified){
                 Config config = new Config(editFile);
-                config.base = new HashMap<>(preloaded.base);
+                config.base = deepCopy(preloaded.base);
                 return config;
             }
         }
@@ -240,12 +240,28 @@ public class Edition{
         Config config = new Config(editFile);
         config.load();
         synchronized(preloadedEditions){
-            preloadedEditions.put(cacheKey, new PreloadedEditFile(editFile, lastModified, new HashMap<>(config.base)));
+            preloadedEditions.put(cacheKey, new PreloadedEditFile(editFile, lastModified, deepCopy(config.base)));
         }
         return config;
     }
     
-    private static void removePreloadedEditFile(File editFile){
+    // The cached YAML tree must not share its nested maps/lists with a loaded config.
+    @SuppressWarnings("unchecked")
+    static <T> T deepCopy(T value){
+        if(value instanceof Map<?, ?> map){
+            LinkedHashMap<Object, Object> copy = new LinkedHashMap<>();
+            map.forEach((k, v) -> copy.put(k, deepCopy(v)));
+            return (T) copy;
+        }
+        if(value instanceof List<?> list){
+            ArrayList<Object> copy = new ArrayList<>(list.size());
+            list.forEach(v -> copy.add(deepCopy(v)));
+            return (T) copy;
+        }
+        return value;
+    }
+    
+    public static void removePreloadedEditFile(File editFile){
         synchronized(preloadedEditions){
             preloadedEditions.remove(editFile.getAbsolutePath());
         }
@@ -368,6 +384,7 @@ public class Edition{
                 config.set("versionID", Main.VERSION_ID);
                 config.save();
             }
+            removePreloadedEditFile(editFile);
             
         }catch(IOException e){
             Log.eNotified(e);

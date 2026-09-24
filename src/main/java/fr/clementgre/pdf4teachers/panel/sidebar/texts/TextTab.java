@@ -46,7 +46,9 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -256,31 +258,29 @@ public class TextTab extends SideTab {
 
         // Event filter for KEY_PRESSED to intercept Enter key
         txtArea.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-            System.out.println("DEBUG: KEY_PRESSED filter - Key: " + e.getCode() + ", Popup: " + autocompletePopup.isShowing() + ", Char: '" + e.getCharacter() + "'");
 
-            if(autocompletePopup.isShowing()){
-                // Check for ENTER or UNDEFINED with empty/newline character
-                boolean isEnterKey = e.getCode() == KeyCode.ENTER ||
-                                    (e.getCode() == KeyCode.UNDEFINED &&
-                                     (e.getCharacter().isEmpty() ||
-                                      e.getCharacter().equals("\r") ||
-                                      e.getCharacter().equals("\n")));
+            // Check for ENTER or UNDEFINED with empty/newline character
+            boolean isEnterKey = e.getCode() == KeyCode.ENTER ||
+                                (e.getCode() == KeyCode.UNDEFINED &&
+                                 (e.getCharacter().isEmpty() ||
+                                  e.getCharacter().equals("\r") ||
+                                  e.getCharacter().equals("\n")));
+            if(!isEnterKey || !autocompletePopup.isShowing()) return;
 
-                if(isEnterKey){
-                    System.out.println("DEBUG: Enter detected in KEY_PRESSED - calling selectAutocompleteItem()");
-                    e.consume();
-                    selectAutocompleteItem();
-                }
+            // Enter only picks a suggestion once the user moved into the list with UP/DOWN, otherwise it inserts a new line.
+            if(shouldEnterSelectAutocomplete(true, autocompleteList.getSelectionModel().getSelectedIndex())){
+                e.consume();
+                selectAutocompleteItem();
+            }else{
+                autocompletePopup.hide();
             }
         });
 
         // Event filter for KEY_TYPED to catch Enter as typed character
         txtArea.addEventFilter(KeyEvent.KEY_TYPED, e -> {
-            System.out.println("DEBUG: KEY_TYPED filter - Char: '" + e.getCharacter() + "', Popup: " + autocompletePopup.isShowing());
 
-            if(autocompletePopup.isShowing() &&
-               (e.getCharacter().equals("\r") || e.getCharacter().equals("\n"))){
-                System.out.println("DEBUG: Enter detected in KEY_TYPED - calling selectAutocompleteItem()");
+            if((e.getCharacter().equals("\r") || e.getCharacter().equals("\n"))
+                    && shouldEnterSelectAutocomplete(autocompletePopup.isShowing(), autocompleteList.getSelectionModel().getSelectedIndex())){
                 e.consume();
                 selectAutocompleteItem();
             }
@@ -289,11 +289,7 @@ public class TextTab extends SideTab {
         txtArea.setOnKeyPressed(e -> {
             // Handle autocomplete popup navigation
             if(autocompletePopup.isShowing()){
-                if(e.getCode() == KeyCode.ENTER){
-                    // Already handled by event filter
-                    e.consume();
-                    return;
-                }else if(e.getCode() == KeyCode.DOWN){
+                if(e.getCode() == KeyCode.DOWN){
                     e.consume();
                     int currentIndex = autocompleteList.getSelectionModel().getSelectedIndex();
                     if(currentIndex == -1){
@@ -325,7 +321,7 @@ public class TextTab extends SideTab {
                     e.consume();
                     autocompletePopup.hide();
                     // Remove focus from txtArea to enable app-level keyboard navigation
-                    pane.requestFocus();
+                    MainWindow.mainScreen.requestFocus();
                     return;
                 }
             }
@@ -333,7 +329,7 @@ public class TextTab extends SideTab {
             // ESC key when popup is NOT showing - still remove focus to enable app navigation
             if(e.getCode() == KeyCode.ESCAPE){
                 e.consume();
-                pane.requestFocus();
+                MainWindow.mainScreen.requestFocus();
                 return;
             }
 
@@ -540,37 +536,20 @@ public class TextTab extends SideTab {
             return;
         }
 
-        // Collect matching items from all sections
+        // Collect matching items from all sections, without showing the same text twice
         List<TextTreeItem> matchingItems = new ArrayList<>();
-
-        // Check favorites
-        for(int i = 0; i < treeView.favoritesSection.getChildren().size(); i++){
-            if(treeView.favoritesSection.getChildren().get(i) instanceof TextTreeItem item){
-                if(item.getCore() != MainWindow.mainScreen.getSelected()
-                        && TextElement.invertMathIfNeeded(item.getText()).toLowerCase().contains(matchText.toLowerCase())){
-                    matchingItems.add(item);
-                }
+        Set<String> seenTexts = new HashSet<>();
+        String lowerMatchText = matchText.toLowerCase();
+        for(TextTreeSection section : List.of(treeView.favoritesSection, treeView.lastsSection, treeView.onFileSection)){
+            for(TreeItem<String> child : section.getChildren()){
+                if(!(child instanceof TextTreeItem item) || item.getCore() == MainWindow.mainScreen.getSelected()) continue;
+                String text = TextElement.invertMathIfNeeded(item.getText());
+                if(text.toLowerCase().contains(lowerMatchText) && seenTexts.add(text)) matchingItems.add(item);
             }
         }
-
-        // Check lasts
-        for(int i = 0; i < treeView.lastsSection.getChildren().size(); i++){
-            if(treeView.lastsSection.getChildren().get(i) instanceof TextTreeItem item){
-                if(item.getCore() != MainWindow.mainScreen.getSelected()
-                        && TextElement.invertMathIfNeeded(item.getText()).toLowerCase().contains(matchText.toLowerCase())){
-                    matchingItems.add(item);
-                }
-            }
-        }
-
-        // Check onFile
-        for(int i = 0; i < treeView.onFileSection.getChildren().size(); i++){
-            if(treeView.onFileSection.getChildren().get(i) instanceof TextTreeItem item){
-                if(item.getCore() != MainWindow.mainScreen.getSelected()
-                        && TextElement.invertMathIfNeeded(item.getText()).toLowerCase().contains(matchText.toLowerCase())){
-                    matchingItems.add(item);
-                }
-            }
+        // Nothing to suggest if the only match is what is already typed
+        if(matchingItems.size() == 1 && TextElement.invertMathIfNeeded(matchingItems.getFirst().getText()).equals(matchText)){
+            matchingItems.clear();
         }
 
         // Update popup
@@ -578,7 +557,7 @@ public class TextTab extends SideTab {
             autocompletePopup.hide();
         }else{
             autocompleteList.getItems().setAll(matchingItems);
-            autocompleteList.getSelectionModel().selectFirst();
+            autocompleteList.getSelectionModel().clearSelection();
 
             // Position popup below txtArea
             if(!autocompletePopup.isShowing()){
@@ -593,15 +572,14 @@ public class TextTab extends SideTab {
         }
     }
 
+    static boolean shouldEnterSelectAutocomplete(boolean popupShowing, int selectedIndex){
+        return popupShowing && selectedIndex >= 0;
+    }
+
     private void selectAutocompleteItem(){
-        System.out.println("DEBUG: selectAutocompleteItem() called");
         TextTreeItem selectedItem = autocompleteList.getSelectionModel().getSelectedItem();
-        System.out.println("DEBUG: Selected item: " + selectedItem);
-        System.out.println("DEBUG: Selection index: " + autocompleteList.getSelectionModel().getSelectedIndex());
-        System.out.println("DEBUG: Items count: " + autocompleteList.getItems().size());
 
         if(selectedItem != null){
-            System.out.println("DEBUG: Selected item text: " + selectedItem.getText());
             isSelectingFromPopup = true;
 
             // Hide popup first to prevent visual glitches
@@ -609,7 +587,6 @@ public class TextTab extends SideTab {
 
             // Set the text to the selected item's text
             String selectedText = TextElement.invertMathIfNeeded(selectedItem.getText());
-            System.out.println("DEBUG: Setting text to: " + selectedText);
             txtArea.setText(selectedText);
             txtArea.positionCaret(selectedText.length());
 

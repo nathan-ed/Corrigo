@@ -132,6 +132,11 @@ public class Document {
         }
     }
     
+    // Drops the queued renders (e.g. pages at the top of the document before jumping to another page).
+    public void cancelPendingRenders(){
+        pdfPagesRender.clearPendingRenders();
+        for(PageRenderer page : pages) page.cancelPendingRender();
+    }
     public void prefetchPages(int firstPage, int lastPage){
         if(MainWindow.mainScreen.isEditPagesMode()) return;
         

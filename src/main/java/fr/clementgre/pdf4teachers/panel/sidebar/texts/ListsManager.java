@@ -5,6 +5,7 @@
 
 package fr.clementgre.pdf4teachers.panel.sidebar.texts;
 
+import fr.clementgre.pdf4teachers.datasaving.simpleconfigs.TextElementsData;
 import fr.clementgre.pdf4teachers.components.NoArrowMenuButton;
 import fr.clementgre.pdf4teachers.components.menus.NodeMenuItem;
 import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
@@ -131,6 +132,7 @@ public class ListsManager {
             return;
         }
         TextTreeSection.lists.put(listName, list);
+        TextElementsData.requestSave();
         
         new OKAlert(TR.tr("textTab.lists.save.completedDialog.title"),
                 TR.tr("textTab.lists.save.completedDialog.header"), TR.tr("textTab.lists.save.completedDialog.details")).showAndWait();
@@ -139,6 +141,7 @@ public class ListsManager {
     
     public void deleteList(String listName){
         TextTreeSection.lists.remove(listName);
+        TextElementsData.requestSave();
         
         new OKAlert(TR.tr("textTab.lists.deleteCompletedDialog.title"),
                 TR.tr("textTab.lists.deleteCompletedDialog.header", listName)).show();

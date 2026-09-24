@@ -7,31 +7,23 @@ package fr.clementgre.pdf4teachers.datasaving.simpleconfigs;
 
 import fr.clementgre.pdf4teachers.datasaving.Config;
 import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.ExercisePageMapping;
 import javafx.application.Platform;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 public class ExerciseCorrectionData extends SimpleConfig {
-    
-    private static final ScheduledExecutorService saveScheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
-        Thread thread = new Thread(runnable, "ExerciseCorrectionData saver");
-        thread.setDaemon(true);
-        return thread;
-    });
-    private static ScheduledFuture<?> scheduledSave;
     
     public ExerciseCorrectionData(){
         super("exercisecorrection");
     }
     
-    public static synchronized void requestSave(){
-        if(scheduledSave != null) scheduledSave.cancel(false);
-        scheduledSave = saveScheduler.schedule(() -> new ExerciseCorrectionData().saveData(), 1, TimeUnit.SECONDS);
+    public static void requestSave(){
+        if(MainWindow.userData == null) return;
+        SimpleConfig data = MainWindow.userData.getSimpleConfig(ExerciseCorrectionData.class);
+        if(data != null) data.scheduleSave();
     }
     
     @Override
@@ -40,7 +32,22 @@ public class ExerciseCorrectionData extends SimpleConfig {
             if(MainWindow.footerBar == null) return;
             
             MainWindow.footerBar.setSelectedExerciseKey(config.getString("selectedExercise"));
-            applyPageIndexes(MainWindow.footerBar.getExercisePageMapping(), config.getSection("pageIndexes"));
+            MainWindow.footerBar.setExerciseCorrectionMode(config.getBoolean("exerciseCorrectionMode"));
+            
+            for(Map.Entry<String, Object> evaluation : config.getSection("evaluations").entrySet()){
+                if(!(evaluation.getValue() instanceof Map<?, ?> pageIndexes)) continue;
+                ExercisePageMapping mapping = new ExercisePageMapping();
+                applyPageIndexes(mapping, Config.castSection(pageIndexes));
+                MainWindow.footerBar.getExercisePageMappings().put(evaluation.getKey(), mapping);
+            }
+            // Old format: a single mapping with Q1, Q2... keys
+            HashMap<String, Object> legacyPageIndexes = config.getSection("pageIndexes");
+            if(!legacyPageIndexes.isEmpty()){
+                ExercisePageMapping legacy = new ExercisePageMapping();
+                applyPageIndexes(legacy, legacyPageIndexes);
+                MainWindow.footerBar.setLegacyExercisePageMapping(legacy);
+            }
+            
             MainWindow.footerBar.refreshExerciseChoices();
             MainWindow.filesTab.preloadNeighborExercisePages();
         });
@@ -55,17 +62,25 @@ public class ExerciseCorrectionData extends SimpleConfig {
         if(MainWindow.footerBar == null) return;
         
         config.set("selectedExercise", MainWindow.footerBar.getSelectedExerciseKey());
+        config.set("exerciseCorrectionMode", MainWindow.footerBar.isExerciseCorrectionMode());
         
-        config.set("pageIndexes", toConfigMap(MainWindow.footerBar.getExercisePageMapping()));
+        LinkedHashMap<String, Object> evaluations = new LinkedHashMap<>();
+        MainWindow.footerBar.getExercisePageMappings().forEach((signature, mapping) -> {
+            if(!mapping.getPageIndexes().isEmpty()) evaluations.put(signature, toConfigMap(mapping));
+        });
+        config.set("evaluations", evaluations);
+        // Keep the old format mapping until it is migrated to an evaluation.
+        ExercisePageMapping legacy = MainWindow.footerBar.getLegacyExercisePageMapping();
+        if(legacy != null) config.set("pageIndexes", toConfigMap(legacy));
     }
     
-    static LinkedHashMap<String, Object> toConfigMap(fr.clementgre.pdf4teachers.panel.sidebar.grades.ExercisePageMapping mapping){
+    static LinkedHashMap<String, Object> toConfigMap(ExercisePageMapping mapping){
         LinkedHashMap<String, Object> pageIndexes = new LinkedHashMap<>();
         mapping.getPageIndexes().forEach(pageIndexes::put);
         return pageIndexes;
     }
     
-    static void applyPageIndexes(fr.clementgre.pdf4teachers.panel.sidebar.grades.ExercisePageMapping mapping, Map<String, Object> pageIndexes){
+    static void applyPageIndexes(ExercisePageMapping mapping, Map<String, Object> pageIndexes){
         for(Map.Entry<String, Object> entry : pageIndexes.entrySet()){
             try{
                 mapping.setPageIndex(entry.getKey(), Integer.parseInt(entry.getValue().toString()));

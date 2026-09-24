@@ -32,9 +32,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class PDFPagesRender {
     
@@ -47,6 +49,7 @@ public class PDFPagesRender {
             return size() > MAX_PRELOADED_PAGES;
         }
     };
+    private static final AtomicLong preloadGeneration = new AtomicLong();
     private static final ExecutorService preloadExecutor = Executors.newSingleThreadExecutor(runnable -> {
         Thread thread = new Thread(runnable, "PDF Exercise Page Preloader");
         thread.setDaemon(true);
@@ -211,31 +214,66 @@ public class PDFPagesRender {
             return;
         }
         synchronized(rendersPending){
-            rendersPending.removeIf(pending -> pending.page == page && pending.callBack == null);
+            // A page has only one pending render: merge with the previous request, keeping its callback.
+            for(RenderPending pending : new ArrayList<>(rendersPending)){
+                if(pending.page != page) continue;
+                rendersPending.remove(pending);
+                CallBackArg<Image> newCallBack = renderPending.callBack;
+                renderPending = new RenderPending(page, renderPending.width, image -> {
+                    pending.callBack.call(image);
+                    newCallBack.call(image);
+                });
+            }
             if(priority) rendersPending.addFirst(renderPending);
             else rendersPending.add(renderPending);
         }
     }
+    public void prioritizePage(PageRenderer page){
+        synchronized(rendersPending){
+            for(RenderPending pending : rendersPending){
+                if(pending.page == page){
+                    rendersPending.remove(pending);
+                    rendersPending.addFirst(pending);
+                    return;
+                }
+            }
+        }
+    }
     
-    public static void preloadPages(File file, int firstPage, int lastPage, int width){
-        if(file == null || width <= 0) return;
+    // Renders pages of other files in background. A new call cancels the files not yet started by the previous one,
+    // so that quickly switching files doesn't leave a queue of preloads for files that are no longer neighbors.
+    public static void preloadPages(List<File> files, int firstPage, int lastPage, int width){
+        if(files.isEmpty() || width <= 0) return;
+        long generation = preloadGeneration.incrementAndGet();
         
         preloadExecutor.submit(() -> {
-            try(PDDocument document = Loader.loadPDF(new RandomAccessReadBufferedFile(file))){
-                PDFRenderer renderer = new PDFRenderer(document);
-                int from = Math.max(0, firstPage);
-                int to = Math.min(document.getNumberOfPages() - 1, lastPage);
-                for(int page = from; page <= to; page++){
-                    RenderCacheKey cacheKey = cacheKey(file, page, width);
-                    if(getPreloadedPage(cacheKey) != null) continue;
-                    BufferedImage renderImage = renderPageToImage(document, renderer, page, width);
-                    putPreloadedPage(cacheKey, SwingFXUtils.toFXImage(renderImage, null));
-                    renderImage.flush();
+            for(File file : files){
+                if(preloadGeneration.get() != generation) return;
+                if(file == null || isPreloaded(file, firstPage, lastPage, width)) continue;
+                
+                try(PDDocument document = Loader.loadPDF(new RandomAccessReadBufferedFile(file))){
+                    PDFRenderer renderer = new PDFRenderer(document);
+                    int from = Math.max(0, firstPage);
+                    int to = Math.min(document.getNumberOfPages() - 1, lastPage);
+                    for(int page = from; page <= to; page++){
+                        if(preloadGeneration.get() != generation) return;
+                        RenderCacheKey cacheKey = cacheKey(file, page, width);
+                        if(getPreloadedPage(cacheKey) != null) continue;
+                        BufferedImage renderImage = renderPageToImage(document, renderer, page, width);
+                        putPreloadedPage(cacheKey, SwingFXUtils.toFXImage(renderImage, null));
+                        renderImage.flush();
+                    }
+                }catch(Exception e){
+                    Log.eNotified(e);
                 }
-            }catch(Exception e){
-                Log.eNotified(e);
             }
         });
+    }
+    private static boolean isPreloaded(File file, int firstPage, int lastPage, int width){
+        for(int page = Math.max(0, firstPage); page <= lastPage; page++){
+            if(getPreloadedPage(cacheKey(file, page, width)) == null) return false;
+        }
+        return true;
     }
     
     private static BufferedImage renderPageToImage(PDDocument document, PDFRenderer renderer, int pageNumber, int width) throws IOException{

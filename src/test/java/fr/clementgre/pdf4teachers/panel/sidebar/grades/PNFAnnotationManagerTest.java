@@ -40,6 +40,8 @@ class PNFAnnotationManagerTest {
         assertTrue(PNFAnnotationManager.isPNFMarkRow("1. I  I"));
         assertFalse(PNFAnnotationManager.isPNFMarkRow("PNF"));
         assertFalse(PNFAnnotationManager.isPNFMarkRow("1. x"));
+        assertFalse(PNFAnnotationManager.isPNFMarkRow(""));
+        assertFalse(PNFAnnotationManager.isPNFMarkRow("  "));
     }
     
     @Test

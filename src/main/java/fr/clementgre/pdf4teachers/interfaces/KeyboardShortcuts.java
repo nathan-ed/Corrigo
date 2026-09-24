@@ -32,6 +32,8 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -44,6 +46,9 @@ public class KeyboardShortcuts {
     // and the target element is a SideBar, Slider, Button OR is not a Control, Element, KeyableHBox
     // These shortcuts might be used and consumed by other elements, and might not contain any modifier key.
     private final ArrayList<ShortcutRecord> lazyShortcuts = new ArrayList<>();
+    // Key -> time of its last KEY_PRESSED (auto-repeat included), removed on KEY_RELEASED.
+    private final Map<KeyCode, Long> heldKeys = new HashMap<>();
+    private static final long KEY_REPEAT_TIMEOUT_MS = 500;
     // List of menu bar shortcuts used to detect conflicts
     private final ArrayList<ShortcutRecord> menuBarShortcuts = new ArrayList<>();
     
@@ -142,25 +147,40 @@ public class KeyboardShortcuts {
         shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.previousFile"),
                 new KeyCodesCombination(KeyCode.LEFT, KeyCode.KP_LEFT,
                 KeyCodesCombination.SHORTCUT_DOWN, KeyCodesCombination.ALT_DOWN), e -> {
-            MainWindow.filesTab.loadPreviousFile();
-            e.consume();
+            oncePerKeyPress(e, () -> MainWindow.filesTab.loadPreviousFile());
         }));
         shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.nextFile"),
                 new KeyCodesCombination(KeyCode.RIGHT, KeyCode.KP_RIGHT, KeyCodesCombination.SHORTCUT_DOWN, KeyCodesCombination.ALT_DOWN), e -> {
-            MainWindow.filesTab.loadNextFile();
-            e.consume();
+            oncePerKeyPress(e, () -> MainWindow.filesTab.loadNextFile());
         }));
-        shortcuts.add(new ShortcutRecord("Previous exercise file",
+        // Previous/next file, staying on the same page (or on the selected exercise page in exercise correction mode).
+        // Ctrl+Alt(+Shift)+Arrows are often caught by Linux desktops (workspace switching): Alt+PageUp/PageDown also work.
+        shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.previousFileKeepPage"),
                 new KeyCodesCombination(KeyCode.LEFT, KeyCode.KP_LEFT,
                 KeyCodesCombination.SHORTCUT_DOWN, KeyCodesCombination.ALT_DOWN, KeyCodesCombination.SHIFT_DOWN), e -> {
-            MainWindow.filesTab.loadPreviousFileExercisePage();
-            e.consume();
+            oncePerKeyPress(e, () -> MainWindow.filesTab.openNeighborFile(-1, true));
         }));
-        shortcuts.add(new ShortcutRecord("Next exercise file",
+        shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.nextFileKeepPage"),
                 new KeyCodesCombination(KeyCode.RIGHT, KeyCode.KP_RIGHT,
                 KeyCodesCombination.SHORTCUT_DOWN, KeyCodesCombination.ALT_DOWN, KeyCodesCombination.SHIFT_DOWN), e -> {
-            MainWindow.filesTab.loadNextFileExercisePage();
-            e.consume();
+            oncePerKeyPress(e, () -> MainWindow.filesTab.openNeighborFile(1, true));
+        }));
+        shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.previousFileKeepPage"),
+                new KeyCodeCombination(KeyCode.PAGE_UP, KeyCodesCombination.ALT_DOWN), e -> {
+            oncePerKeyPress(e, () -> MainWindow.filesTab.openNeighborFile(-1, true));
+        }));
+        shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.nextFileKeepPage"),
+                new KeyCodeCombination(KeyCode.PAGE_DOWN, KeyCodesCombination.ALT_DOWN), e -> {
+            oncePerKeyPress(e, () -> MainWindow.filesTab.openNeighborFile(1, true));
+        }));
+        // Exercise correction mode: select the previous/next exercise
+        shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.previousExercise"),
+                new KeyCodesCombination(KeyCode.UP, KeyCode.KP_UP, KeyCodesCombination.ALT_DOWN), e -> {
+            if(canSelectExerciseOnNode(Main.window.getScene().getFocusOwner()) && MainWindow.footerBar.selectNeighborExercise(-1)) e.consume();
+        }));
+        shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.nextExercise"),
+                new KeyCodesCombination(KeyCode.DOWN, KeyCode.KP_DOWN, KeyCodesCombination.ALT_DOWN), e -> {
+            if(canSelectExerciseOnNode(Main.window.getScene().getFocusOwner()) && MainWindow.footerBar.selectNeighborExercise(1)) e.consume();
         }));
         // Begin/End and Page Up/Page Down
         shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.begin"),
@@ -261,13 +281,17 @@ public class KeyboardShortcuts {
         lazyShortcuts.add(new ShortcutRecord("",
                 new KeyCodesCombination(KeyCode.LEFT, KeyCode.KP_LEFT), e -> {
             if(!MainWindow.mainScreen.hasDocument(false)) return;
-            MainWindow.filesTab.loadPreviousFilePreservePage();
+            // In grid view and edit pages mode, arrows move between pages; in column view, between files.
+            if(MainWindow.mainScreen.isMultiPagesMode() || MainWindow.mainScreen.isEditPagesMode()) MainWindow.mainScreen.navigateLeft();
+            else oncePerKeyPress(e, () -> MainWindow.filesTab.openNeighborFile(-1, true));
             e.consume();
         }));
         lazyShortcuts.add(new ShortcutRecord("",
                 new KeyCodesCombination(KeyCode.RIGHT, KeyCode.KP_RIGHT), e -> {
             if(!MainWindow.mainScreen.hasDocument(false)) return;
-            MainWindow.filesTab.loadNextFilePreservePage();
+            // In grid view and edit pages mode, arrows move between pages; in column view, between files.
+            if(MainWindow.mainScreen.isMultiPagesMode() || MainWindow.mainScreen.isEditPagesMode()) MainWindow.mainScreen.navigateRight();
+            else oncePerKeyPress(e, () -> MainWindow.filesTab.openNeighborFile(1, true));
             e.consume();
         }));
         
@@ -316,7 +340,17 @@ public class KeyboardShortcuts {
         });
         
         main.setOnKeyPressed(this::processLazyShortcuts);
+        main.addEventFilter(KeyEvent.KEY_RELEASED, e -> heldKeys.remove(e.getCode()));
         
+    }
+    // Holding a key must not open dozens of files: the action is only run on the first KEY_PRESSED, until the key is released.
+    // A key whose KEY_RELEASED was lost (e.g. caught by a dialog) is considered released after KEY_REPEAT_TIMEOUT_MS without events.
+    private void oncePerKeyPress(KeyEvent e, Runnable action){
+        e.consume();
+        long now = System.currentTimeMillis();
+        Long lastPress = heldKeys.put(e.getCode(), now);
+        if(lastPress != null && now - lastPress < KEY_REPEAT_TIMEOUT_MS) return; // Auto-repeat of a held key
+        action.run();
     }
     public void processLazyShortcuts(KeyEvent e){
         Optional<ShortcutRecord> first = lazyShortcuts.stream()
@@ -402,6 +436,10 @@ public class KeyboardShortcuts {
         return true;
     }
     
+    // Alt+Up/Down is used by text fields and combo boxes (opening the popup).
+    private boolean canSelectExerciseOnNode(Node node){
+        return !canBeginEndOnNode(node) && !(node instanceof ComboBoxBase<?>);
+    }
     private boolean canBeginEndOnNode(Node node){
         if(node instanceof TextInputControl) return true;
         else if(node instanceof Spinner<?> spinner){

@@ -59,22 +59,6 @@ class ExerciseCorrectionWorkflowTest {
     }
     
     @Test
-    void newTopLevelGradeUsesNextExerciseKey(){
-        assertEquals("Q4", ExerciseCorrectionWorkflow.getNewGradeExerciseKey(true, 3, -1));
-    }
-    
-    @Test
-    void newSubGradeInheritsTopLevelExerciseKey(){
-        assertEquals("Q3", ExerciseCorrectionWorkflow.getNewGradeExerciseKey(false, -1, 2));
-    }
-    
-    @Test
-    void newGradeExerciseKeyRejectsInvalidIndexes(){
-        assertThrows(IllegalArgumentException.class, () -> ExerciseCorrectionWorkflow.getNewGradeExerciseKey(true, -1, -1));
-        assertThrows(IllegalArgumentException.class, () -> ExerciseCorrectionWorkflow.getNewGradeExerciseKey(false, -1, -1));
-    }
-    
-    @Test
     void newTopLevelGradeStaysOnFirstPage(){
         assertEquals(0, ExerciseCorrectionWorkflow.getNewGradePageIndex(true, OptionalInt.of(4), 3, 8));
     }

@@ -312,59 +312,45 @@ public class FileTab extends SideTab {
     
     // NAVIGATION
     public void loadPreviousFile(){
-        int selected = files.getSelectionModel().getSelectedIndex();
-        if(selected <= 0){
-            MainWindow.showNotification(AlertIconType.INFORMATION, TR.tr("filesTab.navigation.beginningOfList"), 15);
-            return;
-        }
-
-        File toOpen = files.getItems().get(selected - 1);
-        if(toOpen == null) return;
-        MainWindow.mainScreen.openFile(toOpen);
+        openNeighborFile(-1, false);
     }
     public void loadNextFile(){
-        int selected = files.getSelectionModel().getSelectedIndex();
-        if(selected == files.getItems().size() - 1){
-            MainWindow.showNotification(AlertIconType.INFORMATION, TR.tr("filesTab.navigation.endOfList"), 15);
-            return;
-        }
-
-        File toOpen = files.getItems().get(selected + 1);
-        if(toOpen == null) return;
-        MainWindow.mainScreen.openFile(toOpen);
+        openNeighborFile(1, false);
     }
-    public void loadPreviousFileExercisePage(){
-        int selected = files.getSelectionModel().getSelectedIndex();
-        if(selected <= 0){
+    
+    /**
+     * Opens the previous (delta = -1) or next (delta = 1) file of the list.
+     * @param keepPage In exercise correction mode, jumps to the selected exercise page.
+     *                 Otherwise, stays on the page currently visible.
+     */
+    public void openNeighborFile(int delta, boolean keepPage){
+        // A file is being opened: ignore the key, the selected index is not up to date yet.
+        if(!MainWindow.mainScreen.hasDocument(false)) return;
+        
+        int target = files.getSelectionModel().getSelectedIndex() + delta;
+        if(target < 0){
             MainWindow.showNotification(AlertIconType.INFORMATION, TR.tr("filesTab.navigation.beginningOfList"), 15);
             return;
         }
-        
-        File toOpen = files.getItems().get(selected - 1);
-        if(toOpen == null) return;
-        openFileForExercisePage(toOpen);
-    }
-    public void loadNextFileExercisePage(){
-        int selected = files.getSelectionModel().getSelectedIndex();
-        if(selected == files.getItems().size() - 1){
+        if(target >= files.getItems().size()){
             MainWindow.showNotification(AlertIconType.INFORMATION, TR.tr("filesTab.navigation.endOfList"), 15);
             return;
         }
-        
-        File toOpen = files.getItems().get(selected + 1);
+        File toOpen = files.getItems().get(target);
         if(toOpen == null) return;
-        openFileForExercisePage(toOpen);
-    }
-    private void openFileForExercisePage(File toOpen){
+        
         OptionalInt exercisePage = getExerciseNavigationTarget();
         if(exercisePage.isPresent()){
-            preloadNeighborExercisePages();
-            MainWindow.mainScreen.setForceScrollToPage(exercisePage.getAsInt());
-            MainWindow.mainScreen.openFile(toOpen, true);
-            return;
+            MainWindow.mainScreen.openFile(toOpen, true, exercisePage.getAsInt());
+        }else if(keepPage){
+            // Currently visible page (not cursor position - works without clicking)
+            PageRenderer visiblePage = MainWindow.mainScreen.document.getFirstTopVisiblePage();
+            MainWindow.mainScreen.openFile(toOpen, true, visiblePage != null ? visiblePage.getPage() : 0);
+        }else{
+            MainWindow.mainScreen.openFile(toOpen);
         }
-        MainWindow.mainScreen.openFile(toOpen);
     }
+    
     private OptionalInt getExerciseNavigationTarget(){
         if(MainWindow.footerBar != null && MainWindow.footerBar.isExerciseCorrectionMode() && MainWindow.mainScreen.hasDocument(false)){
             return ExerciseCorrectionWorkflow.getNavigationTarget(true, MainWindow.footerBar.getSelectedExercisePageIndex(), MainWindow.mainScreen.document.getPagesNumber());
@@ -372,80 +358,20 @@ public class FileTab extends SideTab {
         return OptionalInt.empty();
     }
     public void preloadNeighborExercisePages(){
-        OptionalInt exercisePage = getExerciseNavigationTarget();
-        if(exercisePage.isEmpty()) return;
-        
-        int selected = files.getSelectionModel().getSelectedIndex();
-        int renderWidth = PageRenderer.getRenderWidthForCurrentSettings();
-        preloadNeighborExercisePages(selected - 1, exercisePage.getAsInt(), renderWidth);
-        preloadNeighborExercisePages(selected + 1, exercisePage.getAsInt(), renderWidth);
+        getExerciseNavigationTarget().ifPresent(this::preloadNeighborPages);
     }
-    private void preloadNeighborExercisePages(int fileIndex, int exercisePage, int renderWidth){
-        if(fileIndex < 0 || fileIndex >= files.getItems().size()) return;
-        
-        File file = files.getItems().get(fileIndex);
-        if(file == null) return;
-        Edition.preloadEditFile(file);
-        PDFPagesRender.preloadPages(file, exercisePage, exercisePage + 1, renderWidth);
-    }
-
-    // NAVIGATION WITH PAGE PRESERVATION
-    public void loadPreviousFilePreservePage(){
+    // Preloads the edition and the given page (and the next one) of the next and previous files, next file first.
+    public void preloadNeighborPages(int page){
         int selected = files.getSelectionModel().getSelectedIndex();
-        if(selected <= 0){
-            MainWindow.showNotification(AlertIconType.INFORMATION, TR.tr("filesTab.navigation.beginningOfList"), 15);
-            return;
+        ArrayList<File> neighbors = new ArrayList<>();
+        for(int fileIndex : new int[]{selected + 1, selected - 1}){
+            if(fileIndex < 0 || fileIndex >= files.getItems().size()) continue;
+            File file = files.getItems().get(fileIndex);
+            if(file == null) continue;
+            Edition.preloadEditFile(file);
+            neighbors.add(file);
         }
-
-        File toOpen = files.getItems().get(selected - 1);
-        if(toOpen == null) return;
-        
-        OptionalInt exercisePage = getExerciseNavigationTarget();
-        if(exercisePage.isPresent()){
-            preloadNeighborExercisePages();
-            MainWindow.mainScreen.setForceScrollToPage(exercisePage.getAsInt());
-            MainWindow.mainScreen.openFile(toOpen, true);
-            return;
-        }
-
-        // Get currently visible page (not cursor position - works without clicking)
-        PageRenderer visiblePage = MainWindow.mainScreen.document.getFirstTopVisiblePage();
-        int currentPage = visiblePage != null ? visiblePage.getPage() : 0;
-
-        // Set the target page BEFORE opening the file
-        // openFile() will scroll to this page after layout
-        // Pass resetScrollValue=true to prevent restoring saved scroll from edition file
-        MainWindow.mainScreen.setForceScrollToPage(currentPage);
-        MainWindow.mainScreen.openFile(toOpen, true);
-    }
-
-    public void loadNextFilePreservePage(){
-        int selected = files.getSelectionModel().getSelectedIndex();
-        if(selected == files.getItems().size() - 1){
-            MainWindow.showNotification(AlertIconType.INFORMATION, TR.tr("filesTab.navigation.endOfList"), 15);
-            return;
-        }
-
-        File toOpen = files.getItems().get(selected + 1);
-        if(toOpen == null) return;
-        
-        OptionalInt exercisePage = getExerciseNavigationTarget();
-        if(exercisePage.isPresent()){
-            preloadNeighborExercisePages();
-            MainWindow.mainScreen.setForceScrollToPage(exercisePage.getAsInt());
-            MainWindow.mainScreen.openFile(toOpen, true);
-            return;
-        }
-
-        // Get currently visible page (not cursor position - works without clicking)
-        PageRenderer visiblePage = MainWindow.mainScreen.document.getFirstTopVisiblePage();
-        int currentPage = visiblePage != null ? visiblePage.getPage() : 0;
-
-        // Set the target page BEFORE opening the file
-        // openFile() will scroll to this page after layout
-        // Pass resetScrollValue=true to prevent restoring saved scroll from edition file
-        MainWindow.mainScreen.setForceScrollToPage(currentPage);
-        MainWindow.mainScreen.openFile(toOpen, true);
+        PDFPagesRender.preloadPages(neighbors, page, page + 1, PageRenderer.getRenderWidthForCurrentSettings());
     }
     
     public void refresh(){

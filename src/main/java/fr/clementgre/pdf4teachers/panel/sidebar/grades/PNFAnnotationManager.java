@@ -11,6 +11,7 @@ import fr.clementgre.pdf4teachers.document.editions.elements.TextElement;
 import fr.clementgre.pdf4teachers.document.editions.undoEngine.UType;
 import fr.clementgre.pdf4teachers.document.render.display.PageRenderer;
 import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
+import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.utils.fonts.FontUtils;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -40,44 +41,54 @@ public class PNFAnnotationManager {
         int exerciseIndex = getSelectedExerciseIndex();
         int rowCount = getPNFRowCount();
         if(exerciseIndex < 0 || exerciseIndex >= rowCount){
-            MainWindow.footerBar.showToast(Color.web("#6a1b1b"), Color.WHITE, "Select an exercise row before adding PNF.");
+            MainWindow.footerBar.showToast(Color.web("#6a1b1b"), Color.WHITE, TR.tr("pnf.noExerciseSelected"));
             return;
         }
         
-        addPNFAnnotation(page, pageX, pageY);
-        incrementSummaryMark(exerciseIndex, rowCount);
+        // All the changes below are registered as a single undo action.
+        UndoGroup undoGroup = new UndoGroup();
+        incrementSummaryMark(exerciseIndex, rowCount, undoGroup);
+        addPNFAnnotation(page, pageX, pageY, undoGroup);
         Edition.setUnsave("PNF annotation added");
         MainWindow.mainScreen.document.edition.save(false);
     }
     
-    private static void addPNFAnnotation(PageRenderer page, double pageX, double pageY){
+    // The first action of the group starts a new undo step, the following ones are merged into it.
+    private static class UndoGroup {
+        private boolean started;
+        UType next(){
+            if(started) return UType.ELEMENT_NO_COUNT_BEFORE;
+            started = true;
+            return UType.ELEMENT;
+        }
+    }
+    
+    private static void addPNFAnnotation(PageRenderer page, double pageX, double pageY, UndoGroup undoGroup){
         TextElement element = new TextElement(page.toGridX(pageX), page.toGridY(pageY), page.getPage(),
                 true, PNF_TEXT, PNF_COLOR, PNF_FONT, 0);
-        page.addElement(element, true, UType.ELEMENT);
+        page.addElement(element, true, undoGroup.next());
         element.centerOnCoordinatesY();
     }
     
-    private static void incrementSummaryMark(int exerciseIndex, int rowCount){
+    private static void incrementSummaryMark(int exerciseIndex, int rowCount, UndoGroup undoGroup){
         PageRenderer firstPage = MainWindow.mainScreen.document.getPage(0);
-        ensureSummaryHeader(firstPage);
-        ensureSummaryRows(firstPage, rowCount);
-        
-        TextElement row = getSummaryRows(firstPage).get(exerciseIndex);
-        row.setText(addMarkToRowText(row.getText(), exerciseIndex));
-    }
-    
-    private static void ensureSummaryHeader(PageRenderer firstPage){
-        if(getSummaryHeader(firstPage).isPresent()) return;
-        
-        TextElement header = new TextElement(TABLE_X, TABLE_HEADER_Y, 0, true, PNF_TEXT, PNF_COLOR, PNF_TABLE_FONT, 0);
-        firstPage.addElement(header, true, UType.ELEMENT);
-    }
-    
-    private static void ensureSummaryRows(PageRenderer firstPage, int rowCount){
         ArrayList<TextElement> rows = getSummaryRows(firstPage);
+        
+        // Existing row: edit it first, as a text edit always registers a new undo step.
+        if(exerciseIndex < rows.size()){
+            undoGroup.next();
+            TextElement row = rows.get(exerciseIndex);
+            row.setText(addMarkToRowText(row.getText(), exerciseIndex));
+        }
+        
+        if(getSummaryHeader(firstPage).isEmpty()){
+            TextElement header = new TextElement(TABLE_X, TABLE_HEADER_Y, 0, true, PNF_TEXT, PNF_COLOR, PNF_TABLE_FONT, 0);
+            firstPage.addElement(header, true, undoGroup.next());
+        }
         for(int i = rows.size(); i < rowCount; i++){
-            TextElement row = new TextElement(TABLE_X, getRowY(i), 0, true, getRowLabel(i), PNF_COLOR, PNF_TABLE_FONT, 0);
-            firstPage.addElement(row, true, UType.ELEMENT);
+            String text = i == exerciseIndex ? addMarkToRowText(getRowLabel(i), i) : getRowLabel(i);
+            TextElement row = new TextElement(TABLE_X, getRowY(i), 0, true, text, PNF_COLOR, PNF_TABLE_FONT, 0);
+            firstPage.addElement(row, true, undoGroup.next());
         }
     }
     
@@ -114,7 +125,7 @@ public class PNFAnnotationManager {
     }
     
     static boolean isPNFMarkRow(String text){
-        return text.isBlank() || text.matches("\\d+\\.\\s*(I\\s*)*");
+        return text.matches("\\d+\\.\\s*(I\\s*)*");
     }
     
     static int countMarks(String text){
@@ -130,14 +141,7 @@ public class PNFAnnotationManager {
     }
     
     private static int getSelectedExerciseIndex(){
-        String selectedExercise = MainWindow.footerBar.getSelectedExerciseKey();
-        if(selectedExercise == null || !selectedExercise.startsWith("Q")) return -1;
-        
-        try{
-            return Integer.parseInt(selectedExercise.substring(1)) - 1;
-        }catch(NumberFormatException e){
-            return -1;
-        }
+        return MainWindow.footerBar.getSelectedExerciseIndex();
     }
     
     private static int getPNFRowCount(){

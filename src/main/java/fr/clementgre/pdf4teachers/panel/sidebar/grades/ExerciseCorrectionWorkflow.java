@@ -23,15 +23,6 @@ public class ExerciseCorrectionWorkflow {
         return Math.min(targetPageIndex + 1, pagesCount - 1);
     }
     
-    public static String getNewGradeExerciseKey(boolean parentIsRoot, int parentChildrenCount, int topLevelParentIndex){
-        if(parentIsRoot){
-            if(parentChildrenCount < 0) throw new IllegalArgumentException("parentChildrenCount must be positive or zero.");
-            return "Q" + (parentChildrenCount + 1);
-        }
-        if(topLevelParentIndex < 0) throw new IllegalArgumentException("topLevelParentIndex must be positive or zero.");
-        return "Q" + (topLevelParentIndex + 1);
-    }
-    
     public static int getNewGradePageIndex(boolean parentIsRoot, OptionalInt mappedExercisePage, int fallbackPageIndex, int pagesCount){
         if(pagesCount <= 0) throw new IllegalArgumentException("pagesCount must be positive.");
         if(parentIsRoot) return 0;

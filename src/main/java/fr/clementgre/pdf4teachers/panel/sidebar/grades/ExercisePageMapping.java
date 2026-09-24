@@ -6,6 +6,7 @@
 package fr.clementgre.pdf4teachers.panel.sidebar.grades;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,6 +26,52 @@ public class ExercisePageMapping {
             questions.add("Q" + i);
         }
         return questions;
+    }
+    
+    // Exercise keys are the names of the top-level grades, so that the mapping follows the exercises when they are reordered.
+    public static List<String> buildExerciseKeys(List<String> exerciseNames){
+        ArrayList<String> keys = new ArrayList<>();
+        for(int i = 0; i < exerciseNames.size(); i++){
+            String name = exerciseNames.get(i) == null ? "" : exerciseNames.get(i).trim();
+            String key = name.isEmpty() ? "Q" + (i + 1) : name;
+            if(keys.contains(key)) key += " (" + (i + 1) + ")";
+            keys.add(key);
+        }
+        return keys;
+    }
+    // Identifies an evaluation (grade scale) by its exercises, each evaluation having its own mapping.
+    public static String getSignature(List<String> exerciseKeys){
+        return String.join(" | ", exerciseKeys);
+    }
+    // Mappings saved before the exercises were identified by name used "Q1", "Q2"... keys.
+    public static ExercisePageMapping fromLegacyQuestionKeys(ExercisePageMapping legacy, List<String> exerciseKeys){
+        ExercisePageMapping mapping = new ExercisePageMapping();
+        for(int i = 0; i < exerciseKeys.size(); i++){
+            OptionalInt page = legacy.getPageIndex("Q" + (i + 1));
+            if(page.isPresent()) mapping.setPageIndex(exerciseKeys.get(i), page.getAsInt());
+        }
+        return mapping;
+    }
+    
+    // The mapping sharing the most mapped exercises with these keys, or null if none share any.
+    public static ExercisePageMapping findClosest(Collection<ExercisePageMapping> mappings, List<String> exerciseKeys){
+        ExercisePageMapping closest = null;
+        long closestCount = 0;
+        for(ExercisePageMapping mapping : mappings){
+            long count = exerciseKeys.stream().filter(mapping.pageIndexes::containsKey).count();
+            if(count > closestCount){
+                closest = mapping;
+                closestCount = count;
+            }
+        }
+        return closest;
+    }
+    public ExercisePageMapping copyFor(List<String> exerciseKeys){
+        ExercisePageMapping copy = new ExercisePageMapping();
+        for(String key : exerciseKeys){
+            getPageIndex(key).ifPresent(page -> copy.setPageIndex(key, page));
+        }
+        return copy;
     }
     
     public void setOneBasedPage(String exerciseKey, int oneBasedPage, int pagesCount){

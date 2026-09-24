@@ -5,6 +5,7 @@
 
 package fr.clementgre.pdf4teachers.document.editions.elements;
 
+import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.menus.NodeMenuItem;
 import fr.clementgre.pdf4teachers.document.editions.Edition;
@@ -222,7 +223,7 @@ public abstract class Element extends Region {
     protected abstract void setupMenu();
     
     protected NodeMenuItem getSendToPageMenuItem(){
-        NodeMenuItem item = new NodeMenuItem("Send to page...", false);
+        NodeMenuItem item = new NodeMenuItem(TR.tr("elements.sendToPage"), false);
         item.setOnAction(e -> showSendToPageDialog());
         return item;
     }
@@ -230,7 +231,7 @@ public abstract class Element extends Region {
     private void showSendToPageDialog(){
         if(!MainWindow.mainScreen.hasDocument(false)) return;
         
-        TextInputAlert alert = new TextInputAlert("Send to page", "Send annotation to page", "Page");
+        TextInputAlert alert = new TextInputAlert(TR.tr("elements.sendToPage.title"), TR.tr("elements.sendToPage.header"), TR.tr("exercisePagesDialog.page"));
         alert.setText(String.valueOf(getPageNumber() + 1));
         
         if(!alert.getShowAndWaitIsDefaultButton()) return;
@@ -238,7 +239,7 @@ public abstract class Element extends Region {
         Integer targetPage = MathUtils.parseIntOrNull(alert.getText().trim());
         int pagesCount = MainWindow.mainScreen.document.getPagesNumber();
         if(targetPage == null || targetPage < 1 || targetPage > pagesCount){
-            new WrongAlert("Invalid page number", "Enter a page number between 1 and " + pagesCount + ".", false).showAndWait();
+            new WrongAlert(TR.tr("elements.sendToPage.invalid.title"), TR.tr("elements.sendToPage.invalid.details", pagesCount), false).showAndWait();
             return;
         }
         

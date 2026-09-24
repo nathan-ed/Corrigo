@@ -17,28 +17,18 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class TextElementsData extends SimpleConfig {
-    
-    private static final ScheduledExecutorService saveScheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
-        Thread thread = new Thread(runnable, "TextElementsData saver");
-        thread.setDaemon(true);
-        return thread;
-    });
-    private static ScheduledFuture<?> scheduledSave;
     
     public TextElementsData(){
         super("textelements");
     }
     
-    public static synchronized void requestSave(){
-        if(scheduledSave != null) scheduledSave.cancel(false);
-        scheduledSave = saveScheduler.schedule(() -> new TextElementsData().saveData(), 1, TimeUnit.SECONDS);
+    public static void requestSave(){
+        if(MainWindow.userData == null) return;
+        SimpleConfig data = MainWindow.userData.getSimpleConfig(TextElementsData.class);
+        if(data != null) data.scheduleSave();
     }
     
     @Override
