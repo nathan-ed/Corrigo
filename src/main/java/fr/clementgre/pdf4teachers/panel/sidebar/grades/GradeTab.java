@@ -62,7 +62,7 @@ public class GradeTab extends SideTab {
     
     public void setup(){
         
-        fontTiers.put(0, new TiersFont(FontUtils.getFont("Open Sans", false, false, 28), Color.valueOf("#990000"), true, false, false));
+        fontTiers.put(0, new TiersFont(FontUtils.getFont("Open Sans", false, false, 28), Color.valueOf("#990000"), false, false, false));
         fontTiers.put(1, new TiersFont(FontUtils.getFont("Open Sans", false, false, 24), Color.valueOf("#b31a1a"), false, false, false));
         fontTiers.put(2, new TiersFont(FontUtils.getFont("Open Sans", false, false, 18), Color.valueOf("#cc3333"), false, false, false));
         fontTiers.put(3, new TiersFont(FontUtils.getFont("Open Sans", false, false, 18), Color.valueOf("#e64d4d"), false, false, false));
