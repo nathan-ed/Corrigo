@@ -17,6 +17,7 @@ import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.panel.sidebar.SideBar;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.gridviewfactory.ImageGridElement;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.gridviewfactory.VectorGridElement;
 import fr.clementgre.pdf4teachers.panel.sidebar.texts.TextTreeItem;
@@ -293,6 +294,29 @@ public class KeyboardShortcuts {
             if(MainWindow.mainScreen.isMultiPagesMode() || MainWindow.mainScreen.isEditPagesMode()) MainWindow.mainScreen.navigateRight();
             else oncePerKeyPress(e, () -> MainWindow.filesTab.openNeighborFile(1, true));
             e.consume();
+        }));
+        
+        /*******************************/
+        /*** LAZY: Scored comments *****/
+        /*******************************/
+        // 1 to 9 place the n-th entry listed in the scored comments panel at the mouse position.
+        lazyShortcuts.add(new ShortcutRecord("",
+                new CustomKeyCombination(e -> {
+            Integer number = MathUtils.parseIntFromKeyEventOrNull(e);
+            return number != null && number >= 1 && number <= 9;
+        }, KeyCodesCombination.SHIFT_ANY), e -> {
+            if(!MainWindow.mainScreen.hasDocument(false) || MainWindow.mainScreen.isEditPagesMode()) return;
+            // Text fields don't consume the KEY_PRESSED of the characters they receive.
+            Node focus = Main.window.getScene().getFocusOwner();
+            if(focus instanceof TextInputControl || focus instanceof Spinner<?> || focus instanceof ComboBoxBase<?>) return;
+            if(MainWindow.gradeTab.scoredCommentPanel.placeVisibleEntry(MathUtils.parseIntFromKeyEventOrNull(e) - 1)) e.consume();
+        }));
+        lazyShortcuts.add(new ShortcutRecord("",
+                new KeyCodeCombination(KeyCode.ESCAPE), e -> {
+            if(ScoredComments.getArmed() != null){
+                ScoredComments.disarm();
+                e.consume();
+            }
         }));
         
         /*******************************/

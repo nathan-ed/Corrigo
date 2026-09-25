@@ -143,13 +143,22 @@ public class GradeTreeItemField extends ShortcutsTextArea {
                 }
                 case GRADE -> {
                     // dont accept a value higher than the total
+                    // A typed value always wins over the value computed from the scored comments.
+                    // The field is also set by the code with the current value: that is not a typed value.
                     try{
                         double value = Double.parseDouble(newText.replaceAll(Pattern.quote(","), "."));
                         if(value > treeItem.getCore().getTotal() && !treeItem.hasSubGrade()){
                             setText(MainWindow.gradesDigFormat.format(treeItem.getCore().getTotal()));
                             panel.gradeField.setText(MainWindow.gradesDigFormat.format(treeItem.getCore().getTotal()));
-                        }else treeItem.getCore().setValue(value);
+                        }else{
+                            // The field shows 3 decimals at most
+                            if(Math.abs(value - treeItem.getCore().getValue()) > .0005){
+                                treeItem.getCore().setValueFromComments(false);
+                                treeItem.getCore().setValue(value);
+                            }
+                        }
                     }catch(NumberFormatException e){
+                        if(treeItem.getCore().getValue() != -1) treeItem.getCore().setValueFromComments(false);
                         treeItem.getCore().setValue(-1);
                     }
                 }

@@ -18,6 +18,8 @@ import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeRating;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTab;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredCommentGrades;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
 import fr.clementgre.pdf4teachers.utils.StringUtils;
 import javafx.application.Platform;
 import javafx.beans.property.*;
@@ -47,6 +49,9 @@ public class GradeElement extends Element {
     private int index;
     private String parentPath;
     private final BooleanProperty alwaysVisible;
+    // The value is computed from the scored comments of this grade (see ScoredComments), until a value is typed.
+    private final BooleanProperty valueFromComments = new SimpleBooleanProperty(false);
+    private boolean settingValueFromComments;
     
     public int nextRealYToUse;
     
@@ -102,6 +107,7 @@ public class GradeElement extends Element {
         nameProperty().addListener((observable, oldValue, newValue) -> {
             updateText();
             Edition.setUnsave("GradeNameChanged");
+            ScoredComments.onGradeRenamed(getParentPath() + "\\" + oldValue, getParentPath() + "\\" + newValue);
             
             // Check if name is null
             if(newValue.isBlank()){
@@ -159,7 +165,8 @@ public class GradeElement extends Element {
                     }else{
                         setRealY(getPage().getNewElementYOnGrid());
                         centerOnCoordinatesY();
-                        select();
+                        // A value computed from comments must not take the focus from the page.
+                        if(!settingValueFromComments) select();
                     }
                 }
                 setVisible(true);
@@ -174,7 +181,7 @@ public class GradeElement extends Element {
             // When this is called due to a undo action, need to update GradeTreeItem
             if(MainWindow.mainScreen.getUndoEngine().isUndoingThings()){
                 treeItem.getPanel().gradeField.setText(newValue.doubleValue() == -1 ? "" : MainWindow.gradesDigFormat.format(newValue));
-            }else if(!getGradeTreeItem().hasSubGrade()){ // Parents have an auto-defined value so otherwise, this is useless
+            }else if(!getGradeTreeItem().hasSubGrade() && !settingValueFromComments){ // Parents and values computed from comments have an auto-defined value so otherwise, this is useless
                 // This is the first registration of this action/property.
                 if(!MainWindow.mainScreen.isNextUndoActionProperty(valueProperty())){
                     MainWindow.mainScreen.registerNewAction(new ObservableChangedUndoAction<>(this, valueProperty(), oldValue, UType.ELEMENT));
@@ -184,6 +191,7 @@ public class GradeElement extends Element {
         totalProperty().addListener((observable, oldValue, newValue) -> {
             Edition.setUnsave("GradeTotalChanged");
             updateText();
+            if(isValueFromComments()) ScoredComments.recomputeGrade(getPath(), false);
             
             if((GradeTreeView.getTotal()).getCore().equals(this)) return; // This is Root
             ((GradeTreeItem) MainWindow.gradeTab.treeView.getGradeTreeItem(GradeTreeView.getTotal(), this).getParent()).makeSum(false);
@@ -245,6 +253,8 @@ public class GradeElement extends Element {
         item4.disableProperty().bind(MainWindow.gradeTab.isLockGradeScaleProperty());
         NodeMenuItem item5 = new NodeMenuItem(TR.tr("gradeTab.gradeMenu.hideUnfilledSubGrades"), false);
         item5.setToolTip(TR.tr("gradeTab.gradeMenu.hideUnfilledSubGrades.tooltip"));
+        NodeMenuItem item6 = new NodeMenuItem(TR.tr("scoredComments.gradeMenu.recompute"), false);
+        item6.setToolTip(TR.tr("scoredComments.gradeMenu.recompute.tooltip"));
         
         
         menu.setOnShowing((e) -> {
@@ -258,6 +268,10 @@ public class GradeElement extends Element {
                     if(treeItem.hasSubGrade()) item5.setName(TR.tr("gradeTab.gradeMenu.hideUnfilledSubGrades"));
                     else item5.setName(TR.tr("gradeTab.gradeMenu.hideUnfilled"));
                     menu.getItems().add(item5);
+                }
+                // The value was typed while this grade has scored comments
+                if(!treeItem.hasSubGrade() && !isValueFromComments() && ScoredComments.getPlacedComments().stream().anyMatch(c -> c.getGradePath().equals(getPath()))){
+                    menu.getItems().add(item6);
                 }
                 NodeMenuItem.setupMenuNow(menu);
             });
@@ -293,6 +307,7 @@ public class GradeElement extends Element {
         item5.setOnAction(e -> {
             setAlwaysVisible(false, true);
         });
+        item6.setOnAction(e -> ScoredComments.recomputeGrade(getPath(), true));
     }
     
     @Override
@@ -356,6 +371,7 @@ public class GradeElement extends Element {
         data.put("outOfTotal", outOfTotal.getValue());
         data.put("name", name.getValue());
         data.put("alwaysVisible", alwaysVisible.get());
+        if(isValueFromComments()) data.put(ScoredCommentGrades.KEY_VALUE_SOURCE, ScoredCommentGrades.VALUE_SOURCE_COMMENTS);
         
         return data;
     }
@@ -397,7 +413,9 @@ public class GradeElement extends Element {
             y *= 100;
         }
         
-        return new GradeElement(x, y, page, hasPage, value, total, outOfTotal, index, parentPath, name, alwaysVisible);
+        GradeElement element = new GradeElement(x, y, page, hasPage, value, total, outOfTotal, index, parentPath, name, alwaysVisible);
+        element.valueFromComments.set(ScoredCommentGrades.VALUE_SOURCE_COMMENTS.equals(Config.getString(data, ScoredCommentGrades.KEY_VALUE_SOURCE)));
+        return element;
     }
     
     public static void readYAMLDataAndCreate(HashMap<String, Object> data, boolean upscaleGrid){
@@ -522,6 +540,31 @@ public class GradeElement extends Element {
         this.value.set(value);
     }
     
+    // Sets a value computed from the scored comments: it is not an undo action, the comments are.
+    public void setComputedValue(double value){
+        valueFromComments.set(value != -1);
+        settingValueFromComments = true;
+        try{
+            this.value.set(value);
+        }finally{
+            settingValueFromComments = false;
+        }
+        GradeTreeItem treeItem = getGradeTreeItem();
+        if(treeItem != null && treeItem.getPanel() != null && treeItem.getPanel().gradeField != null){
+            treeItem.getPanel().gradeField.setText(value == -1 ? "" : MainWindow.gradesDigFormat.format(value));
+        }
+    }
+    public boolean isValueFromComments(){
+        return valueFromComments.get();
+    }
+    public BooleanProperty valueFromCommentsProperty(){
+        return valueFromComments;
+    }
+    public void setValueFromComments(boolean valueFromComments){
+        if(this.valueFromComments.get() != valueFromComments) Edition.setUnsave("GradeValueSourceChanged");
+        this.valueFromComments.set(valueFromComments);
+    }
+    
     public double getTotal(){
         return total.get();
     }
@@ -630,7 +673,9 @@ public class GradeElement extends Element {
     
     @Override
     public Element clone(){
-        return new GradeElement(getRealX(), getRealY(), pageNumber, true, value.getValue(), total.getValue(), outOfTotal.getValue(), index, parentPath, name.getValue(), alwaysVisible.get());
+        GradeElement element = new GradeElement(getRealX(), getRealY(), pageNumber, true, value.getValue(), total.getValue(), outOfTotal.getValue(), index, parentPath, name.getValue(), alwaysVisible.get());
+        element.valueFromComments.set(isValueFromComments());
+        return element;
     }
     /**
      * Sort the grades so each grade appears after its parents.
@@ -665,7 +710,9 @@ public class GradeElement extends Element {
     }
     @Override
     public Element cloneHeadless(){
-        return new GradeElement(getRealX(), getRealY(), pageNumber, false, value.getValue(), total.getValue(), outOfTotal.getValue(), index, parentPath, name.getValue(), alwaysVisible.get());
+        GradeElement element = new GradeElement(getRealX(), getRealY(), pageNumber, false, value.getValue(), total.getValue(), outOfTotal.getValue(), index, parentPath, name.getValue(), alwaysVisible.get());
+        element.valueFromComments.set(isValueFromComments());
+        return element;
     }
     public int compareStructureTo(GradeElement grade){
         return (getParentPath() + "\\" + getName()).compareTo(grade.getParentPath() + "\\" + grade.getName());

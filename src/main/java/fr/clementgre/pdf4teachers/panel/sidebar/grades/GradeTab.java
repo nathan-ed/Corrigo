@@ -18,15 +18,19 @@ import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.panel.sidebar.SideTab;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.export.GradeExportWindow;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredCommentPanel;
 import fr.clementgre.pdf4teachers.utils.StringUtils;
 import fr.clementgre.pdf4teachers.utils.fonts.FontUtils;
 import fr.clementgre.pdf4teachers.utils.svg.SVGPathIcons;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -42,6 +46,7 @@ public class GradeTab extends SideTab {
     public HBox optionPane = new HBox();
     
     public GradeTreeView treeView;
+    public ScoredCommentPanel scoredCommentPanel;
     
     public static HashMap<Integer, TiersFont> fontTiers = new HashMap<>();
     
@@ -83,7 +88,16 @@ public class GradeTab extends SideTab {
         optionPane.getChildren().addAll(new HBoxSpacer(), lockGradeScale, generatePositions, settings, link, export);
         
         treeView = new GradeTreeView(this);
-        pane.getChildren().addAll(optionPane, treeView);
+        treeView.prefHeightProperty().unbind();
+        scoredCommentPanel = new ScoredCommentPanel();
+        scoredCommentPanel.setupTreeViewListener(treeView);
+        
+        SplitPane split = new SplitPane(treeView, scoredCommentPanel);
+        split.setOrientation(Orientation.VERTICAL);
+        split.setDividerPositions(.55);
+        SplitPane.setResizableWithParent(scoredCommentPanel, false);
+        VBox.setVgrow(split, Priority.ALWAYS);
+        pane.getChildren().addAll(optionPane, split);
         
     }
     

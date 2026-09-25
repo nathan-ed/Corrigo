@@ -16,6 +16,7 @@ import fr.clementgre.pdf4teachers.interfaces.windows.log.Log;
 import fr.clementgre.pdf4teachers.panel.MainScreen.MainScreen;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
 import fr.clementgre.pdf4teachers.panel.sidebar.skills.data.Notation;
 import fr.clementgre.pdf4teachers.panel.sidebar.skills.data.Skill;
 import fr.clementgre.pdf4teachers.panel.sidebar.skills.data.SkillsAssessment;
@@ -76,7 +77,10 @@ public class Edition{
         MainWindow.gradeTab.treeView.clearElements(true, false); // Generate root in case of no root in edition
         
         try{
-            if(!editFile.exists()) return true; // File does not exist
+            if(!editFile.exists()){ // File does not exist
+                ScoredComments.fireChanged(false);
+                return true;
+            }
             Config config = loadConfig(editFile);
             int versionID = (int) config.getLong("versionID");
     
@@ -109,6 +113,7 @@ public class Edition{
             isSave.set(true);
             MainWindow.gradeTab.treeView.updateAllSum();
             MainWindow.textTab.treeView.onFileSection.updateElementsList();
+            ScoredComments.fireChanged(false);
             
             return true;
         }catch(IOException e){

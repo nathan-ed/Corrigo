@@ -21,6 +21,9 @@ import fr.clementgre.pdf4teachers.panel.sidebar.SideBar;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.PNFAnnotationManager;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComment;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredCommentGrades;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.PaintTab;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.gridviewfactory.ImageGridElement;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.gridviewfactory.VectorGridElement;
@@ -46,8 +49,10 @@ import javafx.geometry.VPos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
@@ -435,6 +440,11 @@ public class PageRenderer extends Pane {
                 });
                 
                 setCursor(Cursor.CROSSHAIR);
+            }else if(ScoredComments.getArmed() != null && e.getButton() == MouseButton.PRIMARY){
+                // Place the armed scored comment. Shift keeps it armed to place it several times.
+                e.consume();
+                ScoredComments.place(ScoredComments.getArmed(), this, e.getX(), e.getY());
+                if(!e.isShiftDown()) ScoredComments.disarm();
             }else{
                 if(e.getButton() == MouseButton.SECONDARY) showContextMenu(e.getX(), e.getY(), e.getScreenX(), e.getScreenY());
                 else{
@@ -471,7 +481,7 @@ public class PageRenderer extends Pane {
                 placingElement = null;
             }
             if(MainWindow.mainScreen.isEditPagesMode()) setCursor(PlatformUtils.CURSOR_MOVE);
-            else setCursor(Cursor.DEFAULT);
+            else setCursor(ScoredComments.getArmed() != null ? Cursor.CROSSHAIR : Cursor.DEFAULT);
         });
         setOnMouseClicked(e -> {
             if(MainWindow.mainScreen.isEditPagesMode()){
@@ -618,10 +628,36 @@ public class PageRenderer extends Pane {
         
     }
     
+    // Entries listed in the scored comments panel, then "New…"
+    private Menu getScoredCommentsMenu(double pageX, double pageY){
+        Menu scoredMenu = new Menu(TR.tr("scoredComments.pageMenu"));
+        List<ScoredComment> entries = MainWindow.gradeTab.scoredCommentPanel.getVisibleEntries();
+        for(int i = 0; i < Math.min(entries.size(), 20); i++){
+            ScoredComment entry = entries.get(i);
+            MenuItem item = new MenuItem(ScoredCommentGrades.render(entry.getText(), entry.getPoints(), MainWindow.gradesDigFormat));
+            item.setOnAction(e -> ScoredComments.place(entry, this, pageX, pageY));
+            scoredMenu.getItems().add(item);
+        }
+        if(!scoredMenu.getItems().isEmpty()) scoredMenu.getItems().add(new SeparatorMenuItem());
+        MenuItem newEntry = new MenuItem(TR.tr("scoredComments.pageMenu.new"));
+        newEntry.setOnAction(e -> {
+            int before = ScoredComments.getCatalog().getComments().size();
+            MainWindow.gradeTab.scoredCommentPanel.createEntry(null);
+            List<ScoredComment> comments = ScoredComments.getCatalog().getComments();
+            if(comments.size() > before){
+                ScoredComments.disarm();
+                ScoredComments.place(comments.getLast(), this, pageX, pageY);
+            }
+        });
+        scoredMenu.getItems().add(newEntry);
+        return scoredMenu;
+    }
+    
     public void showContextMenu(double pageX, double pageY, double screenX, double screenY){
         NodeMenuItem pnfMenuItem = new NodeMenuItem(TR.tr("pnf.add"), false);
         pnfMenuItem.setOnAction(e -> PNFAnnotationManager.addPNF(this, pageX, pageY));
         menu.getItems().add(pnfMenuItem);
+        menu.getItems().add(getScoredCommentsMenu(pageX, pageY));
         
         if(!MainWindow.gradeTab.treeView.getRoot().getChildren().isEmpty()){
             GradeTreeView.defineNaNLocations();

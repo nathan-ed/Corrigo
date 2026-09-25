@@ -18,6 +18,8 @@ import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.interfaces.windows.log.Log;
 import fr.clementgre.pdf4teachers.panel.sidebar.SideBar;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredCommentGrades;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
 import fr.clementgre.pdf4teachers.panel.sidebar.texts.TextTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.texts.TextTreeView;
 import fr.clementgre.pdf4teachers.panel.sidebar.texts.TextCopyToFilesDialog;
@@ -153,6 +155,12 @@ public class TextElement extends Element {
         NodeMenuItem item4 = new NodeMenuItem(TR.tr("elementMenu.addToFavouriteList"), false);
         item4.setToolTip(TR.tr("elementMenu.addToFavouritesList.tooltip"));
         menu.getItems().addAll(item1, item2, getSendToPageMenuItem(), item5, item4, item3);
+        if(!(this instanceof ScoredCommentElement)){
+            NodeMenuItem item6 = new NodeMenuItem(TR.tr("scoredComments.textMenu.create"), false);
+            item6.setToolTip(TR.tr("scoredComments.textMenu.create.tooltip"));
+            item6.setOnAction(e -> ScoredComments.convertTextElement(this));
+            menu.getItems().add(item6);
+        }
         NodeMenuItem.setupMenu(menu);
         
         item1.setOnAction(e -> delete(true, UType.ELEMENT));
@@ -260,6 +268,9 @@ public class TextElement extends Element {
             y *= 100;
         }
         
+        if(data.get(ScoredCommentGrades.KEY_ID) != null){
+            return ScoredCommentElement.readYAMLDataAndGive(data, x, y, page, hasPage, text, color, font, maxWidth);
+        }
         return new TextElement(x, y, page, hasPage, text, color, font, maxWidth);
     }
     

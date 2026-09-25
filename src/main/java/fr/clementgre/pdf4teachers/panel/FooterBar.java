@@ -14,6 +14,7 @@ import fr.clementgre.pdf4teachers.panel.MainScreen.ZoomOperator;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.ExerciseCorrectionWorkflow;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.ExercisePageMapping;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.ExercisePageMappingDialog;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
 import fr.clementgre.pdf4teachers.utils.PlatformUtils;
@@ -330,6 +331,7 @@ public class FooterBar extends StackPane {
         PaneUtils.setHBoxPosition(exerciseCorrectionMode, -1, 19, new Insets(-2, 0, 0, 0));
         exerciseCorrectionMode.setOnAction(e -> {
             ExerciseCorrectionData.requestSave();
+            ScoredComments.fireChanged(false);
             if(exerciseCorrectionMode.isSelected()){
                 refreshExerciseChoices();
                 MainWindow.filesTab.preloadNeighborExercisePages();
@@ -341,6 +343,7 @@ public class FooterBar extends StackPane {
         exerciseSelector.setPrefWidth(130); // Shows the exercise names
         exerciseSelector.setMaxHeight(19);
         exerciseSelector.setOnAction(e -> {
+            ScoredComments.fireChanged(false); // The scored comments panel lists the entries of the selected exercise
             if(updatingExerciseControls) return;
             String selected = exerciseSelector.getSelectionModel().getSelectedItem();
             if(selected != null) selectedExerciseKey = selected;
