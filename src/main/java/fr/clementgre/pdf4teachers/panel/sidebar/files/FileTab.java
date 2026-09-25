@@ -16,6 +16,7 @@ import fr.clementgre.pdf4teachers.interfaces.windows.log.Log;
 import fr.clementgre.pdf4teachers.panel.sidebar.SideBar;
 import fr.clementgre.pdf4teachers.panel.sidebar.SideTab;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.ExerciseCorrectionWorkflow;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.utils.FilesUtils;
 import fr.clementgre.pdf4teachers.utils.PlatformUtils;
 import fr.clementgre.pdf4teachers.utils.dialogs.AlertIconType;
@@ -339,20 +340,48 @@ public class FileTab extends SideTab {
         File toOpen = files.getItems().get(target);
         if(toOpen == null) return;
         
-        OptionalInt exercisePage = getExerciseNavigationTarget();
-        if(exercisePage.isPresent()){
-            MainWindow.mainScreen.openFile(toOpen, true, exercisePage.getAsInt());
-        }else if(keepPage){
-            // Currently visible page (not cursor position - works without clicking)
-            PageRenderer visiblePage = MainWindow.mainScreen.document.getFirstTopVisiblePage();
-            MainWindow.mainScreen.openFile(toOpen, true, visiblePage != null ? visiblePage.getPage() : 0);
-        }else{
+        if(!keepPage){
             MainWindow.mainScreen.openFile(toOpen);
+            return;
         }
+        // The page being read: the exercise being graded, found in the other file, or else the same page number.
+        PageRenderer visiblePage = MainWindow.mainScreen.document.getCenterVisiblePage();
+        int visiblePageIndex = visiblePage != null ? visiblePage.getPage() : 0;
+        MainWindow.mainScreen.openFile(toOpen, true, getExercisePageIn(toOpen, visiblePageIndex).orElse(visiblePageIndex));
+    }
+    
+    // Opens a file on the page of the selected exercise.
+    public void openFileAtExercisePage(File file){
+        MainWindow.mainScreen.openFile(file, true, getExercisePageIn(file, -1).orElse(-1));
+    }
+    
+    /**
+     * Page of the selected exercise in another file.
+     * @param visiblePageIndex Outside exercise correction mode, the exercise is only followed if it is on this page (-1: always).
+     */
+    private OptionalInt getExercisePageIn(File file, int visiblePageIndex){
+        if(MainWindow.footerBar == null || !MainWindow.mainScreen.hasDocument(false)) return OptionalInt.empty();
+        OptionalInt currentPage = getExerciseNavigationTarget();
+        if(currentPage.isEmpty()) return OptionalInt.empty();
+        if(!MainWindow.footerBar.isExerciseCorrectionMode() && visiblePageIndex != -1){
+            OptionalInt gradesPage = MainWindow.footerBar.getSelectedExerciseGradesPage();
+            if(gradesPage.isEmpty() || gradesPage.getAsInt() != visiblePageIndex) return OptionalInt.empty();
+        }
+        // The pages of the exercise can change from a file to another (extra page...): use the grades of the other file.
+        GradeTreeItem exercise = MainWindow.footerBar.getSelectedExercise();
+        if(exercise != null && MainWindow.footerBar.getExercisePageMapping().getPageIndex(MainWindow.footerBar.getSelectedExerciseKey()).isEmpty()){
+            try{
+                OptionalInt page = Edition.loadExercisePage(file, exercise.getCore().getPath());
+                if(page.isPresent()) return page;
+            }catch(IOException e){
+                Log.eNotified(e);
+            }
+        }
+        return currentPage;
     }
     
     private OptionalInt getExerciseNavigationTarget(){
-        if(MainWindow.footerBar != null && MainWindow.footerBar.isExerciseCorrectionMode() && MainWindow.mainScreen.hasDocument(false)){
+        if(MainWindow.footerBar != null && MainWindow.mainScreen.hasDocument(false)){
             return ExerciseCorrectionWorkflow.getNavigationTarget(true, MainWindow.footerBar.getSelectedExercisePageIndex(), MainWindow.mainScreen.document.getPagesNumber());
         }
         return OptionalInt.empty();

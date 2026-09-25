@@ -70,6 +70,10 @@ public class TextElement extends Element {
     
     private final BooleanProperty isTextWrapped = new SimpleBooleanProperty(false);
     
+    // Path of the grade this text comments on (comment written in the grading panel), or null.
+    private String gradeCommentPath;
+    public static final String KEY_GRADE_COMMENT = "gradeComment";
+    
     public static final float SIZE_FACTOR = 1f;
     public static final float RENDER_FACTOR = 3f;
     public static final String STARMATH_CHAR = "&&";
@@ -238,6 +242,7 @@ public class TextElement extends Element {
         data.put("italic", FontUtils.getFontPosture(textNode.getFont()) == FontPosture.ITALIC);
         data.put("text", getText());
         data.put("maxWidth", maxWidth.get());
+        if(gradeCommentPath != null) data.put(KEY_GRADE_COMMENT, gradeCommentPath);
         
         return data;
     }
@@ -271,7 +276,9 @@ public class TextElement extends Element {
         if(data.get(ScoredCommentGrades.KEY_ID) != null){
             return ScoredCommentElement.readYAMLDataAndGive(data, x, y, page, hasPage, text, color, font, maxWidth);
         }
-        return new TextElement(x, y, page, hasPage, text, color, font, maxWidth);
+        TextElement element = new TextElement(x, y, page, hasPage, text, color, font, maxWidth);
+        if(data.get(KEY_GRADE_COMMENT) instanceof String path) element.setGradeCommentPath(path);
+        return element;
     }
     
     // SPECIFIC METHODS
@@ -581,6 +588,12 @@ public class TextElement extends Element {
     }
     public void setIsTextWrapped(boolean isTextWrapped){
         this.isTextWrapped.set(isTextWrapped);
+    }
+    public String getGradeCommentPath(){
+        return gradeCommentPath;
+    }
+    public void setGradeCommentPath(String gradeCommentPath){
+        this.gradeCommentPath = gradeCommentPath;
     }
     // TRANSFORMATIONS
     

@@ -126,6 +126,16 @@ public class ScoredComments {
         }
         return placed;
     }
+    // Entries of a sub-grade, in the catalog order.
+    public static List<ScoredComment> getEntriesFor(String gradePath){
+        return getCatalog().getComments().stream().filter(entry -> entry.getGradePath().equals(gradePath)).toList();
+    }
+    // A comment of this entry placed for this sub-grade, if any.
+    public static Optional<ScoredCommentElement> findPlaced(String entryId, String gradePath){
+        return getPlacedComments().stream()
+                .filter(c -> entryId.equals(c.getScoredCommentId()) && gradePath.equals(c.getGradePath()))
+                .findFirst();
+    }
     public static long countPlaced(String entryId){
         return getPlacedComments().stream().filter(c -> entryId.equals(c.getScoredCommentId())).count();
     }
@@ -143,6 +153,14 @@ public class ScoredComments {
         ScoredCommentElement element = ScoredCommentElement.fromEntry(entry, page.toGridX(pageX), page.toGridY(pageY), page.getPage(), getColor(entry), FONT);
         page.addElement(element, true, UType.ELEMENT);
         element.centerOnCoordinatesY();
+        return element;
+    }
+    // Places an entry on a page, gridX and gridY being the top left corner of the comment.
+    public static ScoredCommentElement placeOnGrid(ScoredComment entry, PageRenderer page, int gridX, int gridY, double maxWidth){
+        if(!MainWindow.mainScreen.hasDocument(false)) return null;
+        ScoredCommentElement element = ScoredCommentElement.fromEntry(entry, gridX, gridY, page.getPage(), getColor(entry), FONT);
+        element.setTextMaxWidth(maxWidth);
+        page.addElement(element, true, UType.ELEMENT);
         return element;
     }
     // Places an entry at the mouse position, or at the top of the current page.
@@ -201,6 +219,15 @@ public class ScoredComments {
         for(ScoredCommentElement placed : getPlacedComments()){
             String renamed = ScoredCommentCatalog.renamePath(placed.getGradePath(), oldPath, newPath);
             if(renamed != null) placed.setGradePath(renamed);
+        }
+        // Comments written in the grading panel
+        for(PageRenderer page : MainWindow.mainScreen.document.getPages()){
+            for(var element : page.getElements()){
+                if(element instanceof TextElement text && text.getGradeCommentPath() != null){
+                    String renamed = ScoredCommentCatalog.renamePath(text.getGradeCommentPath(), oldPath, newPath);
+                    if(renamed != null) text.setGradeCommentPath(renamed);
+                }
+            }
         }
     }
 

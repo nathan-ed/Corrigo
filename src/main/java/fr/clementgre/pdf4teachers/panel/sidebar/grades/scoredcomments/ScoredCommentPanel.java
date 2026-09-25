@@ -186,7 +186,7 @@ public class ScoredCommentPanel extends VBox {
             ScoredComments.arm(entry);
         });
     }
-    private void editEntry(ScoredComment entry){
+    public void editEntry(ScoredComment entry){
         ScoredCommentEditDialog.show(entry, null).ifPresent(edited -> {
             ScoredComments.fireChanged(true);
             new ScoredCommentPropagationDialog(edited).show();
@@ -198,7 +198,7 @@ public class ScoredCommentPanel extends VBox {
         ScoredComments.fireChanged(true);
         editEntry(copy);
     }
-    private void deleteEntry(ScoredComment entry){
+    public void deleteEntry(ScoredComment entry){
         long placed = placedCounts.getOrDefault(entry.getId(), 0L);
         CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, TR.tr("scoredComments.delete.title"),
                 TR.tr("scoredComments.delete.header", ScoredCommentGrades.render(entry.getText(), entry.getPoints(), MainWindow.gradesDigFormat)),

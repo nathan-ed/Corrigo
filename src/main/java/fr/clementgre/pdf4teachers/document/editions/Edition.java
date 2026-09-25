@@ -7,6 +7,7 @@ package fr.clementgre.pdf4teachers.document.editions;
 
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.datasaving.Config;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredCommentGrades;
 import fr.clementgre.pdf4teachers.document.Document;
 import fr.clementgre.pdf4teachers.document.editions.elements.*;
 import fr.clementgre.pdf4teachers.document.render.display.PageRenderer;
@@ -264,6 +265,36 @@ public class Edition{
             return (T) copy;
         }
         return value;
+    }
+    
+    // Value of each grade of a file, by grade path. Uses the preloaded editions cache.
+    public static Map<String, Double> loadGradeValues(File pdfFile) throws IOException{
+        LinkedHashMap<String, Double> values = new LinkedHashMap<>();
+        File editFile = getEditFile(pdfFile);
+        if(!editFile.exists()) return values;
+        
+        for(Map<String, Object> grade : ScoredCommentGrades.getGrades(loadConfig(editFile).base)){
+            values.put(ScoredCommentGrades.getGradePath(grade), grade.get("value") instanceof Number value ? value.doubleValue() : -1d);
+        }
+        return values;
+    }
+    
+    // First page of the sub-grades of an exercise in a file, if the file has them.
+    public static OptionalInt loadExercisePage(File pdfFile, String exercisePath) throws IOException{
+        File editFile = getEditFile(pdfFile);
+        if(!editFile.exists()) return OptionalInt.empty();
+        List<Map<String, Object>> grades = ScoredCommentGrades.getGrades(loadConfig(editFile).base);
+        List<String> paths = grades.stream().map(ScoredCommentGrades::getGradePath).toList();
+        return grades.stream()
+                .filter(grade -> {
+                    String path = ScoredCommentGrades.getGradePath(grade);
+                    boolean inExercise = path.equals(exercisePath) || path.startsWith(exercisePath + "\\");
+                    boolean isLeaf = paths.stream().noneMatch(other -> other.startsWith(path + "\\"));
+                    return inExercise && isLeaf;
+                })
+                .filter(grade -> grade.get("page") instanceof Number)
+                .mapToInt(grade -> ((Number) grade.get("page")).intValue())
+                .min();
     }
     
     public static void removePreloadedEditFile(File editFile){

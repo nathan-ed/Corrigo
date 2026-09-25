@@ -607,6 +607,8 @@ public class MainScreen extends Pane {
             
             repaint();
             isRotating = false; // Can sometimes be kept to true
+            // The grade scale is known now: the exercises and the quick grading card can be updated.
+            if(MainWindow.footerBar != null) MainWindow.footerBar.refreshExerciseChoices();
             
             // Zoom #2. If had opened file, keep same zoom factor.
             if(!hadOpenedFile){
@@ -675,6 +677,8 @@ public class MainScreen extends Pane {
     }
     
     public boolean closeFile(boolean confirm, boolean forceNotToSave, boolean backToFilesTab){
+        // A comment or points being typed in the grading panel are written before saving
+        if(MainWindow.gradingPanel != null) MainWindow.gradingPanel.commitEdits();
         setSelected(null);
         
         if(document != null){

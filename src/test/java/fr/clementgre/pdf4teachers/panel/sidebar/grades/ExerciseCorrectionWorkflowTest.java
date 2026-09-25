@@ -7,6 +7,8 @@ package fr.clementgre.pdf4teachers.panel.sidebar.grades;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.OptionalInt;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -103,5 +105,55 @@ class ExerciseCorrectionWorkflowTest {
     void generatedGradePageIndexClampsToDocumentBounds(){
         assertEquals(7, ExerciseCorrectionWorkflow.getGeneratedGradePageIndex(false, OptionalInt.of(12), 3, 8));
         assertEquals(0, ExerciseCorrectionWorkflow.getGeneratedGradePageIndex(false, OptionalInt.empty(), -1, 8));
+    }
+    
+    private static Map<String, Double> grades(Object... pathsAndValues){
+        LinkedHashMap<String, Double> grades = new LinkedHashMap<>();
+        for(int i = 0; i < pathsAndValues.length; i += 2) grades.put((String) pathsAndValues[i], (Double) pathsAndValues[i + 1]);
+        return grades;
+    }
+    
+    @Test
+    void exerciseIsGradedWhenAllSubGradesHaveAValue(){
+        Map<String, Double> copy = grades("\\Total", 5d, "Total\\Ex 1", 5d, "Total\\Ex 1\\a", 2d, "Total\\Ex 1\\b", 3d, "Total\\Ex 2", -1d, "Total\\Ex 2\\a", -1d);
+        
+        assertTrue(ExerciseCorrectionWorkflow.isExerciseGraded(copy, "Total\\Ex 1"));
+        assertFalse(ExerciseCorrectionWorkflow.isExerciseGraded(copy, "Total\\Ex 2"));
+    }
+    
+    @Test
+    void exerciseIsNotGradedWhenOneSubGradeIsMissing(){
+        Map<String, Double> copy = grades("Total\\Ex 1", 2d, "Total\\Ex 1\\a", 2d, "Total\\Ex 1\\b", -1d);
+        
+        assertFalse(ExerciseCorrectionWorkflow.isExerciseGraded(copy, "Total\\Ex 1"));
+    }
+    
+    @Test
+    void exerciseWithoutSubGradeUsesItsOwnValue(){
+        assertTrue(ExerciseCorrectionWorkflow.isExerciseGraded(grades("Total\\Ex 1", 4d), "Total\\Ex 1"));
+        assertFalse(ExerciseCorrectionWorkflow.isExerciseGraded(grades("Total\\Ex 1", -1d), "Total\\Ex 1"));
+    }
+    
+    @Test
+    void exerciseIsNotGradedInACopyWithoutIt(){
+        assertFalse(ExerciseCorrectionWorkflow.isExerciseGraded(grades(), "Total\\Ex 1"));
+        assertFalse(ExerciseCorrectionWorkflow.isExerciseGraded(grades("Total\\Ex 10", 4d), "Total\\Ex 1"));
+    }
+    
+    @Test
+    void neighborFileSkipsNonMatchingFilesAndWraps(){
+        boolean[] ungraded = {true, false, false, false, true};
+        
+        assertEquals(OptionalInt.of(4), ExerciseCorrectionWorkflow.findNeighborFile(5, 1, 1, i -> ungraded[i]));
+        assertEquals(OptionalInt.of(0), ExerciseCorrectionWorkflow.findNeighborFile(5, 4, 1, i -> ungraded[i]));
+        assertEquals(OptionalInt.of(0), ExerciseCorrectionWorkflow.findNeighborFile(5, 2, -1, i -> ungraded[i]));
+        assertEquals(OptionalInt.of(4), ExerciseCorrectionWorkflow.findNeighborFile(5, 0, -1, i -> ungraded[i]));
+    }
+    
+    @Test
+    void neighborFileNeverReturnsTheCurrentFile(){
+        assertTrue(ExerciseCorrectionWorkflow.findNeighborFile(3, 1, 1, i -> i == 1).isEmpty());
+        assertTrue(ExerciseCorrectionWorkflow.findNeighborFile(1, 0, 1, i -> true).isEmpty());
+        assertTrue(ExerciseCorrectionWorkflow.findNeighborFile(0, 0, 1, i -> true).isEmpty());
     }
 }

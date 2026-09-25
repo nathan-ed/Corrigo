@@ -5,6 +5,9 @@
 
 package fr.clementgre.pdf4teachers.interfaces.windows;
 
+import javafx.scene.layout.HBox;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradingPanel;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradingTab;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.datasaving.UserData;
 import fr.clementgre.pdf4teachers.document.render.convert.ConvertWindow;
@@ -62,6 +65,8 @@ public class MainWindow extends Stage {
     public static SplitPane mainPane;
     
     public static MainScreen mainScreen;
+    public static GradingPanel gradingPanel;
+    public static GradingTab gradingTab;
     public static FooterBar footerBar;
     public static MenuBar menuBar;
     
@@ -156,6 +161,8 @@ public class MainWindow extends Stage {
         filesTab = new FileTab();
         textTab = new TextTab();
         gradeTab = new GradeTab();
+        gradingPanel = new GradingPanel();
+        gradingTab = new GradingTab(gradingPanel);
         skillsTab = new SkillsTab();
         try{
             FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/fxml/PaintTab.fxml")));

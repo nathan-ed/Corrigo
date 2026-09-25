@@ -381,6 +381,24 @@ public class Document {
         return match;
     }
     
+    // The page at the vertical middle of the MainScreen (the page being read), or the closest one.
+    public PageRenderer getCenterVisiblePage(){
+        Bounds mainScreenBoundsInScene = MainWindow.mainScreen.localToScene(MainWindow.mainScreen.getLayoutBounds());
+        double middleY = mainScreenBoundsInScene.getMinY() + mainScreenBoundsInScene.getHeight() / 2;
+        PageRenderer closest = null;
+        double closestDistance = Double.MAX_VALUE;
+        for(PageRenderer page : pages){
+            Bounds boundsInScene = MainWindow.mainScreen.pane.localToScene(page.getBoundsInParent());
+            if(boundsInScene.getMinY() <= middleY && middleY <= boundsInScene.getMaxY()) return page;
+            double distance = Math.min(Math.abs(boundsInScene.getMinY() - middleY), Math.abs(boundsInScene.getMaxY() - middleY));
+            if(distance < closestDistance){
+                closestDistance = distance;
+                closest = page;
+            }
+        }
+        return closest;
+    }
+    
     // Return null if there is no top page below the top of MainScreen
     public PageRenderer getFirstTopVisiblePage(){
         

@@ -183,6 +183,12 @@ public class KeyboardShortcuts {
                 new KeyCodesCombination(KeyCode.DOWN, KeyCode.KP_DOWN, KeyCodesCombination.ALT_DOWN), e -> {
             if(canSelectExerciseOnNode(Main.window.getScene().getFocusOwner()) && MainWindow.footerBar.selectNeighborExercise(1)) e.consume();
         }));
+        shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.gradingPanel"),
+                new KeyCodeCombination(KeyCode.G, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN), e -> {
+            if(!MainWindow.mainScreen.hasDocument(false)) return;
+            MainWindow.gradingPanel.focusPanel();
+            e.consume();
+        }));
         // Begin/End and Page Up/Page Down
         shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.begin"),
                 new KeyCodesCombination(KeyCode.BEGIN, KeyCode.HOME), e -> {

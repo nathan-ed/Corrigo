@@ -48,6 +48,7 @@ public class ExerciseCorrectionData extends SimpleConfig {
                 MainWindow.footerBar.setLegacyExercisePageMapping(legacy);
             }
             
+            
             MainWindow.footerBar.refreshExerciseChoices();
             MainWindow.filesTab.preloadNeighborExercisePages();
         });
@@ -69,6 +70,7 @@ public class ExerciseCorrectionData extends SimpleConfig {
             if(!mapping.getPageIndexes().isEmpty()) evaluations.put(signature, toConfigMap(mapping));
         });
         config.set("evaluations", evaluations);
+
         // Keep the old format mapping until it is migrated to an evaluation.
         ExercisePageMapping legacy = MainWindow.footerBar.getLegacyExercisePageMapping();
         if(legacy != null) config.set("pageIndexes", toConfigMap(legacy));

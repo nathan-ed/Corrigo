@@ -173,6 +173,16 @@ public class ScoredCommentElement extends TextElement {
 
     // ACTIONS
 
+    // Selecting a scored comment keeps the grading panel visible (its text comes from its entry, not from the text tab).
+    @Override
+    public void select(){
+        if(MainWindow.gradingTab != null && MainWindow.gradingTab.isSelected()){
+            selectPartial();
+            return;
+        }
+        super.select();
+    }
+
     @Override
     public void addedToDocument(boolean markAsUnsave){
         super.addedToDocument(markAsUnsave);
