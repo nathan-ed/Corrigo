@@ -36,6 +36,7 @@ public class GradeCopyGradeScaleDialog {
         CustomAlert dialog = new CustomAlert(Alert.AlertType.CONFIRMATION, TR.tr("gradeTab.copyGradeScaleDialog.confirmation.title"), TR.tr("gradeTab.copyGradeScaleDialog.confirmation.header"));
         
         CheckBox copyLocations = new CheckBox(TR.tr("gradeTab.copyGradeScaleDialog.confirmation.copyLocations"));
+        copyLocations.setSelected(true);
         dialog.getDialogPane().setContent(copyLocations);
         
         dialog.addCancelButton(ButtonPosition.CLOSE);
