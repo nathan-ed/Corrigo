@@ -68,6 +68,8 @@ public class GradingPanel extends VBox {
     private final Label copyInfo = new Label();
     private final Button previousExercise = new Button("‹");
     private final Button nextExercise = new Button("›");
+    // One button per exercise, to jump to its page
+    private final FlowPane exerciseJumps = new FlowPane(4, 4);
 
     // CONTENT
     private final VBox sectionsBox = new VBox(10);
@@ -78,6 +80,8 @@ public class GradingPanel extends VBox {
     // FOOTER
     private final Button previousUngraded = new Button();
     private final Button nextUngraded = new Button();
+    private final Button markPosition = new Button();
+    private final Button computeMarks = new Button();
     private final Label hint = new Label();
 
     private GradeTreeItem exercise;
@@ -89,10 +93,15 @@ public class GradingPanel extends VBox {
     private String pendingText;
     private String pendingPath;
     private Runnable afterPendingPlaced;
+    // Waiting for a click on a page to set the position of the mark; then computes the marks if markThenCompute
+    private boolean pendingMark;
+    private boolean markThenCompute;
 
     private boolean focusOnNextReload;
     private boolean swallowNextTyped;
     private final PauseTransition followPageDelay = new PauseTransition(Duration.millis(250));
+    // After a jump to an exercise, its page may also hold sub-grades of another exercise: the panel must not follow the page.
+    private long ignoreFollowPageUntil;
 
     public GradingPanel(){
         setStyle("-fx-background-color: " + palette.background() + ";");
@@ -103,6 +112,12 @@ public class GradingPanel extends VBox {
 
 
         MainWindow.mainScreen.addEventFilter(MouseEvent.MOUSE_PRESSED, this::onMainScreenPressed);
+        MainWindow.mainScreen.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            if(pendingMark && e.getCode() == KeyCode.ESCAPE){
+                e.consume();
+                cancelPending();
+            }
+        });
         MainWindow.mainScreen.isEditPagesModeProperty().addListener((o, oldValue, newValue) -> reload());
         MainWindow.mainScreen.statusProperty().addListener((o, oldValue, newValue) -> reload());
         // The panel follows the page being read
@@ -141,7 +156,9 @@ public class GradingPanel extends VBox {
 
         HBox title = new HBox(2, previousExercise, exerciseName, nextExercise, exerciseScore);
         title.setAlignment(Pos.CENTER_LEFT);
-        VBox header = new VBox(2, title, copyInfo);
+        exerciseJumps.setPadding(new Insets(6, 0, 0, 4));
+        exerciseJumps.managedProperty().bind(exerciseJumps.visibleProperty());
+        VBox header = new VBox(2, title, copyInfo, exerciseJumps);
         header.setPadding(new Insets(10, 12, 10, 8));
         header.setStyle("-fx-border-color: " + palette.border() + "; -fx-border-width: 0 0 1 0;");
         getChildren().add(header);
@@ -215,8 +232,22 @@ public class GradingPanel extends VBox {
         hint.setWrapText(true);
         hint.setStyle("-fx-font-size: 11; -fx-text-fill: " + palette.muted() + ";");
 
+        markPosition.setText(TR.tr("marks.position"));
+        markPosition.setTooltip(new Tooltip(TR.tr("marks.position.tooltip")));
+        computeMarks.setText(TR.tr("marks.compute"));
+        computeMarks.setTooltip(new Tooltip(TR.tr("marks.compute.tooltip")));
+        for(Button button : new Button[]{markPosition, computeMarks}){
+            button.setFocusTraversable(false);
+            button.setStyle("-fx-padding: 5 12; -fx-background-radius: 4;");
+        }
+        computeMarks.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(computeMarks, Priority.ALWAYS);
+        markPosition.setOnAction(e -> armMarkPlacement(false));
+        computeMarks.setOnAction(e -> computeMarks());
+
         HBox buttons = new HBox(8, previousUngraded, nextUngraded);
-        VBox footer = new VBox(8, buttons, hint);
+        HBox marks = new HBox(8, markPosition, computeMarks);
+        VBox footer = new VBox(8, buttons, marks, hint);
         footer.setPadding(new Insets(10, 12, 10, 12));
         footer.setStyle("-fx-border-color: " + palette.border() + "; -fx-border-width: 1 0 0 0;");
         getChildren().add(footer);
@@ -269,6 +300,8 @@ public class GradingPanel extends VBox {
             copyInfo.setText("");
             previousExercise.setDisable(true);
             nextExercise.setDisable(true);
+            exerciseJumps.getChildren().clear();
+            exerciseJumps.setVisible(false);
             Label empty = new Label(TR.tr("gradingPanel.noGradeScale"));
             empty.setWrapText(true);
             empty.setStyle("-fx-text-fill: " + palette.muted() + ";");
@@ -336,7 +369,7 @@ public class GradingPanel extends VBox {
         sections.forEach(Section::update);
         if(!general.isFocused()) general.setText(getCommentText(exercise));
         updateActiveStyle();
-        hint.setText(TR.tr(pendingText != null ? "gradingPanel.hint.clickToPlace" : "gradingPanel.hint"));
+        hint.setText(TR.tr(pendingMark ? "marks.hint.clickToPlace" : pendingText != null ? "gradingPanel.hint.clickToPlace" : "gradingPanel.hint"));
     }
 
     private void updateHeader(){
@@ -351,6 +384,43 @@ public class GradingPanel extends VBox {
         int files = MainWindow.filesTab.files.getItems().size();
         int file = MainWindow.filesTab.files.getSelectionModel().getSelectedIndex();
         copyInfo.setText(TR.tr("gradingPanel.copy", MainWindow.mainScreen.document.getFileName(), String.valueOf(file + 1), String.valueOf(files)));
+        updateExerciseJumps();
+    }
+    
+    private void updateExerciseJumps(){
+        exerciseJumps.getChildren().clear();
+        List<javafx.scene.control.TreeItem<String>> exercises = GradeTreeView.getTotal().getChildren();
+        exerciseJumps.setVisible(exercises.size() > 1);
+        int selected = MainWindow.footerBar.getSelectedExerciseIndex();
+        for(int i = 0; i < exercises.size(); i++){
+            GradeTreeItem item = (GradeTreeItem) exercises.get(i);
+            OptionalInt page = MainWindow.footerBar.getExercisePage(i);
+            boolean graded = isGraded(item);
+            
+            Button button = new Button((graded ? "✓ " : "") + item.getCore().getName() + (page.isPresent() ? "  p." + (page.getAsInt() + 1) : ""));
+            button.setFocusTraversable(false);
+            button.setCursor(Cursor.HAND);
+            String colors = i == selected
+                    ? "-fx-background-color: " + palette.accent() + "; -fx-text-fill: white;"
+                    : "-fx-background-color: " + palette.card() + "; -fx-border-color: " + palette.border() + "; -fx-border-radius: 4; -fx-text-fill: " + (graded ? palette.muted() : palette.text()) + ";";
+            button.setStyle("-fx-font-size: 11; -fx-padding: 2 7; -fx-background-radius: 4; " + colors);
+            button.setTooltip(new Tooltip(TR.tr(page.isPresent() ? "gradingPanel.jump.tooltip" : "gradingPanel.jump.noPage.tooltip", item.getCore().getName()) + (i < 9 ? " (Alt+" + (i + 1) + ")" : "")));
+            int index = i;
+            button.setOnAction(e -> jumpToExercise(index));
+            exerciseJumps.getChildren().add(button);
+        }
+    }
+    private static boolean isGraded(GradeTreeItem exercise){
+        if(!exercise.hasSubGrade()) return exercise.getCore().getValue() != -1;
+        return GradeTreeView.getGradesArray(exercise).stream().filter(item -> !item.hasSubGrade()).allMatch(item -> item.getCore().getValue() != -1);
+    }
+    
+    // Selects the exercise and scrolls to its page.
+    public boolean jumpToExercise(int index){
+        if(MainWindow.mainScreen.isEditPagesMode()) return false;
+        commitEdits();
+        ignoreFollowPageUntil = System.currentTimeMillis() + 1500;
+        return MainWindow.footerBar.goToExercise(index);
     }
 
     private static String formatScore(GradeElement grade){
@@ -401,6 +471,7 @@ public class GradingPanel extends VBox {
     
     // Shows the exercise whose sub-grades are on the page at the middle of the screen, and activates its first sub-grade of this page.
     private void followVisiblePage(){
+        if(System.currentTimeMillis() < ignoreFollowPageUntil) return;
         if(!MainWindow.mainScreen.hasDocument(false) || GradeTreeView.getTotal() == null || MainWindow.mainScreen.isEditPagesMode()) return;
         PageRenderer visible = MainWindow.mainScreen.document.getCenterVisiblePage();
         if(visible == null) return;
@@ -624,13 +695,17 @@ public class GradingPanel extends VBox {
     }
     
     private void onMainScreenPressed(MouseEvent e){
-        if(pendingText == null || e.getButton() != MouseButton.PRIMARY || !MainWindow.mainScreen.hasDocument(false)) return;
+        if((pendingText == null && !pendingMark) || e.getButton() != MouseButton.PRIMARY || !MainWindow.mainScreen.hasDocument(false)) return;
         PageRenderer page = MainWindow.mainScreen.document.getLastCursorOverPageObject();
         if(page == null) return;
         e.consume();
         
         int x = page.toGridX(page.getMouseX());
         int y = page.toGridY(page.getMouseY());
+        if(pendingMark){
+            onMarkPlaced(page, x, y);
+            return;
+        }
         TextElement comment = findComment(pendingPath);
         if(comment != null){ // Moves the existing comment
             if(!comment.getText().equals(pendingText)) comment.setText(pendingText);
@@ -653,7 +728,8 @@ public class GradingPanel extends VBox {
     }
     
     private void cancelPending(){
-        if(pendingText == null) return;
+        if(pendingText == null && !pendingMark) return;
+        pendingMark = false;
         pendingText = null;
         pendingPath = null;
         afterPendingPlaced = null;
@@ -665,6 +741,36 @@ public class GradingPanel extends VBox {
         if(mapped.isPresent()) return mapped.getAsInt();
         PageRenderer page = MainWindow.mainScreen.document.getLastCursorOverPageObject();
         return page == null ? 0 : page.getPage();
+    }
+
+    // MARKS
+    
+    // The next click on a page sets the position of the mark of the evaluation.
+    private void armMarkPlacement(boolean thenCompute){
+        if(exercise == null || !MainWindow.mainScreen.hasDocument(false)) return;
+        commitEdits();
+        cancelPending();
+        pendingMark = true;
+        markThenCompute = thenCompute;
+        refresh();
+        MainWindow.mainScreen.requestFocus();
+    }
+    
+    private void onMarkPlaced(PageRenderer page, int x, int y){
+        boolean thenCompute = markThenCompute;
+        pendingMark = false;
+        markThenCompute = false;
+        MarksComputation.setPosition(page, x, y);
+        refresh();
+        if(thenCompute) computeMarks();
+        else MainWindow.footerBar.showToast(Color.web("#1b5e20"), Color.WHITE, FooterBar.ToastDuration.MEDIUM, TR.tr("marks.positionSaved"));
+    }
+    
+    private void computeMarks(){
+        if(!MainWindow.mainScreen.hasDocument(false)) return;
+        commitEdits();
+        cancelPending();
+        if(!MarksComputation.computeAll()) armMarkPlacement(true); // Where does the mark go?
     }
 
     // NEXT UNGRADED COPY

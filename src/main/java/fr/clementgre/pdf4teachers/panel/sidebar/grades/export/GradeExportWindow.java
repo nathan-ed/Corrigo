@@ -10,12 +10,16 @@ import fr.clementgre.pdf4teachers.interfaces.windows.AlternativeWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.utils.StringUtils;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.MarksComputation;
 import fr.clementgre.pdf4teachers.utils.dialogs.DialogBuilder;
+import fr.clementgre.pdf4teachers.utils.dialogs.alerts.ButtonPosition;
+import fr.clementgre.pdf4teachers.utils.dialogs.alerts.CustomAlert;
 import fr.clementgre.pdf4teachers.utils.panes.PaneUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 
@@ -47,13 +51,34 @@ public class GradeExportWindow extends AlternativeWindow<TabPane> {
         
         export.setOnAction(event -> {
             ExportPane pane = (ExportPane) root.getSelectionModel().getSelectedItem();
-            end(new GradeExportRenderer(pane).start(), pane);
+            // The marks written on the copies are updated first (read from the saved editions)
+            if(pane.settingsExportMark.isSelected() && pane.settingsRecomputeMarks.isSelected() && MarksComputation.recomputeWrittenMarks()){
+                MainWindow.mainScreen.document.edition.save(false);
+            }
+            GradeExportRenderer renderer = new GradeExportRenderer(pane);
+            end(renderer.start(), pane);
+            if(!renderer.getOutdatedMarks().isEmpty()) showOutdatedMarks(renderer.getOutdatedMarks());
         });
         cancel.setOnAction(event -> {
             close();
         });
         
         setButtons(cancel, export);
+    }
+    
+    // Written marks that are missing or don't match the grades: the export used them as they are (or the computed mark if missing).
+    private static void showOutdatedMarks(java.util.List<File> files){
+        String names = files.stream().map(File::getName).sorted().collect(java.util.stream.Collectors.joining("\n"));
+        CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, TR.tr("gradeTab.gradeExportWindow.outdatedMarks.title"),
+                TR.tr("gradeTab.gradeExportWindow.outdatedMarks.header", files.size()));
+        Label details = new Label(TR.tr("gradeTab.gradeExportWindow.outdatedMarks.details") + "\n\n" + names);
+        details.setWrapText(true);
+        details.setPrefWidth(520);
+        details.setMinHeight(Region.USE_PREF_SIZE);
+        alert.getDialogPane().setContent(details);
+        alert.getDialogPane().setPrefWidth(560);
+        alert.addOKButton(ButtonPosition.DEFAULT);
+        alert.showAndWait();
     }
     
     private void end(int exported, ExportPane pane){
@@ -92,6 +117,8 @@ public class GradeExportWindow extends AlternativeWindow<TabPane> {
         public CheckBox settingsAttributeTotalLine = new CheckBox(TR.tr("gradeTab.gradeExportWindow.options.attributeTotalLine"));
         public CheckBox settingsAttributeAverageLine = new CheckBox(TR.tr("gradeTab.gradeExportWindow.options.attributeAverageLine"));
         public CheckBox settingsWithTxtElements = new CheckBox(TR.tr("gradeTab.gradeExportWindow.options.withTxtElements"));
+        public CheckBox settingsExportMark = new CheckBox(TR.tr("gradeTab.gradeExportWindow.options.exportMark"));
+        public CheckBox settingsRecomputeMarks = new CheckBox(TR.tr("gradeTab.gradeExportWindow.options.recomputeMarks"));
         public Slider settingsTiersExportSlider = new Slider(1, 5, MainWindow.userData.settingsTiersExportSlider);
     
         public ToggleButton settingsCSVSeparatorComma = new ToggleButton(TR.tr("gradeTab.gradeExportWindow.options.csvSeparator.comma"));
@@ -263,6 +290,8 @@ public class GradeExportWindow extends AlternativeWindow<TabPane> {
             PaneUtils.setVBoxPosition(settingsAttributeTotalLine, 0, 30, 2.5, 0);
             PaneUtils.setVBoxPosition(settingsAttributeAverageLine, 0, 30, 2.5, 0);
             PaneUtils.setVBoxPosition(settingsWithTxtElements, 0, 30, 2.5, 0);
+            PaneUtils.setVBoxPosition(settingsExportMark, 0, 30, 2.5, 0);
+            PaneUtils.setVBoxPosition(settingsRecomputeMarks, 0, 30, 2.5, 0);
             PaneUtils.setHBoxPosition(settingsTiersExportSlider, 0, 30, 2.5, 0);
             PaneUtils.setHBoxPosition(tiersExportLabel, 0, 30, 2.5, 0);
             
@@ -281,6 +310,10 @@ public class GradeExportWindow extends AlternativeWindow<TabPane> {
                 settingsWithTxtElements.setSelected(MainWindow.userData.settingsWithTxtElements);
                 root.getChildren().add(settingsWithTxtElements);
             }
+            settingsExportMark.setSelected(!MainWindow.userData.settingsWithoutMark);
+            settingsRecomputeMarks.setSelected(!MainWindow.userData.settingsKeepWrittenMarks);
+            settingsRecomputeMarks.disableProperty().bind(settingsExportMark.selectedProperty().not());
+            root.getChildren().addAll(settingsExportMark, settingsRecomputeMarks);
             root.getChildren().add(tiersExport);
             
             settingsOnlySameGradeScale.selectedProperty().addListener((observable, oldValue, newValue) -> MainWindow.userData.settingsOnlySameGradeScale = newValue);
@@ -289,6 +322,8 @@ public class GradeExportWindow extends AlternativeWindow<TabPane> {
             settingsAttributeTotalLine.selectedProperty().addListener((observable, oldValue, newValue) -> MainWindow.userData.settingsAttributeTotalLine = newValue);
             settingsAttributeAverageLine.selectedProperty().addListener((observable, oldValue, newValue) -> MainWindow.userData.settingsAttributeMoyLine = newValue);
             settingsWithTxtElements.selectedProperty().addListener((observable, oldValue, newValue) -> MainWindow.userData.settingsWithTxtElements = newValue);
+            settingsExportMark.selectedProperty().addListener((observable, oldValue, newValue) -> MainWindow.userData.settingsWithoutMark = !newValue);
+            settingsRecomputeMarks.selectedProperty().addListener((observable, oldValue, newValue) -> MainWindow.userData.settingsKeepWrittenMarks = !newValue);
             
         }
         

@@ -91,6 +91,8 @@ public class SideTab extends Tab {
             return MainWindow.paintTab;
         }else if(MainWindow.gradingTab.getName().equals(name)){
             return MainWindow.gradingTab;
+        }else if(MainWindow.notesTab.getName().equals(name)){
+            return MainWindow.notesTab;
         }
         return null;
     }

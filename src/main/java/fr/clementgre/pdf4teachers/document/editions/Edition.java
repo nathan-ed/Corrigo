@@ -5,6 +5,7 @@
 
 package fr.clementgre.pdf4teachers.document.editions;
 
+import fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation.EvaluationComments;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.datasaving.Config;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredCommentGrades;
@@ -114,7 +115,9 @@ public class Edition{
             isSave.set(true);
             MainWindow.gradeTab.treeView.updateAllSum();
             MainWindow.textTab.treeView.onFileSection.updateElementsList();
+            ScoredComments.onEditionLoaded();
             ScoredComments.fireChanged(false);
+            EvaluationComments.onEditionLoaded();
             
             return true;
         }catch(IOException e){
@@ -639,6 +642,7 @@ public class Edition{
         
         isSave.set(false);
         MainWindow.footerBar.updateStats();
+        EvaluationComments.onEditionChanged();
     }
     
     public static BooleanProperty isSaveProperty(){

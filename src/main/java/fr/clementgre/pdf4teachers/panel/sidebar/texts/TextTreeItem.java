@@ -91,9 +91,6 @@ public class TextTreeItem extends TreeItem<String> {
     private final ChangeListener<Paint> colorChangeListener = (ObservableValue<? extends Paint> observable, Paint oldValue, Paint newValue) -> {
         setColor((Color) newValue);
     };
-    private final ChangeListener<Number> defaultMathChangeListener = (observable, oldValue, newValue) -> {
-        updateGraphic(false);
-    };
 
 
     public TextTreeItem(Font font, String text, Color color, double maxWidth, int type, long uses, long creationDate){
@@ -129,7 +126,6 @@ public class TextTreeItem extends TreeItem<String> {
             fontProperty().bind(core.fontProperty());
             core.textProperty().addListener(textChangeListener);
             core.fillProperty().addListener(colorChangeListener);
-            Main.settings.defaultTextMode.valueProperty().addListener(defaultMathChangeListener);
         }
 
         // Setup les éléments graphiques
@@ -263,7 +259,7 @@ public class TextTreeItem extends TreeItem<String> {
 
         Font font = getListFont();
         var wrappedText = new StringBuilder();
-        final String[] splitText = TextElement.invertMathIfNeeded(getText()).split(Pattern.quote("\n"));
+        final String[] splitText = getText().split(Pattern.quote("\n"));
 
         if(splitText.length != 0){
             if(Main.settings.textOnlyStart.getValue()){

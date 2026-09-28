@@ -5,6 +5,8 @@
 
 package fr.clementgre.pdf4teachers.document.editions.elements;
 
+import fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation.CommentUsagesWindow;
+import fr.clementgre.pdf4teachers.utils.MathText;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.ScratchText;
 import fr.clementgre.pdf4teachers.components.menus.NodeMenuItem;
@@ -56,6 +58,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -73,6 +76,9 @@ public class TextElement extends Element {
     // Path of the grade this text comments on (comment written in the grading panel), or null.
     private String gradeCommentPath;
     public static final String KEY_GRADE_COMMENT = "gradeComment";
+    // The mark of the copy (written by "Compute marks", see Marks).
+    private boolean mark;
+    public static final String KEY_MARK = "mark";
     
     public static final float SIZE_FACTOR = 1f;
     public static final float RENDER_FACTOR = 3f;
@@ -108,7 +114,7 @@ public class TextElement extends Element {
             this.textNode.setUnderline(isURL());
             
             if(isSelected() && !MainWindow.textTab.txtArea.getText().equals(newValue)){ // Edit textArea from Element
-                StringUtils.editTextArea(MainWindow.textTab.txtArea, invertMathIfNeeded(newValue));
+                StringUtils.editTextArea(MainWindow.textTab.txtArea, newValue);
                 return;
             }
             
@@ -160,6 +166,10 @@ public class TextElement extends Element {
         item4.setToolTip(TR.tr("elementMenu.addToFavouritesList.tooltip"));
         menu.getItems().addAll(item1, item2, getSendToPageMenuItem(), item5, item4, item3);
         if(!(this instanceof ScoredCommentElement)){
+            NodeMenuItem usages = new NodeMenuItem(TR.tr("textTab.usages.menu"), false);
+            usages.setToolTip(TR.tr("textTab.usages.menu.tooltip"));
+            usages.setOnAction(e -> new CommentUsagesWindow(getText()));
+            menu.getItems().add(usages);
             NodeMenuItem item6 = new NodeMenuItem(TR.tr("scoredComments.textMenu.create"), false);
             item6.setToolTip(TR.tr("scoredComments.textMenu.create.tooltip"));
             item6.setOnAction(e -> ScoredComments.convertTextElement(this));
@@ -243,6 +253,7 @@ public class TextElement extends Element {
         data.put("text", getText());
         data.put("maxWidth", maxWidth.get());
         if(gradeCommentPath != null) data.put(KEY_GRADE_COMMENT, gradeCommentPath);
+        if(mark) data.put(KEY_MARK, true);
         
         return data;
     }
@@ -278,6 +289,7 @@ public class TextElement extends Element {
         }
         TextElement element = new TextElement(x, y, page, hasPage, text, color, font, maxWidth);
         if(data.get(KEY_GRADE_COMMENT) instanceof String path) element.setGradeCommentPath(path);
+        element.setMark(Boolean.TRUE.equals(data.get(KEY_MARK)));
         return element;
     }
     
@@ -300,43 +312,32 @@ public class TextElement extends Element {
         return Stream.of("http://", "https://", "www.").anyMatch(s -> getText().startsWith(s));
     }
     
+    // Rendered as an image (see MathText): the text has a formula, or is an old LibreOffice math (&&) text.
     public boolean isMath(){
         return isMath(getText());
     }
     public static boolean isMath(@NotNull String text){
-        return text.startsWith("$$") || text.startsWith(STARMATH_CHAR) ||
-                text.split(Pattern.quote("$$")).length > 1 || text.split(Pattern.quote(STARMATH_CHAR)).length > 1;
+        return MathText.hasMath(text);
     }
     
-    
-    // Invert only if settings' defaultLatex is true
-    public static @NotNull String invertMathIfNeeded(@NotNull String value){
-        if(Main.settings.defaultTextMode.getValue() == Settings.TEXT_MODE_LATEX){
-            return invertLatex(value);
-        }else if(Main.settings.defaultTextMode.getValue() == Settings.TEXT_MODE_STARMATH){
-            return invertStarMath(value);
-        }
-        return value;
-    }
-    public static @NotNull String invertLatex(@NotNull String value){
-        if(value.startsWith("$$")) return value.substring(2);
-        return "$$" + value;
-    }
-    public static @NotNull String invertStarMath(@NotNull String value){
-        if(value.startsWith(STARMATH_CHAR)) return value.substring(2);
-        return STARMATH_CHAR + value;
-    }
-    public static String invertBySettings(String text, int defaultTextMode){
-        if(defaultTextMode == Settings.TEXT_MODE_LATEX){
-            return invertLatex(text);
-        }else if(defaultTextMode == Settings.TEXT_MODE_STARMATH){
-            return invertStarMath(text);
-        }else{
-            return text;
-        }
-    }
-    
+    // LaTeX of the text, used to render the formulas written alone and the old texts.
     public String getLaTeXText(){
+        String text = getText();
+        if(MathText.isLegacy(text)) return getLegacyLaTeXText();
+        List<MathText.Segment> segments = MathText.parse(text);
+        if(MathText.isWholeMath(segments)){
+            return segments.stream().filter(segment -> segment.type() == MathText.Type.MATH).findFirst().orElseThrow()
+                    .content().replace("\n", " \\\\ ");
+        }
+        StringBuilder latex = new StringBuilder();
+        for(MathText.Segment segment : segments){
+            latex.append(segment.type() == MathText.Type.MATH ? segment.content() : formatLatexText(segment.content()));
+        }
+        return latex.toString();
+    }
+    
+    // Texts written before $…$ existed, with LibreOffice math (&&): $$ and && switch between text, LaTeX and LibreOffice math.
+    private String getLegacyLaTeXText(){
         
         String text = getText();
         StringBuilder output = new StringBuilder();
@@ -403,8 +404,10 @@ public class TextElement extends Element {
                 getChildren().remove(textNode);
                 getChildren().add(image);
             }
+            long request = ++renderRequest;
             renderLatex((render) -> {
                 Platform.runLater(() -> {
+                    if(request != renderRequest) return; // A newer render was requested (the text is being typed)
                     image.setImage(render);
                     image.setVisible(true);
                     image.setFitWidth(render.getWidth() / RENDER_FACTOR);
@@ -450,19 +453,45 @@ public class TextElement extends Element {
                 .forEach(grabLine -> grabLine.setMaxed(maxed));
     }
     
+    // Incremented at each render request, so that an older render finishing later is not displayed.
+    private long renderRequest;
+    // First LaTeX error of the text, or null (shown in the texts tab).
+    private final StringProperty latexError = new SimpleStringProperty();
+    public ReadOnlyStringProperty latexErrorProperty(){
+        return latexError;
+    }
+    // Image of the text when it has formulas (see isMath).
+    public ReadOnlyObjectProperty<Image> renderedImageProperty(){
+        return image.imageProperty();
+    }
+    
     public void renderLatex(CallBackArg<Image> callback){
+        String text = getText();
         new Thread(() -> {
+            String error = MathText.isLegacy(text) ? null : MixedTextRenderer.getError(MathText.parse(text));
+            Platform.runLater(() -> latexError.set(error));
             BufferedImage render = renderAwtLatex();
             callback.call(SwingFXUtils.toFXImage(render, new WritableImage(render.getWidth(null), render.getHeight(null))));
         }, "LaTeX rendered").start();
     }
     
+    // Image of a text with formulas, displayed and exported (at RENDER_FACTOR).
     public BufferedImage renderAwtLatex(){
+        boolean bold = FontUtils.getFontWeight(getFont()) == FontWeight.BOLD;
+        boolean italic = FontUtils.getFontPosture(getFont()) == FontPosture.ITALIC;
+        
+        String text = getText();
+        if(!MathText.isLegacy(text)){
+            List<MathText.Segment> segments = MathText.parse(text);
+            if(!MathText.isWholeMath(segments)){ // Text and formulas: the text keeps its font and is wrapped
+                double maxWidth = PageRenderer.PAGE_WIDTH * (getTextMaxWidth() / 100d);
+                return MixedTextRenderer.render(segments, getFont().getFamily(), bold, italic, getFont().getSize(), getAwtColor(), maxWidth, RENDER_FACTOR).image();
+            }
+        }
+        
         int style = 0;
-        
-        if(FontUtils.getFontWeight(getFont()) == FontWeight.BOLD) style = style | TeXFormula.BOLD;
-        if(FontUtils.getFontPosture(getFont()) == FontPosture.ITALIC) style = style | TeXFormula.ITALIC;
-        
+        if(bold) style = style | TeXFormula.BOLD;
+        if(italic) style = style | TeXFormula.ITALIC;
         return renderLatex(getLaTeXText(), getAwtColor(), getFont().getFamily(), style, (int) getFont().getSize(), 0);
     }
     
@@ -537,8 +566,7 @@ public class TextElement extends Element {
         return textNode.getText();
     }
     public boolean hasEmptyText(){
-        String text = invertMathIfNeeded(getText());
-        return text.isBlank();
+        return getText().isBlank();
     }
     
     public StringProperty textProperty(){
@@ -594,6 +622,12 @@ public class TextElement extends Element {
     }
     public void setGradeCommentPath(String gradeCommentPath){
         this.gradeCommentPath = gradeCommentPath;
+    }
+    public boolean isMark(){
+        return mark;
+    }
+    public void setMark(boolean mark){
+        this.mark = mark;
     }
     // TRANSFORMATIONS
     

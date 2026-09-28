@@ -33,6 +33,7 @@ public abstract class SimpleConfig {
         UserData.registerSimpleConfig(new SystemFontsData());
         UserData.registerSimpleConfig(new ExerciseCorrectionData());
         UserData.registerSimpleConfig(new ScoredCommentsData());
+        UserData.registerSimpleConfig(new TeacherNotesData());
     }
     
     private static final ScheduledExecutorService saveScheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {

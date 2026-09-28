@@ -5,6 +5,9 @@
 
 package fr.clementgre.pdf4teachers.panel.MainScreen;
 
+import fr.clementgre.pdf4teachers.datasaving.evaluation.KnownEvaluations;
+import fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation.EvaluationComments;
+import fr.clementgre.pdf4teachers.datasaving.evaluation.EvaluationFolders;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.document.Document;
 import fr.clementgre.pdf4teachers.document.editions.Edition;
@@ -579,6 +582,9 @@ public class MainScreen extends Pane {
                 failOpen();
                 return;
             }
+            // Before the edition is loaded: the panels read the data of the evaluation of this file.
+            EvaluationFolders.activateFor(file);
+            KnownEvaluations.add(file.getAbsoluteFile().getParentFile());
             status.set(Status.OPEN);
             MainWindow.filesTab.files.getSelectionModel().select(file);
             if(MainWindow.footerBar != null) MainWindow.footerBar.refreshExerciseChoices();
@@ -695,7 +701,9 @@ public class MainScreen extends Pane {
             MainWindow.textTab.treeView.onCloseDocument();
             document.stopDocumentSaver();
             document.close();
+            File closedFile = document.getFile();
             document = null;
+            EvaluationComments.onCopyClosed(closedFile);
             if(backToFilesTab) SideBar.selectTab(MainWindow.filesTab);
         }
         

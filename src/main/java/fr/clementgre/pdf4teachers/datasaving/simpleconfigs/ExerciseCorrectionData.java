@@ -8,6 +8,8 @@ package fr.clementgre.pdf4teachers.datasaving.simpleconfigs;
 import fr.clementgre.pdf4teachers.datasaving.Config;
 import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.ExercisePageMapping;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.Marks;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.MarksComputation;
 import javafx.application.Platform;
 
 import java.util.HashMap;
@@ -28,7 +30,9 @@ public class ExerciseCorrectionData extends SimpleConfig {
     
     @Override
     protected void manageLoadedData(Config config){
+        Marks.Position markPosition = Marks.Position.fromYAML(config.base.get("markPosition"));
         Platform.runLater(() -> {
+            MarksComputation.setStoredPosition(markPosition);
             if(MainWindow.footerBar == null) return;
             
             MainWindow.footerBar.setSelectedExerciseKey(config.getString("selectedExercise"));
@@ -64,6 +68,7 @@ public class ExerciseCorrectionData extends SimpleConfig {
         
         config.set("selectedExercise", MainWindow.footerBar.getSelectedExerciseKey());
         config.set("exerciseCorrectionMode", MainWindow.footerBar.isExerciseCorrectionMode());
+        if(MarksComputation.getStoredPosition() != null) config.set("markPosition", MarksComputation.getStoredPosition().toYAML());
         
         LinkedHashMap<String, Object> evaluations = new LinkedHashMap<>();
         MainWindow.footerBar.getExercisePageMappings().forEach((signature, mapping) -> {

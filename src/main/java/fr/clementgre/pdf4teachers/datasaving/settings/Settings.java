@@ -123,7 +123,8 @@ public class Settings {
             "settings.textMaxWidth.title", "settings.textMaxWidth.tooltip");
     
     @SettingsGroup(title = "settings.group.textElements")
-    public Setting<?>[] textElements = {defaultTextMode, defaultMaxWidth};
+    // defaultTextMode is no longer used (texts are written as they are displayed, with $…$ for the formulas): not shown.
+    public Setting<?>[] textElements = {defaultMaxWidth};
     
     
     @SettingObject

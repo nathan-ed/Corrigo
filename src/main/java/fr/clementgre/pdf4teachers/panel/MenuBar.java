@@ -28,6 +28,7 @@ import fr.clementgre.pdf4teachers.interfaces.windows.margin.MarginWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.settings.SettingsWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.splitpdf.SplitWindow;
 import fr.clementgre.pdf4teachers.panel.MainScreen.MainScreen;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.export.MoodleExportWindow;
 import fr.clementgre.pdf4teachers.panel.sidebar.SideBar;
 import fr.clementgre.pdf4teachers.utils.FilesUtils;
 import fr.clementgre.pdf4teachers.utils.PlatformUtils;
@@ -99,6 +100,9 @@ public class MenuBar extends javafx.scene.control.MenuBar {
     
     private final MenuItem file9ExportAll = createMenuItem(TR.tr("menuBar.file.exportAll"), SVGPathIcons.EXPORT, new KeyCodeCombination(KeyCode.E, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN),
             TR.tr("menuBar.file.exportAll.tooltip"), false, true, false);
+    
+    private final MenuItem file9bExportMoodle = createMenuItem(TR.tr("menuBar.file.exportMoodle"), SVGPathIcons.EXPORT, null,
+            TR.tr("menuBar.file.exportMoodle.tooltip"), false, true, false);
     
     private final MenuItem file10Exit = createMenuItem(TR.tr("menuBar.file.exit"), SVGPathIcons.EXIT, new KeyCodeCombination(KeyCode.Q, KeyCombination.SHORTCUT_DOWN),
             null, false, false, false);
@@ -220,9 +224,9 @@ public class MenuBar extends javafx.scene.control.MenuBar {
         ////////// FILE //////////
         
         if(PlatformUtils.isMac()){
-            file.getItems().addAll(file1Open, file2OpenDir, file3Clear, new SeparatorMenuItem(), file4Save, file5Rename, file6Delete, file7Close, new SeparatorMenuItem(), file8Export, file9ExportAll);
+            file.getItems().addAll(file1Open, file2OpenDir, file3Clear, new SeparatorMenuItem(), file4Save, file5Rename, file6Delete, file7Close, new SeparatorMenuItem(), file8Export, file9ExportAll, file9bExportMoodle);
         }else{
-            file.getItems().addAll(file1Open, file2OpenDir, file3Clear, new SeparatorMenuItem(), file4Save, file5Rename, file6Delete, file7Close, new SeparatorMenuItem(), file8Export, file9ExportAll, new SeparatorMenuItem(), file10Exit);
+            file.getItems().addAll(file1Open, file2OpenDir, file3Clear, new SeparatorMenuItem(), file4Save, file5Rename, file6Delete, file7Close, new SeparatorMenuItem(), file8Export, file9ExportAll, file9bExportMoodle, new SeparatorMenuItem(), file10Exit);
         }
         
         ////////// EDIT //////////
@@ -310,6 +314,7 @@ public class MenuBar extends javafx.scene.control.MenuBar {
             new ExportWindow(MainWindow.filesTab.files.getItems());
             
         });
+        file9bExportMoodle.setOnAction(e -> new MoodleExportWindow().show());
         file10Exit.setOnAction(e -> MainWindow.requestCloseApp());
         
         ////////// EDIT //////////

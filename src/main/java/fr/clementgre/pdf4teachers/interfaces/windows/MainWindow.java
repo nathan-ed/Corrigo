@@ -5,6 +5,9 @@
 
 package fr.clementgre.pdf4teachers.interfaces.windows;
 
+import fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation.EvaluationComments;
+import fr.clementgre.pdf4teachers.panel.sidebar.notes.TeacherNotes;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
 import javafx.scene.layout.HBox;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradingPanel;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradingTab;
@@ -21,6 +24,8 @@ import fr.clementgre.pdf4teachers.panel.FooterBar;
 import fr.clementgre.pdf4teachers.panel.MainScreen.MainScreen;
 import fr.clementgre.pdf4teachers.panel.MenuBar;
 import fr.clementgre.pdf4teachers.panel.sidebar.SideBar;
+import fr.clementgre.pdf4teachers.datasaving.evaluation.EvaluationFolders;
+import fr.clementgre.pdf4teachers.panel.sidebar.notes.NotesTab;
 import fr.clementgre.pdf4teachers.panel.sidebar.files.FileTab;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTab;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.PaintTab;
@@ -67,6 +72,7 @@ public class MainWindow extends Stage {
     public static MainScreen mainScreen;
     public static GradingPanel gradingPanel;
     public static GradingTab gradingTab;
+    public static NotesTab notesTab;
     public static FooterBar footerBar;
     public static MenuBar menuBar;
     
@@ -117,6 +123,7 @@ public class MainWindow extends Stage {
         if(!mainScreen.closeFile(!Main.settings.autoSave.getValue(), false, false)) return false;
         
         // At this point, it is sure the app will close.
+        EvaluationFolders.saveAllNow(); // Closing the file may have changed the data of its evaluation
         LockManager.onCloseApp();
         Main.window.close();
         if(paintTab.galleryWindow != null) paintTab.galleryWindow.close();
@@ -163,6 +170,11 @@ public class MainWindow extends Stage {
         gradeTab = new GradeTab();
         gradingPanel = new GradingPanel();
         gradingTab = new GradingTab(gradingPanel);
+        notesTab = new NotesTab();
+        // Data stored in the folder of the evaluation of the open document
+        EvaluationFolders.register(ScoredComments.FOLDER_PART);
+        EvaluationFolders.register(TeacherNotes.FOLDER_PART);
+        EvaluationFolders.register(EvaluationComments.FOLDER_PART);
         skillsTab = new SkillsTab();
         try{
             FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/fxml/PaintTab.fxml")));

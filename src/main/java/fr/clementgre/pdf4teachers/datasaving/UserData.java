@@ -8,6 +8,7 @@ package fr.clementgre.pdf4teachers.datasaving;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.SyncColorPicker;
 import fr.clementgre.pdf4teachers.datasaving.simpleconfigs.SimpleConfig;
+import fr.clementgre.pdf4teachers.datasaving.evaluation.EvaluationFolders;
 import fr.clementgre.pdf4teachers.interfaces.autotips.AutoTipsManager;
 import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.language.LanguagesUpdater;
@@ -133,6 +134,13 @@ public class UserData {
     public boolean settingsAttributeMoyLine = true;
     @UserDataObject(path = "export.settings.withTxtElements")
     public boolean settingsWithTxtElements;
+    // Stored inverted: the missing booleans are read as false, and both options are on by default.
+    @UserDataObject(path = "export.settings.withoutMark")
+    public boolean settingsWithoutMark;
+    @UserDataObject(path = "export.settings.keepWrittenMarks")
+    public boolean settingsKeepWrittenMarks;
+    @UserDataObject(path = "export.moodle.studentsFile")
+    public String lastMoodleStudentsFile = "";
     @UserDataObject(path = "export.settings.tiersExportSlider")
     public long settingsTiersExportSlider = 2;
     @UserDataObject(path = "export.settings.imagesDPI")
@@ -261,6 +269,8 @@ public class UserData {
         for(SimpleConfig simpleConfig : simpleConfigs){
             simpleConfig.saveData();
         }
+        // Also called by the auto saver thread: the evaluation data is then saved by its own debounced saves.
+        if(Platform.isFxApplicationThread()) EvaluationFolders.saveAllNow();
         Main.syncUserData.save();
     }
     

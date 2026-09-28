@@ -5,6 +5,8 @@
 
 package fr.clementgre.pdf4teachers.panel.sidebar.texts;
 
+import fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation.CommentUsagesWindow;
+import fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation.EvaluationCommentsSection;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.menus.NodeMenuItem;
 import fr.clementgre.pdf4teachers.datasaving.simpleconfigs.TextElementsData;
@@ -41,6 +43,7 @@ public class TextTreeView extends TreeView<String> {
     public TreeItem<String> treeViewRoot = new TreeItem<>();
     
     public TextTreeFavorites favoritesSection = new TextTreeFavorites();
+    public EvaluationCommentsSection evaluationSection = new EvaluationCommentsSection();
     public TextTreeLasts lastsSection = new TextTreeLasts();
     public TextTreeOnFile onFileSection = new TextTreeOnFile();
     
@@ -50,7 +53,7 @@ public class TextTreeView extends TreeView<String> {
         setEditable(true);
         setRoot(treeViewRoot);
         getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        treeViewRoot.getChildren().addAll(favoritesSection, lastsSection, onFileSection);
+        treeViewRoot.getChildren().addAll(favoritesSection, evaluationSection, lastsSection, onFileSection);
         
         disableProperty().bind(MainWindow.mainScreen.statusProperty().isNotEqualTo(MainScreen.Status.OPEN));
         setBackground(new Background(new BackgroundFill(Color.rgb(244, 244, 244), CornerRadii.EMPTY, Insets.EMPTY)));
@@ -97,6 +100,11 @@ public class TextTreeView extends TreeView<String> {
                 // TextElement
                 if(getTreeItem() instanceof TextTreeItem){
                     ((TextTreeItem) getTreeItem()).updateCell(this);
+                    return;
+                }
+                // Exercise of the evaluation comments
+                if(getTreeItem() instanceof EvaluationCommentsSection.ExerciseGroupItem group){
+                    group.updateCell(this);
                     return;
                 }
                 // TreeSection
@@ -178,26 +186,21 @@ public class TextTreeView extends TreeView<String> {
         
         
         if(!MainWindow.textTab.txtArea.isDisabled() && !matchText.isBlank()){
-            
-            int totalIndex = selectSectionIndices(1, favoritesSection, matchText);
-            totalIndex = selectSectionIndices(totalIndex + 1, lastsSection, matchText);
-            selectSectionIndices(totalIndex + 1, onFileSection, matchText);
-            
+            for(TextTreeSection section : List.of(favoritesSection, evaluationSection, lastsSection, onFileSection)){
+                selectSectionIndices(section, matchText);
+            }
         }
         getSelectionModel().select(null);
         
     }
-    private int selectSectionIndices(int totalIndex, TextTreeSection section, String matchText){
-        int i;
-        for(i = 0; i < section.getChildren().size(); i++){
-            if(section.getChildren().get(i) instanceof TextTreeItem item){
-                if(item.getCore() != MainWindow.mainScreen.getSelected()
-                        && TextElement.invertMathIfNeeded(item.getText()).toLowerCase().contains(matchText.toLowerCase())){
-                    getSelectionModel().selectIndices(totalIndex + i, getSelectionModel().getSelectedIndices().stream().mapToInt(value -> value).toArray());
-                }
-            }
+    // Selects the visible texts of the section that contain the typed text.
+    private void selectSectionIndices(TextTreeSection section, String matchText){
+        String lowerMatch = matchText.toLowerCase();
+        for(TextTreeItem item : section.getTextItems()){
+            if(item.getCore() == MainWindow.mainScreen.getSelected() || !item.getText().toLowerCase().contains(lowerMatch)) continue;
+            int row = getRow(item);
+            if(row >= 0) getSelectionModel().selectIndices(row, getSelectionModel().getSelectedIndices().stream().mapToInt(value -> value).toArray());
         }
-        return totalIndex + i;
     }
     
     public boolean selectNextInSelection(){
@@ -265,6 +268,9 @@ public class TextTreeView extends TreeView<String> {
         item4.setToolTip(TR.tr("elementMenu.addToFavouritesList.tooltip"));
         NodeMenuItem item5 = new NodeMenuItem(TR.tr("textTab.listMenu.unlink"), false);
         item5.setToolTip(TR.tr("textTab.listMenu.unlink.tooltip"));
+        NodeMenuItem item6 = new NodeMenuItem(TR.tr("textTab.usages.menu"), false);
+        item6.setToolTip(TR.tr("textTab.usages.menu.tooltip"));
+        item6.setOnAction(e -> new CommentUsagesWindow(element.getText()));
         
         
         // Ajouter les items en fonction du type
@@ -274,6 +280,7 @@ public class TextTreeView extends TreeView<String> {
         if(element.getType() == TextTreeSection.ONFILE_TYPE) menu.getItems().add(item4); // onFile
         if(element.getType() != TextTreeSection.ONFILE_TYPE && element.getCore() != null)
             menu.getItems().add(item5); // élément précédent qui est lié
+        menu.getItems().add(item6);
         
         NodeMenuItem.setupMenu(menu);
         
@@ -324,6 +331,7 @@ public class TextTreeView extends TreeView<String> {
     
     public static void updateListsGraphic(){
         MainWindow.textTab.treeView.favoritesSection.updateChildrenGraphics();
+        MainWindow.textTab.treeView.evaluationSection.updateChildrenGraphics();
         MainWindow.textTab.treeView.lastsSection.updateChildrenGraphics();
         MainWindow.textTab.treeView.onFileSection.updateChildrenGraphics();
     }

@@ -7,6 +7,8 @@ package fr.clementgre.pdf4teachers.panel.sidebar.grades;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class PNFAnnotationManagerTest {
@@ -54,5 +56,25 @@ class PNFAnnotationManagerTest {
     void pnfRowsArePlacedBelowHeader(){
         assertTrue(PNFAnnotationManager.getRowY(0) > PNFAnnotationManager.TABLE_HEADER_Y);
         assertTrue(PNFAnnotationManager.getRowY(1) > PNFAnnotationManager.getRowY(0));
+    }
+    
+    @Test
+    void rowsAreTheExercisesOtherThanPNF(){
+        List<String> pnfFirst = List.of("PNF", "Q1", "Q2", "Q3", "Q4", "Q5");
+        assertEquals(5, PNFAnnotationManager.getRowCount(pnfFirst));
+        assertEquals(-1, PNFAnnotationManager.getRowIndex(pnfFirst, 0));
+        assertEquals(0, PNFAnnotationManager.getRowIndex(pnfFirst, 1));
+        assertEquals(4, PNFAnnotationManager.getRowIndex(pnfFirst, 5)); // The last exercise
+        
+        List<String> pnfLast = List.of("Ex 1", "Ex 2", "pnf ");
+        assertEquals(2, PNFAnnotationManager.getRowCount(pnfLast));
+        assertEquals(1, PNFAnnotationManager.getRowIndex(pnfLast, 1));
+        assertEquals(-1, PNFAnnotationManager.getRowIndex(pnfLast, 2));
+        
+        List<String> noPNF = List.of("Q1", "Q2");
+        assertEquals(2, PNFAnnotationManager.getRowCount(noPNF));
+        assertEquals(1, PNFAnnotationManager.getRowIndex(noPNF, 1));
+        assertEquals(-1, PNFAnnotationManager.getRowIndex(noPNF, 2));
+        assertEquals(-1, PNFAnnotationManager.getRowIndex(noPNF, -1));
     }
 }

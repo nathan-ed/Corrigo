@@ -5,6 +5,8 @@
 
 package fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments;
 
+import fr.clementgre.pdf4teachers.datasaving.Config;
+import fr.clementgre.pdf4teachers.datasaving.evaluation.EvaluationFolders;
 import fr.clementgre.pdf4teachers.datasaving.simpleconfigs.ScoredCommentsData;
 import fr.clementgre.pdf4teachers.document.Document;
 import fr.clementgre.pdf4teachers.document.editions.Edition;
@@ -24,6 +26,8 @@ import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+
+import java.io.File;
 
 import java.util.*;
 
@@ -47,6 +51,37 @@ public class ScoredComments {
 
     private static Document lastDocument;
     private static String lastSignature;
+    
+    // Signatures of the catalogs of the active evaluation folder, saved into it, and those that were read from it.
+    private static final Set<String> folderSignatures = new HashSet<>();
+    private static final Set<String> readFromFolder = new HashSet<>();
+    public static final EvaluationFolders.Part FOLDER_PART = new EvaluationFolders.Part() {
+        @Override public String getFileName(){
+            return "scoredcomments";
+        }
+        @Override public void load(File folder, Config config){
+            LinkedHashMap<String, ScoredCommentCatalog> loaded = ScoredCommentsData.readCatalogs(config.getSection("evaluations"));
+            catalogs.putAll(loaded);
+            folderSignatures.addAll(loaded.keySet());
+            readFromFolder.addAll(loaded.keySet());
+            fireChanged(false);
+        }
+        @Override public void unload(File folder){
+            folderSignatures.clear();
+            readFromFolder.clear();
+        }
+        @Override public void write(File folder, Config config){
+            LinkedHashMap<String, ScoredCommentCatalog> folderCatalogs = new LinkedHashMap<>();
+            for(String signature : folderSignatures){
+                ScoredCommentCatalog catalog = catalogs.get(signature);
+                if(catalog != null) folderCatalogs.put(signature, catalog);
+            }
+            config.set("evaluations", ScoredCommentsData.writeCatalogs(folderCatalogs));
+        }
+        @Override public boolean isEmpty(){
+            return folderSignatures.stream().map(catalogs::get).allMatch(catalog -> catalog == null || catalog.isEmpty());
+        }
+    };
 
     private ScoredComments(){
     }
@@ -55,6 +90,12 @@ public class ScoredComments {
 
     public static Map<String, ScoredCommentCatalog> getCatalogs(){
         return catalogs;
+    }
+    // Catalogs of the app-wide file, loaded in background: those of the evaluation folder are kept.
+    public static void putLoadedCatalogs(Map<String, ScoredCommentCatalog> loaded){
+        loaded.forEach((signature, catalog) -> {
+            if(!readFromFolder.contains(signature)) catalogs.put(signature, catalog);
+        });
     }
 
     public static String getCurrentSignature(){
@@ -74,6 +115,8 @@ public class ScoredComments {
         if(document != null && document == lastDocument && lastSignature != null && !lastSignature.equals(signature)
                 && !catalogs.containsKey(signature) && catalogs.containsKey(lastSignature)){
             catalogs.put(signature, catalogs.remove(lastSignature));
+            if(folderSignatures.remove(lastSignature)) folderSignatures.add(signature);
+            if(readFromFolder.remove(lastSignature)) readFromFolder.add(signature);
             requestSave();
         }
         lastDocument = document;
@@ -86,8 +129,19 @@ public class ScoredComments {
         });
     }
 
+    // The edition of the open document is loaded, so its grade scale is complete: its catalog belongs to the evaluation folder.
+    // A catalog that was only in the app-wide file is copied into the folder.
+    public static void onEditionLoaded(){
+        if(EvaluationFolders.getActiveFolder() == null) return;
+        String signature = getCurrentSignature();
+        if(signature.isEmpty()) return;
+        boolean migrated = folderSignatures.add(signature) && !readFromFolder.contains(signature) && !getCatalog().isEmpty();
+        if(migrated) EvaluationFolders.requestSave(FOLDER_PART);
+    }
+
     public static void requestSave(){
         ScoredCommentsData.requestSave();
+        EvaluationFolders.requestSave(FOLDER_PART);
     }
     public static LongProperty revisionProperty(){
         return revision;

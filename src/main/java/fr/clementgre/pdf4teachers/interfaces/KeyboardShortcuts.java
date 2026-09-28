@@ -18,6 +18,7 @@ import fr.clementgre.pdf4teachers.panel.sidebar.SideBar;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
+import fr.clementgre.pdf4teachers.panel.sidebar.notes.TeacherNotes;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.gridviewfactory.ImageGridElement;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.gridviewfactory.VectorGridElement;
 import fr.clementgre.pdf4teachers.panel.sidebar.texts.TextTreeItem;
@@ -189,6 +190,29 @@ public class KeyboardShortcuts {
             MainWindow.gradingPanel.focusPanel();
             e.consume();
         }));
+        // Alt+1 to 9: jump to the page of the n-th exercise
+        shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.jumpToExercise"),
+                new CustomKeyCombination(e -> {
+            Integer number = MathUtils.parseIntFromKeyEventOrNull(e);
+            return number != null && number >= 1 && number <= 9;
+        }, KeyCodesCombination.ALT_DOWN), e -> {
+            if(MainWindow.gradingPanel.jumpToExercise(MathUtils.parseIntFromKeyEventOrNull(e) - 1)) e.consume();
+        }));
+        
+        /******************************/
+        /******* Notes shortcuts ******/
+        /******************************/
+        shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.notes.quickNote"),
+                new KeyCodeCombination(KeyCode.N, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN), e -> {
+            e.consume();
+            TeacherNotes.captureTextNote();
+        }));
+        shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.notes.screenshotNote"),
+                new KeyCodeCombination(KeyCode.S, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN), e -> {
+            e.consume();
+            TeacherNotes.captureScreenshotNote();
+        }));
+        
         // Begin/End and Page Up/Page Down
         shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.begin"),
                 new KeyCodesCombination(KeyCode.BEGIN, KeyCode.HOME), e -> {

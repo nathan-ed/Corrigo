@@ -11,6 +11,7 @@ import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.interfaces.windows.log.Log;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeRating;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.Marks;
 import fr.clementgre.pdf4teachers.utils.StringUtils;
 import fr.clementgre.pdf4teachers.utils.dialogs.AlreadyExistDialogManager;
 import fr.clementgre.pdf4teachers.utils.dialogs.alerts.ErrorAlert;
@@ -38,11 +39,15 @@ public class GradeExportRenderer {
     private final String separator;
     
     private final GradeExportWindow.ExportPane pane;
+    private final boolean withMark;
+    // Copies whose written mark is missing or does not match their grades
+    private final ArrayList<File> outdatedMarks = new ArrayList<>();
     private AlreadyExistDialogManager alreadyExistDialogManager;
     
     public GradeExportRenderer(GradeExportWindow.ExportPane pane){
         this.pane = pane;
         this.exportTier = (int) pane.settingsTiersExportSlider.getValue();
+        this.withMark = pane.settingsExportMark.isSelected();
     
         
         if(pane.settingsCSVFormulaEnglish.isSelected()){
@@ -53,6 +58,10 @@ public class GradeExportRenderer {
         
         separator = pane.settingsCSVSeparatorComma.isSelected() ? "," : ";";
         
+    }
+    
+    public List<File> getOutdatedMarks(){
+        return outdatedMarks;
     }
     
     public int start(){
@@ -122,6 +131,7 @@ public class GradeExportRenderer {
             }
             content.append(separator).append(rating.name).append(includeGradeScale ? " /" + decimalFormat.format(rating.total) : "");
         }
+        if(withMark) content.append(separator).append(TR.tr("gradeTab.gradeExportWindow.csv.titles.mark")).append(includeGradeScale ? " /" + decimalFormat.format(Marks.MAX) : "");
         content.append("\n");
     }
     
@@ -135,6 +145,7 @@ public class GradeExportRenderer {
             }
             content.append(separator).append(decimalFormat.format(rating.total));
         }
+        if(withMark) content.append(separator).append(decimalFormat.format(Marks.MAX));
         content.append("\n");
         
     }
@@ -156,6 +167,10 @@ public class GradeExportRenderer {
             content.append(separator).append("=").append(formula).append("(").append(x).append(startY).append(":").append(x).append(endY).append(")");
             x++;
         }
+        if(withMark){
+            String formula = pane.settingsCSVFormulaEnglish.isSelected() ? "AVERAGE" : TR.tr("gradeTab.gradeExportWindow.csv.formulas.average.name").toUpperCase();
+            content.append(separator).append("=").append(formula).append("(").append(x).append(startY).append(":").append(x).append(endY).append(")");
+        }
         content.append("\n");
     }
     
@@ -175,6 +190,10 @@ public class GradeExportRenderer {
                         decimalFormat.format(rating.getValue() / rating.getTotal() * rating.getOutOfTotal()));
             }
             content.append(separator).append(rating.getValue() == -1 ? "" : decimalFormat.format(rating.getValue()));
+        }
+        if(withMark){
+            content.append(separator).append(file.getMark().isPresent() ? decimalFormat.format(file.getMark().getAsDouble()) : "");
+            if(file.isMarkOutdated()) outdatedMarks.add(file.file);
         }
         content.append("\n");
         

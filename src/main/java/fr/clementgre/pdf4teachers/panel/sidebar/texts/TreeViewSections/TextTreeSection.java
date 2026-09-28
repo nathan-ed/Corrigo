@@ -39,6 +39,7 @@ public abstract class TextTreeSection extends TreeItem<String> {
     public static final int FAVORITE_TYPE = 1;
     public static final int LAST_TYPE = 2;
     public static final int ONFILE_TYPE = 3;
+    public static final int EVAL_TYPE = 4; // Comments of the evaluation (EvaluationCommentsSection)
     
     // SORT
     
@@ -50,7 +51,7 @@ public abstract class TextTreeSection extends TreeItem<String> {
     public int sectionType;
     
     HBox pane = new HBox();
-    ContextMenu menu;
+    protected ContextMenu menu;
     
     public static HashMap<String, ArrayList<TextListItem>> lists = new HashMap<>();
     
@@ -137,6 +138,11 @@ public abstract class TextTreeSection extends TreeItem<String> {
         cell.setContextMenu(menu);
         
         cell.setGraphic(pane);
+    }
+    
+    // The texts of the section (the sections with groups override it).
+    public List<TextTreeItem> getTextItems(){
+        return getChildren().stream().filter(item -> item instanceof TextTreeItem).map(item -> (TextTreeItem) item).toList();
     }
     
     public void updateChildrenGraphics(){

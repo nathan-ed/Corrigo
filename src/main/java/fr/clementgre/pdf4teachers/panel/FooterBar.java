@@ -412,6 +412,8 @@ public class FooterBar extends StackPane {
     
     public void reloadGradingPanel(){
         if(MainWindow.gradingPanel != null) MainWindow.gradingPanel.reload();
+        // The texts tab opens the comments of the selected exercise
+        if(MainWindow.textTab != null) MainWindow.textTab.treeView.evaluationSection.onExerciseChanged();
     }
     
     private List<String> getExerciseNamesFromGradeScale(){
@@ -438,13 +440,20 @@ public class FooterBar extends StackPane {
     
     // Page set for the selected exercise, or else the page of its first sub-grade in the open document.
     public OptionalInt getSelectedExercisePageIndex(){
-        if(selectedExerciseKey == null) return OptionalInt.empty();
-        OptionalInt mapped = getExercisePageMapping().getPageIndex(selectedExerciseKey);
-        if(mapped.isPresent()) return mapped;
-        return getSelectedExerciseGradesPage();
+        return getExercisePage(getSelectedExerciseIndex());
     }
     public OptionalInt getSelectedExerciseGradesPage(){
-        GradeTreeItem exercise = getSelectedExercise();
+        return getExerciseGradesPage(getSelectedExercise());
+    }
+    // Page set for the exercise at this index, or else the page of its first sub-grade in the open document.
+    public OptionalInt getExercisePage(int topLevelIndex){
+        String key = getExerciseKey(topLevelIndex);
+        if(key == null) return OptionalInt.empty();
+        OptionalInt mapped = getExercisePageMapping().getPageIndex(key);
+        if(mapped.isPresent()) return mapped;
+        return getExerciseGradesPage(getExercise(topLevelIndex));
+    }
+    private static OptionalInt getExerciseGradesPage(GradeTreeItem exercise){
         if(exercise == null) return OptionalInt.empty();
         return GradeTreeView.getGradesArray(exercise).stream()
                 .filter(item -> !item.hasSubGrade())
@@ -452,9 +461,11 @@ public class FooterBar extends StackPane {
                 .min();
     }
     public GradeTreeItem getSelectedExercise(){
-        int index = getSelectedExerciseIndex();
-        if(GradeTreeView.getTotal() == null || index < 0 || index >= GradeTreeView.getTotal().getChildren().size()) return null;
-        return (GradeTreeItem) GradeTreeView.getTotal().getChildren().get(index);
+        return getExercise(getSelectedExerciseIndex());
+    }
+    private static GradeTreeItem getExercise(int topLevelIndex){
+        if(GradeTreeView.getTotal() == null || topLevelIndex < 0 || topLevelIndex >= GradeTreeView.getTotal().getChildren().size()) return null;
+        return (GradeTreeItem) GradeTreeView.getTotal().getChildren().get(topLevelIndex);
     }
     // Mapping of the evaluation currently open.
     public ExercisePageMapping getExercisePageMapping(){
@@ -515,6 +526,14 @@ public class FooterBar extends StackPane {
         int index = Math.clamp(exerciseSelector.getSelectionModel().getSelectedIndex() + delta, 0, exerciseSelector.getItems().size() - 1);
         exerciseSelector.getSelectionModel().select(index); // Fires the selector action: saves and navigates.
         showToast(Color.web("#424242"), Color.WHITE, exerciseSelector.getSelectionModel().getSelectedItem());
+        return true;
+    }
+    
+    // Selects the exercise at this index and scrolls to its page, even if it is already selected.
+    public boolean goToExercise(int topLevelIndex){
+        if(!MainWindow.mainScreen.hasDocument(false) || topLevelIndex < 0 || topLevelIndex >= exerciseSelector.getItems().size()) return false;
+        if(topLevelIndex == exerciseSelector.getSelectionModel().getSelectedIndex()) navigateToSelectedExercisePage();
+        else exerciseSelector.getSelectionModel().select(topLevelIndex); // Fires the selector action: saves and navigates.
         return true;
     }
     

@@ -5,6 +5,15 @@
 
 package fr.clementgre.pdf4teachers.panel.sidebar.texts;
 
+import fr.clementgre.pdf4teachers.utils.MathText;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.application.Platform;
+import javafx.util.Duration;
+import javafx.animation.PauseTransition;
+import javafx.scene.text.Text;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.image.ImageView;
+import fr.clementgre.pdf4teachers.document.editions.elements.MixedTextRenderer;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.FontComboBox;
 import fr.clementgre.pdf4teachers.components.ShortcutsTextArea;
@@ -67,6 +76,20 @@ public class TextTab extends SideTab {
     private final ToggleButton itBtn = new ToggleButton("");
 
     public TextArea txtArea = new ShortcutsTextArea();
+    // Measures the wrapped text of txtArea, to fit its height to the text
+    private final Text txtAreaMeasure = new Text();
+    private static final int TXT_AREA_MAX_LINES = 6;
+
+    // Formula tools and preview, under the text area
+    private final FlowPane toolsBox = new FlowPane(3, 3);
+    private final ToggleButton mathToggle = new ToggleButton("∑");
+    private final VBox previewBox = new VBox(3);
+    private final ImageView preview = new ImageView();
+    private final Label previewError = new Label();
+    private TextElement previewedElement;
+    // Symbol, and its LaTeX for the fonts that don't have it
+    private static final String[][] SYMBOLS = {{"√", "\\surd"}, {"≠", "\\neq"}, {"≤", "\\leq"}, {"≥", "\\geq"}, {"≈", "\\approx"}, {"×", "\\times"},
+            {"→", "\\to"}, {"⇒", "\\Rightarrow"}, {"⇔", "\\Leftrightarrow"}, {"∈", "\\in"}, {"ℝ", "\\mathbb{R}"}};
 
     private final HBox btnBox = new HBox();
     private final Button deleteBtn = new Button(TR.tr("actions.delete"));
@@ -85,8 +108,6 @@ public class TextTab extends SideTab {
     public TextTreeView treeView;
 
     // OTHER
-
-    private boolean txtAreaScrollBarListenerIsSetup;
 
     // AUTOCOMPLETE DROPDOWN
     private final Popup autocompletePopup = new Popup();
@@ -157,17 +178,14 @@ public class TextTab extends SideTab {
         if(Main.settings.textSmall.getValue()) txtArea.setStyle("-fx-font-size: 12");
         else txtArea.setStyle("-fx-font-size: 13");
         txtArea.disableProperty().bind(Bindings.createBooleanBinding(() -> MainWindow.mainScreen.getSelected() == null || !(MainWindow.mainScreen.getSelected() instanceof TextElement), MainWindow.mainScreen.selectedProperty()));
-        updateTextAreaPromptText();
-        Main.settings.defaultTextMode.valueProperty().addListener((observable, oldValue, newValue) -> {
-            updateTextAreaPromptText();
-            if(MainWindow.mainScreen.getSelected() instanceof TextElement){
-                String text = TextElement.invertBySettings(txtArea.getText(), oldValue.intValue());
-                txtArea.setText(TextElement.invertBySettings(text, newValue.intValue()));
-            }
-        });
-
-        txtArea.setId("no-vertical-scroll-bar");
+        txtArea.setPromptText(TR.tr("textTab.textAreaPromptText"));
+        // Long comments are wrapped, and the text area grows up to TXT_AREA_MAX_LINES lines
+        txtArea.setWrapText(true);
+        txtArea.widthProperty().addListener((observable, oldValue, newValue) -> updateTextAreaHeight());
+        txtArea.fontProperty().addListener((observable, oldValue, newValue) -> updateTextAreaHeight());
         txtArea.setFocusTraversable(false);
+
+        setupFormulaTools();
 
         PaneUtils.setHBoxPosition(deleteBtn, -1, 30, 2.5);
         deleteBtn.disableProperty().bind(Bindings.createBooleanBinding(() -> MainWindow.mainScreen.selectedProperty().get() == null || !(MainWindow.mainScreen.getSelected() instanceof TextElement), MainWindow.mainScreen.selectedProperty()));
@@ -186,8 +204,10 @@ public class TextTab extends SideTab {
         VBox.setMargin(combosBox, new Insets(2.5, 2.5, 0, 2.5));
         VBox.setMargin(colorAndParamsBox, new Insets(0, 2.5, 0, 2.5));
         VBox.setMargin(txtArea, new Insets(2.5, 5, 2.5, 5));
+        VBox.setMargin(toolsBox, new Insets(0, 5, 2.5, 5));
+        VBox.setMargin(previewBox, new Insets(0, 5, 2.5, 5));
         VBox.setMargin(btnBox, new Insets(0, 2.5, 7.5, 2.5));
-        optionPane.getChildren().addAll(combosBox, colorAndParamsBox, txtArea, btnBox);
+        optionPane.getChildren().addAll(combosBox, colorAndParamsBox, txtArea, toolsBox, previewBox, btnBox);
 
 
         MainWindow.mainScreen.selectedProperty().addListener((ObservableValue<? extends Element> observable, Element oldElement, Element newElement) -> {
@@ -202,9 +222,10 @@ public class TextTab extends SideTab {
 
                 if(!(newElement instanceof TextElement)) txtArea.clear();
             }
+            updatePreview(newElement instanceof TextElement text ? text : null);
             if(newElement instanceof TextElement current){
 
-                txtArea.setText(TextElement.invertMathIfNeeded(current.getText()));
+                txtArea.setText(current.getText());
                 boldBtn.setSelected(FontUtils.getFontWeight(current.getFont()) == FontWeight.BOLD);
                 itBtn.setSelected(FontUtils.getFontPosture(current.getFont()) == FontPosture.ITALIC);
                 colorPicker.setValue(current.getColor());
@@ -236,24 +257,17 @@ public class TextTab extends SideTab {
                 return;
             }
 
-            // Default LaTeX
-            newValue = TextElement.invertMathIfNeeded(newValue);
-
             if(MainWindow.mainScreen.getSelected() instanceof TextElement element){
+                element.setText(newValue); // First: the text must never be lost because of the layout below
                 // Only update autocomplete if not selecting from popup
                 if(!isSelectingFromPopup){
                     treeView.updateAutoComplete();
                     updateAutocompletePopup();
                 }
-
-                updateHeightAndYLocations(getHorizontalSB(txtArea).isVisible());
-                if(!txtAreaScrollBarListenerIsSetup){
-                    getHorizontalSB(txtArea).visibleProperty().addListener((ObservableValue<? extends Boolean> observableTxt, Boolean oldTxtValue, Boolean newTxtValue) -> updateHeightAndYLocations(newTxtValue));
-                    txtAreaScrollBarListenerIsSetup = true;
-                }
-                element.setText(newValue);
+                updatePreview(element);
                 if(new Random().nextInt(10) == 0) AutoTipsManager.showByAction("textedit");
             }
+            updateTextAreaHeight();
         });
 
         // Event filter for KEY_PRESSED to intercept Enter key
@@ -408,31 +422,124 @@ public class TextTab extends SideTab {
         return current;
     }
 
-    private void updateTextAreaPromptText(){
-        if(Main.settings.defaultTextMode.getValue() == Settings.TEXT_MODE_LATEX){
-            txtArea.setPromptText(TR.tr("textTab.textAreaPromptText.latexInverted"));
-        }else if(Main.settings.defaultTextMode.getValue() == Settings.TEXT_MODE_STARMATH){
-            txtArea.setPromptText(TR.tr("textTab.textAreaPromptText.starMathInverted"));
-        }else{
-            txtArea.setPromptText(TR.tr("textTab.textAreaPromptText"));
+    // Fits the height of the text area to its wrapped text, from 1 to TXT_AREA_MAX_LINES lines.
+    private void updateTextAreaHeight(){
+        txtAreaMeasure.setFont(txtArea.getFont());
+        txtAreaMeasure.setText(" ");
+        double lineHeight = txtAreaMeasure.getLayoutBounds().getHeight();
+        // The text area padding and the space kept for the vertical scroll bar
+        txtAreaMeasure.setWrappingWidth(Math.max(20, txtArea.getWidth() - 30));
+        String text = txtArea.getText();
+        txtAreaMeasure.setText(text.isEmpty() || text.endsWith("\n") ? text + " " : text);
+        double textHeight = Math.clamp(txtAreaMeasure.getLayoutBounds().getHeight(), lineHeight, lineHeight * TXT_AREA_MAX_LINES);
+        double height = Math.ceil(textHeight + 12);
+        // PaneUtils.setHBoxPosition binds the height
+        txtArea.minHeightProperty().unbind();
+        txtArea.prefHeightProperty().unbind();
+        txtArea.maxHeightProperty().unbind();
+        if(txtArea.getMinHeight() != height || txtArea.getPrefHeight() != height){
+            txtArea.setMinHeight(height);
+            txtArea.setPrefHeight(height);
+            txtArea.setMaxHeight(height);
         }
-
     }
 
-    public void updateHeightAndYLocations(boolean sbIsVisible){
+    // FORMULAS
 
-        int lineNumber = txtArea.getParagraphs().size();
-        int height = lineNumber >= 3 ? 70 : lineNumber * 20 + 10;
-
-        if(sbIsVisible) height += 16;
-
-        if(txtArea.getHeight() != height){
-            txtArea.minHeightProperty().bind(new SimpleDoubleProperty(height));
-            deleteBtn.setLayoutY(80 + height);
-            copyToFilesBtn.setLayoutY(80 + height);
-            newBtn.setLayoutY(80 + height);
+    private void setupFormulaTools(){
+        mathToggle.setTooltip(PaneUtils.genWrappedToolTip(TR.tr("textTab.math.toggle.tooltip")));
+        mathToggle.setFocusTraversable(false);
+        mathToggle.setOnAction(e -> {
+            String text = txtArea.getText();
+            if(mathToggle.isSelected()) txtArea.setText("$$" + text + (text.isEmpty() ? "" : "$$"));
+            else txtArea.setText(unwrapWholeFormula(text));
+            txtArea.requestFocus();
+            txtArea.positionCaret(mathToggle.isSelected() && text.isEmpty() ? 2 : txtArea.getText().length());
+        });
+        Button inline = new Button("$…$");
+        inline.setTooltip(PaneUtils.genWrappedToolTip(TR.tr("textTab.math.inline.tooltip")));
+        inline.setOnAction(e -> {
+            String selected = txtArea.getSelectedText();
+            int start = txtArea.getSelection().getStart();
+            txtArea.replaceSelection("$" + (selected.isEmpty() ? " " : selected) + "$");
+            txtArea.requestFocus();
+            if(selected.isEmpty()) txtArea.selectRange(start + 1, start + 2); // The space is replaced by what is typed
+        });
+        toolsBox.getChildren().addAll(mathToggle, inline);
+        for(String[] symbol : SYMBOLS){
+            Button button = new Button(symbol[0]);
+            button.setOnAction(e -> {
+                txtArea.replaceSelection(canDisplay(symbol[0]) ? symbol[0] : "$" + symbol[1] + "$");
+                txtArea.requestFocus();
+            });
+            toolsBox.getChildren().add(button);
         }
+        for(javafx.scene.Node node : toolsBox.getChildren()){
+            node.setFocusTraversable(false);
+            node.setStyle("-fx-padding: 1 5; -fx-font-size: 12;");
+        }
+        toolsBox.disableProperty().bind(txtArea.disableProperty());
 
+        preview.setPreserveRatio(true);
+        preview.setSmooth(true);
+        previewDelay.setOnFinished(e -> renderPreview());
+        previewError.setWrapText(true);
+        previewError.setStyle("-fx-text-fill: #c62828; -fx-font-size: 11;");
+        previewError.managedProperty().bind(previewError.visibleProperty());
+        previewBox.getChildren().addAll(preview, previewError);
+        previewBox.managedProperty().bind(previewBox.visibleProperty());
+        previewBox.setVisible(false);
+    }
+    // The symbol is written as a character if the font of the text has it, as LaTeX otherwise.
+    private boolean canDisplay(String symbol){
+        return MixedTextRenderer.canDisplay(fontCombo.getSelectionModel().getSelectedItem(), itBtn.isSelected(), boldBtn.isSelected(), symbol.codePointAt(0));
+    }
+    // "$$x$$" or "$$x" -> "x"
+    static String unwrapWholeFormula(String text){
+        if(!text.startsWith("$$")) return text;
+        String inside = text.substring(2);
+        return inside.endsWith("$$") ? inside.substring(0, inside.length() - 2) : inside;
+    }
+    // Shows the selected text with its formulas, wrapped at the width of the panel, and the LaTeX error if there is one.
+    private void updatePreview(TextElement element){
+        if(previewedElement != element){
+            previewError.textProperty().unbind();
+            previewedElement = element;
+            if(element != null) previewError.textProperty().bind(element.latexErrorProperty());
+            preview.setImage(null);
+        }
+        boolean math = element != null && element.isMath();
+        previewBox.setVisible(math);
+        previewError.visibleProperty().unbind();
+        previewError.visibleProperty().bind(previewError.textProperty().isNotEmpty().and(previewBox.visibleProperty()));
+        mathToggle.setSelected(element != null && element.getText().startsWith("$$"));
+        if(math) previewDelay.playFromStart(); // Not at each typed character
+        else previewDelay.stop();
+    }
+    private final PauseTransition previewDelay = new PauseTransition(Duration.millis(150));
+    private long previewRequest;
+    private void renderPreview(){
+        if(!(previewedElement instanceof TextElement element) || !element.isMath()) return;
+        String text = element.getText();
+        boolean legacy = MathText.isLegacy(text);
+        String family = element.getFont().getFamily();
+        boolean bold = FontUtils.getFontWeight(element.getFont()) == FontWeight.BOLD;
+        boolean italic = FontUtils.getFontPosture(element.getFont()) == FontPosture.ITALIC;
+        double size = element.getFont().getSize();
+        java.awt.Color color = element.getAwtColor();
+        double width = Math.max(80, optionPane.getWidth() - 20);
+        long request = ++previewRequest;
+        new Thread(() -> {
+            float scale = 2; // Sharp on high density screens
+            java.awt.image.BufferedImage image = legacy ? element.renderAwtLatex()
+                    : MixedTextRenderer.render(MathText.parse(text), family, bold, italic, size, color, width, scale).image();
+            double displayScale = legacy ? TextElement.RENDER_FACTOR : scale;
+            Platform.runLater(() -> {
+                if(request != previewRequest) return;
+                preview.setImage(SwingFXUtils.toFXImage(image, null));
+                preview.setFitWidth(Math.min(width, image.getWidth() / displayScale));
+            });
+        }, "Text preview").start();
     }
 
     public void selectItem(){
@@ -446,16 +553,6 @@ public class TextTab extends SideTab {
 
     private Font getFont(){
         return FontUtils.getFont(fontCombo.getSelectionModel().getSelectedItem(), itBtn.isSelected(), boldBtn.isSelected(), sizeSpinner.getValueFactory().getValue());
-    }
-
-    private ScrollBar getHorizontalSB(final TextArea scrollPane){
-        return scrollPane.lookupAll(".scroll-bar")
-                .stream()
-                .filter(node -> node instanceof ScrollBar)
-                .map(node -> (ScrollBar) node)
-                .filter(sb -> sb.getOrientation() == Orientation.HORIZONTAL)
-                .findFirst()
-                .orElse(null);
     }
 
     private void setupAutocompletePopup(){
@@ -492,7 +589,7 @@ public class TextTab extends SideTab {
                     setGraphic(null);
                     setStyle("");
                 }else{
-                    String displayText = TextElement.invertMathIfNeeded(item.getText());
+                    String displayText = item.getText();
                     // Truncate long text for display
                     if(displayText.length() > 80){
                         displayText = displayText.substring(0, 77) + "...";
@@ -540,15 +637,15 @@ public class TextTab extends SideTab {
         List<TextTreeItem> matchingItems = new ArrayList<>();
         Set<String> seenTexts = new HashSet<>();
         String lowerMatchText = matchText.toLowerCase();
-        for(TextTreeSection section : List.of(treeView.favoritesSection, treeView.lastsSection, treeView.onFileSection)){
-            for(TreeItem<String> child : section.getChildren()){
-                if(!(child instanceof TextTreeItem item) || item.getCore() == MainWindow.mainScreen.getSelected()) continue;
-                String text = TextElement.invertMathIfNeeded(item.getText());
+        for(TextTreeSection section : List.of(treeView.favoritesSection, treeView.evaluationSection, treeView.lastsSection, treeView.onFileSection)){
+            for(TextTreeItem item : section.getTextItems()){
+                if(item.getCore() == MainWindow.mainScreen.getSelected()) continue;
+                String text = item.getText();
                 if(text.toLowerCase().contains(lowerMatchText) && seenTexts.add(text)) matchingItems.add(item);
             }
         }
         // Nothing to suggest if the only match is what is already typed
-        if(matchingItems.size() == 1 && TextElement.invertMathIfNeeded(matchingItems.getFirst().getText()).equals(matchText)){
+        if(matchingItems.size() == 1 && matchingItems.getFirst().getText().equals(matchText)){
             matchingItems.clear();
         }
 
@@ -586,7 +683,7 @@ public class TextTab extends SideTab {
             autocompletePopup.hide();
 
             // Set the text to the selected item's text
-            String selectedText = TextElement.invertMathIfNeeded(selectedItem.getText());
+            String selectedText = selectedItem.getText();
             txtArea.setText(selectedText);
             txtArea.positionCaret(selectedText.length());
 

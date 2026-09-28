@@ -18,6 +18,7 @@ import javafx.scene.text.Font;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 
 public class PNFAnnotationManager {
@@ -38,9 +39,10 @@ public class PNFAnnotationManager {
     public static void addPNF(PageRenderer page, double pageX, double pageY){
         if(!MainWindow.mainScreen.hasDocument(false)) return;
         
-        int exerciseIndex = getSelectedExerciseIndex();
-        int rowCount = getPNFRowCount();
-        if(exerciseIndex < 0 || exerciseIndex >= rowCount){
+        List<String> exercises = getExerciseNames();
+        int exerciseIndex = getRowIndex(exercises, MainWindow.footerBar.getSelectedExerciseIndex());
+        int rowCount = getRowCount(exercises);
+        if(exerciseIndex < 0){
             MainWindow.footerBar.showToast(Color.web("#6a1b1b"), Color.WHITE, TR.tr("pnf.noExerciseSelected"));
             return;
         }
@@ -140,12 +142,25 @@ public class PNFAnnotationManager {
         return (rowIndex + 1) + ". ";
     }
     
-    private static int getSelectedExerciseIndex(){
-        return MainWindow.footerBar.getSelectedExerciseIndex();
+    // Names of the exercises of the grade scale (top-level grades).
+    private static List<String> getExerciseNames(){
+        if(GradeTreeView.getTotal() == null) return List.of();
+        return GradeTreeView.getTotal().getChildren().stream()
+                .map(item -> ((GradeTreeItem) item).getCore().getName())
+                .toList();
     }
     
-    private static int getPNFRowCount(){
-        return Math.max(0, MainWindow.footerBar.getExerciseCount() - 1);
+    // The PNF grade has no row in the table: the rows are the other exercises, in the order of the grade scale.
+    static boolean isPNFExercise(String name){
+        return name != null && name.trim().equalsIgnoreCase(PNF_TEXT);
+    }
+    static int getRowCount(List<String> exercises){
+        return (int) exercises.stream().filter(name -> !isPNFExercise(name)).count();
+    }
+    // Row of the exercise at this index of the grade scale, or -1 (no exercise, or the PNF grade itself).
+    static int getRowIndex(List<String> exercises, int exerciseIndex){
+        if(exerciseIndex < 0 || exerciseIndex >= exercises.size() || isPNFExercise(exercises.get(exerciseIndex))) return -1;
+        return (int) exercises.subList(0, exerciseIndex).stream().filter(name -> !isPNFExercise(name)).count();
     }
     
     static int getRowY(int rowIndex){

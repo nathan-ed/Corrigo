@@ -15,6 +15,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 // Catalogs of scored comments, by evaluation signature.
+// Each evaluation folder also stores its own catalogs (see ScoredComments.FolderPart), which are used first:
+// this app-wide file is a backup, and the source of the catalogs of the evaluations opened before this storage existed.
 public class ScoredCommentsData extends SimpleConfig {
 
     public ScoredCommentsData(){
@@ -31,8 +33,8 @@ public class ScoredCommentsData extends SimpleConfig {
     protected void manageLoadedData(Config config){
         LinkedHashMap<String, ScoredCommentCatalog> catalogs = readCatalogs(config.getSection("evaluations"));
         Platform.runLater(() -> {
-            // Catalogs created before the loading (empty) are replaced.
-            ScoredComments.getCatalogs().putAll(catalogs);
+            // Catalogs created before the loading (empty) are replaced, not the ones read from the evaluation folder.
+            ScoredComments.putLoadedCatalogs(catalogs);
             ScoredComments.fireChanged(false);
         });
     }
@@ -46,14 +48,14 @@ public class ScoredCommentsData extends SimpleConfig {
         config.set("evaluations", writeCatalogs(ScoredComments.getCatalogs()));
     }
 
-    static LinkedHashMap<String, ScoredCommentCatalog> readCatalogs(Map<String, Object> evaluations){
+    public static LinkedHashMap<String, ScoredCommentCatalog> readCatalogs(Map<String, Object> evaluations){
         LinkedHashMap<String, ScoredCommentCatalog> catalogs = new LinkedHashMap<>();
         for(Map.Entry<String, Object> evaluation : evaluations.entrySet()){
             if(evaluation.getValue() instanceof Map<?, ?> data) catalogs.put(evaluation.getKey(), ScoredCommentCatalog.fromYAML(data));
         }
         return catalogs;
     }
-    static LinkedHashMap<String, Object> writeCatalogs(Map<String, ScoredCommentCatalog> catalogs){
+    public static LinkedHashMap<String, Object> writeCatalogs(Map<String, ScoredCommentCatalog> catalogs){
         LinkedHashMap<String, Object> evaluations = new LinkedHashMap<>();
         catalogs.forEach((signature, catalog) -> {
             if(!catalog.isEmpty()) evaluations.put(signature, catalog.toYAML());
