@@ -59,6 +59,23 @@ public final class PagePreview {
         int x = (int) Math.round(usage.x() / GRID_WIDTH * width);
         int y = (int) Math.round(usage.y() / GRID_HEIGHT * height);
 
+        if(usage.text() == null || usage.text().isEmpty()){
+            // No text: a ring at the spot if there is a style (its color), not hiding the work around; the zoom is centered there
+            if(usage.style() != null){
+                Graphics2D g = page.createGraphics();
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int radius = (int) (7 * scale);
+                Color color = parseColor(usage.style().color());
+                g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 60));
+                g.fillOval(x - radius, y - radius, 2 * radius, 2 * radius);
+                g.setColor(color);
+                g.setStroke(new BasicStroke((float) Math.max(2, scale * 1.2)));
+                g.drawOval(x - radius, y - radius, 2 * radius, 2 * radius);
+                g.dispose();
+            }
+            int spanX = (int) (width * 0.5), spanY = (int) (height * 0.12);
+            return new Preview(page, new Rectangle(x - spanX / 2, y - spanY / 2, spanX, spanY));
+        }
         BufferedImage comment = renderComment(usage, scale);
         int commentHeight = comment == null ? (int) (20 * scale) : comment.getHeight();
         int commentWidth = comment == null ? (int) (100 * scale) : comment.getWidth();

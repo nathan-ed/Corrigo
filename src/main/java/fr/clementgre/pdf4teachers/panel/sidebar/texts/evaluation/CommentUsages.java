@@ -30,8 +30,9 @@ import java.util.function.Consumer;
  */
 public final class CommentUsages {
 
-    // A comment written on a copy: its page and position (grid units), and its style to draw it on the preview.
-    public record Usage(File folder, File copy, int page, double x, double y, String exercise, String text, CommentBank.Style style) {}
+    // A comment written on a copy: its page and position (grid units), and its style to draw it on the preview
+    // (no text: nothing drawn). detail: shown under the preview, or null.
+    public record Usage(File folder, File copy, int page, double x, double y, String exercise, String text, CommentBank.Style style, String detail) {}
 
     private CommentUsages(){
     }
@@ -83,7 +84,7 @@ public final class CommentUsages {
             return CopyComments.read(config.base, Map.of(), List.of()).stream()
                     .filter(occurrence -> CommentBank.normalize(occurrence.text()).equals(target))
                     .map(occurrence -> new Usage(folder, pdf.getAbsoluteFile(), occurrence.page(), occurrence.x(), occurrence.y(),
-                            occurrence.exercise(), occurrence.text(), occurrence.style()))
+                            occurrence.exercise(), occurrence.text(), occurrence.style(), null))
                     .toList();
         }catch(Exception e){
             Log.e("Unable to read the comments of " + pdf + ": " + e.getMessage());
@@ -104,7 +105,7 @@ public final class CommentUsages {
                 if(text.getText() == null || !CommentBank.normalize(text.getText()).equals(target)) continue;
                 String exercise = ExerciseLocator.locate(text.getPageNumber(), text.getRealY(), text.getGradeCommentPath(), grades, context.pages(), context.order());
                 usages.add(new Usage(copy.getParentFile(), copy, text.getPageNumber(), text.getRealX(), text.getRealY(), exercise,
-                        text.getText(), EvaluationComments.getStyle(text)));
+                        text.getText(), EvaluationComments.getStyle(text), null));
             }
         }
         return usages;

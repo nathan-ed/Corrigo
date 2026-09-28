@@ -5,12 +5,14 @@
 
 package fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation;
 
+import java.util.function.Consumer;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.control.Slider;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.interfaces.windows.AlternativeWindow;
@@ -41,8 +43,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Where a comment is written (CommentUsages), by evaluation: a preview of each copy around the comment,
- * with its name, page and exercise. A click opens the copy at this page.
+ * Previews of copies, by evaluation, zoomable around a spot: where a comment is written (CommentUsages),
+ * or the copies of a method or mistake. A click opens the copy at this page.
  */
 public class CommentUsagesWindow extends AlternativeWindow<VBox> {
 
@@ -56,7 +58,12 @@ public class CommentUsagesWindow extends AlternativeWindow<VBox> {
     private final DoubleProperty cardWidth = size.valueProperty();
     private final Slider zoom = new Slider(1, MAX_ZOOM, lastZoom);
 
-    private final String text;
+    // Gives the previews to show, by folder
+    public interface Source {
+        void load(Consumer<List<CommentUsages.Usage>> onFolder, Runnable onDone);
+    }
+    private final Source source;
+    private final String emptyText;
     private final Label status = new Label(TR.tr("textTab.usages.searching"));
     private final VBox results = new VBox(18);
     private int copies;
@@ -68,10 +75,15 @@ public class CommentUsagesWindow extends AlternativeWindow<VBox> {
         return thread;
     });
 
+    // Where this comment is written
     public CommentUsagesWindow(String text){
+        this(TR.tr("textTab.usages.title"), shorten(text), (onFolder, onDone) -> CommentUsages.search(text, onFolder, onDone), TR.tr("textTab.usages.none"));
+    }
+    public CommentUsagesWindow(String header, String subHeader, Source source, String emptyText){
         // Tall from the start: the previews arrive after the window is shown
-        super(new VBox(10), StageWidth.ULTRA_LARGE, getInitialHeight(), TR.tr("textTab.usages.title"), TR.tr("textTab.usages.title"), shorten(text));
-        this.text = text;
+        super(new VBox(10), StageWidth.ULTRA_LARGE, getInitialHeight(), header, header, subHeader);
+        this.source = source;
+        this.emptyText = emptyText;
         setOnHidden(e -> renderer.shutdownNow());
     }
 
@@ -112,7 +124,7 @@ public class CommentUsagesWindow extends AlternativeWindow<VBox> {
         close.setOnAction(e -> close());
         setButtons(close);
 
-        CommentUsages.search(text, this::addFolder, () -> status.setText(copies == 0 ? TR.tr("textTab.usages.none")
+        source.load(this::addFolder, () -> status.setText(copies == 0 ? emptyText
                 : TR.tr("textTab.usages.count", String.valueOf(copies), String.valueOf(evaluations))));
     }
 
@@ -156,9 +168,10 @@ public class CommentUsagesWindow extends AlternativeWindow<VBox> {
     }
     
     private VBox buildCard(CommentUsages.Usage usage, StackPane preview){
-        // A4 page, until the preview is rendered
+        // Size of the preview, until it is rendered
         preview.prefWidthProperty().bind(cardWidth);
-        preview.prefHeightProperty().bind(cardWidth.multiply(1.41));
+        preview.prefHeightProperty().bind(Bindings.createDoubleBinding(() -> cardWidth.get() * (zoom.getValue() < 1.01 ? 1.41 : 0.6),
+                cardWidth, zoom.valueProperty()));
         preview.setMinHeight(60);
 
         StringBuilder caption = new StringBuilder(usage.copy().getName().replaceFirst("(?i)\\.pdf$", ""));
@@ -166,6 +179,7 @@ public class CommentUsagesWindow extends AlternativeWindow<VBox> {
         if(usage.exercise() != null) caption.append("  ·  ").append(usage.exercise());
         File openCopy = MainWindow.mainScreen.hasDocument(false) ? MainWindow.mainScreen.document.getFile().getAbsoluteFile() : null;
         if(usage.copy().equals(openCopy)) caption.append("  ").append(TR.tr("textTab.usages.thisCopy"));
+        if(usage.detail() != null) caption.append("  ·  ").append(usage.detail());
         Label label = new Label(caption.toString());
         label.maxWidthProperty().bind(cardWidth);
         label.setStyle("-fx-font-size: 12;");
@@ -202,10 +216,12 @@ public class CommentUsagesWindow extends AlternativeWindow<VBox> {
         preview.setPrefHeight(Region.USE_COMPUTED_SIZE);
     }
 
+    // Zoomed in, the previews get wider than high, so that more copies can be compared on the screen.
     static Rectangle2D getViewport(PagePreview.Preview page, double zoom){
         double width = page.image().getWidth(), height = page.image().getHeight();
         if(zoom <= 1.01) return new Rectangle2D(0, 0, width, height);
-        double viewWidth = width / zoom, viewHeight = height / zoom;
+        double viewWidth = width / zoom;
+        double viewHeight = Math.min(height / zoom, viewWidth * Math.max(0.45, 1.6 / zoom));
         java.awt.Rectangle comment = page.comment();
         double x = Math.clamp(comment.getCenterX() - viewWidth / 2, 0, width - viewWidth);
         double y = Math.clamp(comment.getCenterY() - viewHeight / 2, 0, height - viewHeight);

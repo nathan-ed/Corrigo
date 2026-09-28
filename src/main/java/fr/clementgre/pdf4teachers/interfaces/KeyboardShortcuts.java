@@ -6,6 +6,7 @@
 package fr.clementgre.pdf4teachers.interfaces;
 
 
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagPicker;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.KeyableHBox;
 import fr.clementgre.pdf4teachers.document.editions.elements.Element;
@@ -213,6 +214,14 @@ public class KeyboardShortcuts {
             TeacherNotes.captureScreenshotNote();
         }));
         
+        // Methods and mistakes of the exercise: # (below) or Ctrl+Shift+M
+        shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.tags.picker"),
+                new KeyCodeCombination(KeyCode.M, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN), e -> {
+            if(!MainWindow.mainScreen.hasDocument(false)) return;
+            e.consume();
+            TagPicker.open();
+        }));
+        
         // Begin/End and Page Up/Page Down
         shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.begin"),
                 new KeyCodesCombination(KeyCode.BEGIN, KeyCode.HOME), e -> {
@@ -394,6 +403,14 @@ public class KeyboardShortcuts {
         });
         
         main.setOnKeyPressed(this::processLazyShortcuts);
+        // # (typed, whatever the keyboard layout): methods and mistakes, when no text is being typed
+        main.addEventFilter(KeyEvent.KEY_TYPED, e -> {
+            if(!"#".equals(e.getCharacter()) || !MainWindow.mainScreen.hasDocument(false)) return;
+            Node focus = Main.window.getScene().getFocusOwner();
+            if(focus instanceof TextInputControl || focus instanceof Spinner<?> || focus instanceof ComboBoxBase<?>) return;
+            e.consume();
+            TagPicker.open();
+        });
         main.addEventFilter(KeyEvent.KEY_RELEASED, e -> heldKeys.remove(e.getCode()));
         
     }

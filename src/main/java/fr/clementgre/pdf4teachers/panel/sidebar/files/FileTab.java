@@ -5,6 +5,7 @@
 
 package fr.clementgre.pdf4teachers.panel.sidebar.files;
 
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagReview;
 import fr.clementgre.pdf4teachers.document.editions.Edition;
 import fr.clementgre.pdf4teachers.document.render.convert.ConvertDocument;
 import fr.clementgre.pdf4teachers.document.render.convert.ConvertRenderer;
@@ -327,6 +328,11 @@ public class FileTab extends SideTab {
     public void openNeighborFile(int delta, boolean keepPage){
         // A file is being opened: ignore the key, the selected index is not up to date yet.
         if(!MainWindow.mainScreen.hasDocument(false)) return;
+        // Reviewing the copies of a method or mistake: only these copies
+        if(TagReview.isActive()){
+            TagReview.openNeighbor(delta);
+            return;
+        }
         
         int target = files.getSelectionModel().getSelectedIndex() + delta;
         if(target < 0){

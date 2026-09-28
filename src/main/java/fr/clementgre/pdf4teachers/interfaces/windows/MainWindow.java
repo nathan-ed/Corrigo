@@ -5,6 +5,7 @@
 
 package fr.clementgre.pdf4teachers.interfaces.windows;
 
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTags;
 import fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation.EvaluationComments;
 import fr.clementgre.pdf4teachers.panel.sidebar.notes.TeacherNotes;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
@@ -175,6 +176,7 @@ public class MainWindow extends Stage {
         EvaluationFolders.register(ScoredComments.FOLDER_PART);
         EvaluationFolders.register(TeacherNotes.FOLDER_PART);
         EvaluationFolders.register(EvaluationComments.FOLDER_PART);
+        EvaluationFolders.register(ExerciseTags.FOLDER_PART);
         skillsTab = new SkillsTab();
         try{
             FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/fxml/PaintTab.fxml")));

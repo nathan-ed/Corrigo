@@ -5,6 +5,9 @@
 
 package fr.clementgre.pdf4teachers.panel.sidebar.grades;
 
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagPicker;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTagsCard;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.EvaluationTags;
 import fr.clementgre.pdf4teachers.datasaving.simpleconfigs.ExerciseCorrectionData;
 import fr.clementgre.pdf4teachers.document.editions.Edition;
 import fr.clementgre.pdf4teachers.document.editions.elements.GradeElement;
@@ -61,6 +64,10 @@ public class GradingPanel extends VBox {
         }
     }
     private final Palette palette = Palette.get();
+    private final ExerciseTagsCard.Colors tagColors = new ExerciseTagsCard.Colors(palette.card(), palette.border(), palette.text(), palette.muted(),
+            TagPicker.getColor(EvaluationTags.Kind.METHOD), TagPicker.getColor(EvaluationTags.Kind.MISTAKE));
+    // Methods and mistakes of the exercise, after the general comment
+    private final ExerciseTagsCard tagsCard = new ExerciseTagsCard(tagColors);
 
     // HEADER
     private final Label exerciseName = new Label();
@@ -106,6 +113,7 @@ public class GradingPanel extends VBox {
     public GradingPanel(){
         setStyle("-fx-background-color: " + palette.background() + ";");
 
+        getChildren().add(ExerciseTagsCard.createReviewBanner(tagColors));
         setupHeader();
         setupContent();
         setupFooter();
@@ -302,6 +310,7 @@ public class GradingPanel extends VBox {
             nextExercise.setDisable(true);
             exerciseJumps.getChildren().clear();
             exerciseJumps.setVisible(false);
+            tagsCard.setExercise(null);
             Label empty = new Label(TR.tr("gradingPanel.noGradeScale"));
             empty.setWrapText(true);
             empty.setStyle("-fx-text-fill: " + palette.muted() + ";");
@@ -317,7 +326,8 @@ public class GradingPanel extends VBox {
             sections.add(section);
             sectionsBox.getChildren().add(section);
         }
-        sectionsBox.getChildren().add(generalBox);
+        sectionsBox.getChildren().addAll(generalBox, tagsCard);
+        tagsCard.setExercise(exercise);
         active = Math.clamp(active, 0, sections.size());
 
         bindValue(exercise.getCore(), this::updateHeader);
@@ -367,6 +377,7 @@ public class GradingPanel extends VBox {
         }
         updateHeader();
         sections.forEach(Section::update);
+        tagsCard.refreshScores(); // The points of the copy may have changed
         if(!general.isFocused()) general.setText(getCommentText(exercise));
         updateActiveStyle();
         hint.setText(TR.tr(pendingMark ? "marks.hint.clickToPlace" : pendingText != null ? "gradingPanel.hint.clickToPlace" : "gradingPanel.hint"));
