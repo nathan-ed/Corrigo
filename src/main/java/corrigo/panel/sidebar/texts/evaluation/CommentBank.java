@@ -39,6 +39,8 @@ public class CommentBank {
         private final TreeMap<String, String> fields = new TreeMap<>();
         private String lastField; // Grade it was last written for (kept when no copy uses it any more)
         private long created;
+        private String simplified; // The text for the search, computed once (the text never changes)
+        private String erasedFrom; // Copy it was last erased from (not saved)
 
         Entry(String text, String exercise, Style style, long created){
             this.text = text;
@@ -48,6 +50,10 @@ public class CommentBank {
         }
         public String getText(){
             return text;
+        }
+        String getSimplified(){
+            if(simplified == null) simplified = simplify(text);
+            return simplified;
         }
         public String getFoundExercise(){
             return exercise;
@@ -112,6 +118,9 @@ public class CommentBank {
      * Replaces what this copy contributes by its current comments.
      * @return true if the bank changed.
      */
+    // A comment typed for a grade and erased within this time was being typed, not chosen
+    static final long RECENT = 10 * 60 * 1000;
+
     public boolean updateCopy(String copy, List<Occurrence> occurrences, long now){
         boolean changed = false;
         HashSet<String> found = new HashSet<>();
@@ -149,6 +158,15 @@ public class CommentBank {
             String field = entry.fields.remove(copy);
             // The comment of a grade was edited (it is written while typed): its previous text was only on this copy, forget it
             if(entry.copies.isEmpty() && field != null && fieldsOfCopy.contains(field) && !entry.hidden && entry.movedTo == null) iterator.remove();
+            else if(entry.copies.isEmpty()) entry.erasedFrom = copy;
+        }
+        // Erased, then typed again in the same field: the erased text was being typed (recent, only on this copy)
+        for(Iterator<Entry> iterator = entries.values().iterator(); iterator.hasNext(); ){
+            Entry entry = iterator.next();
+            if(entry.copies.isEmpty() && copy.equals(entry.erasedFrom) && entry.lastField != null && fieldsOfCopy.contains(entry.lastField)
+                    && !found.contains(key(entry.exercise, entry.text)) && now - entry.created < RECENT && !entry.hidden && entry.movedTo == null){
+                iterator.remove();
+            }
         }
         return changed;
     }
@@ -182,11 +200,11 @@ public class CommentBank {
         entries.values().stream()
                 .filter(entry -> !entry.hidden)
                 .filter(entry -> {
-                    String text = simplify(entry.text);
+                    String text = entry.getSimplified();
                     return !text.equals(typed) && Arrays.stream(words).allMatch(text::contains);
                 })
                 .sorted(order)
-                .forEach(entry -> byText.putIfAbsent(simplify(entry.text), entry));
+                .forEach(entry -> byText.putIfAbsent(entry.getSimplified(), entry));
         return byText.values().stream().limit(limit).toList();
     }
     // 0: written for this grade, 1: in its exercise, 2: elsewhere
@@ -195,9 +213,11 @@ public class CommentBank {
         return Objects.equals(entry.getExercise(), exercise) ? 1 : 2;
     }
     // Lower case, no accents, single spaces
+    private static final java.util.regex.Pattern MARKS = java.util.regex.Pattern.compile("\\p{M}");
+    private static final java.util.regex.Pattern SPACES = java.util.regex.Pattern.compile("\\s+");
     static String simplify(String text){
-        String decomposed = java.text.Normalizer.normalize(normalize(text), java.text.Normalizer.Form.NFD);
-        return decomposed.replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT);
+        String decomposed = java.text.Normalizer.normalize(SPACES.matcher(text.strip()).replaceAll(" "), java.text.Normalizer.Form.NFD);
+        return MARKS.matcher(decomposed).replaceAll("").toLowerCase(Locale.ROOT);
     }
 
     // @param exercise null for general.

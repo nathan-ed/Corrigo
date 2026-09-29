@@ -261,12 +261,13 @@ public class TextTab extends SideTab {
 
             if(MainWindow.mainScreen.getSelected() instanceof TextElement element){
                 element.setText(newValue); // First: the text must never be lost because of the layout below
-                // Only update autocomplete if not selecting from popup
-                if(!isSelectingFromPopup){
+                // Only when typed here (not when the grading panel writes the selected comment: it made typing lag there)
+                if(txtArea.isFocused() && !isSelectingFromPopup){
+                    // Only update autocomplete if not selecting from popup
                     treeView.updateAutoComplete();
                     updateAutocompletePopup();
                 }
-                updatePreview(element);
+                if(txtArea.isFocused() || isSelected()) updatePreview(element);
                 if(new Random().nextInt(10) == 0) AutoTipsManager.showByAction("textedit");
             }
             updateTextAreaHeight();

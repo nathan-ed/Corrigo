@@ -69,6 +69,24 @@ class CommentBankTest {
     }
 
     @Test
+    void aTextErasedThenTypedAgainInTheSameFieldIsForgotten(){
+        CommentBank bank = new CommentBank();
+        bank.updateCopy("1_A.pdf", List.of(field("Atten", "Q1", "Total\\Q1")), 1);
+        bank.updateCopy("1_A.pdf", List.of(), 2); // Erased
+        assertNotNull(find(bank, "Atten", "Q1"), "Erased only: kept");
+        bank.updateCopy("1_A.pdf", List.of(field("Attention au signe", "Q1", "Total\\Q1")), 3);
+        assertNull(find(bank, "Atten", "Q1"), "Typed again in the same field: the erased text was being typed");
+        assertNotNull(find(bank, "Attention au signe", "Q1"));
+
+        // An older comment, or one of another field, stays
+        bank.updateCopy("1_A.pdf", List.of(), 4);
+        bank.updateCopy("1_A.pdf", List.of(field("Nouveau", "Q1", "Total\\Q1")), 4 + CommentBank.RECENT);
+        assertNotNull(find(bank, "Attention au signe", "Q1"));
+        bank.updateCopy("1_A.pdf", List.of(field("Autre", "Q2", "Total\\Q2")), 5 + CommentBank.RECENT);
+        assertNotNull(find(bank, "Nouveau", "Q1"), "Another field was typed: kept");
+    }
+
+    @Test
     void theFieldsAreSavedAndReadBack(){
         CommentBank bank = new CommentBank();
         bank.updateCopy("1_A.pdf", List.of(field("Justifier", "Q1", "Total\\Q1")), 1);

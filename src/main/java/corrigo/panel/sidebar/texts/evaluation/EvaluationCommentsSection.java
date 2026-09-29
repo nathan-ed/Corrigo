@@ -46,7 +46,14 @@ public class EvaluationCommentsSection extends TextTreeSection {
         menu = buildSectionMenu();
 
         EvaluationComments.revisionProperty().addListener((o, oldValue, newValue) -> scheduleUpdate());
+        // Rebuilt only when the Texts tab is shown: not while grading in the panel (it made typing lag)
+        Platform.runLater(() -> {
+            if(MainWindow.textTab != null) MainWindow.textTab.selectedProperty().addListener((o, oldValue, newValue) -> {
+                if(newValue && outdated) scheduleUpdate();
+            });
+        });
     }
+    private boolean outdated;
 
     @Override
     public void setupSortManager(){
@@ -60,6 +67,11 @@ public class EvaluationCommentsSection extends TextTreeSection {
     }
 
     public void scheduleUpdate(){
+        if(MainWindow.textTab != null && !MainWindow.textTab.isSelected()){
+            outdated = true;
+            return;
+        }
+        outdated = false;
         if(updateScheduled) return;
         updateScheduled = true;
         Platform.runLater(() -> {

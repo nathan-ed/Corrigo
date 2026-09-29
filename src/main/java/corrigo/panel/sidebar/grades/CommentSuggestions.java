@@ -62,8 +62,18 @@ public class CommentSuggestions {
         list.setFocusTraversable(false);
         list.setFixedCellSize(ROW_HEIGHT);
         list.setCellFactory(view -> new ListCell<>() {
+            // Built once: only the texts change when the list is filtered (new nodes would be styled at each key)
+            private final Label label = new Label();
+            private final Label detail = new Label();
+            private final HBox row = new HBox(8, label, detail);
             { // As wide as the list: long comments are cut, never scrolled horizontally
                 setPrefWidth(0);
+                label.setMinWidth(0);
+                label.setMaxWidth(Double.MAX_VALUE);
+                HBox.setHgrow(label, Priority.ALWAYS);
+                detail.setMinWidth(Region.USE_PREF_SIZE);
+                detail.setStyle("-fx-font-size: 11; -fx-opacity: .65;");
+                row.setAlignment(Pos.CENTER_LEFT);
                 // Chooses on press: the field would lose the focus on release
                 setOnMousePressed(e -> {
                     if(e.getButton() == MouseButton.PRIMARY && getItem() != null){
@@ -79,21 +89,14 @@ public class CommentSuggestions {
                     setGraphic(null);
                     return;
                 }
-                Label label = new Label(entry.getText().replace('\n', ' '));
-                label.setMinWidth(0);
-                label.setMaxWidth(Double.MAX_VALUE);
-                HBox.setHgrow(label, Priority.ALWAYS);
+                label.setText(entry.getText().replace('\n', ' '));
                 // Where it comes from, if not from this field
                 Grade current = grade.get();
                 int rank = current == null ? 2 : CommentBank.getRank(entry, current.path(), current.exercise());
                 String origin = rank == 0 ? "" : rank == 1 ? TR.tr("gradingPanel.suggestions.exercise")
                         : entry.getExercise() == null ? TR.tr("gradingPanel.suggestions.general") : entry.getExercise();
-                Label detail = new Label(origin + (entry.getUses() > 1 ? (origin.isEmpty() ? "" : " · ") + "×" + entry.getUses() : ""));
-                detail.setMinWidth(Region.USE_PREF_SIZE);
-                detail.setStyle("-fx-font-size: 11; -fx-opacity: .65;");
-                HBox row = new HBox(8, label, detail);
-                row.setAlignment(Pos.CENTER_LEFT);
-                setGraphic(row);
+                detail.setText(origin + (entry.getUses() > 1 ? (origin.isEmpty() ? "" : " · ") + "×" + entry.getUses() : ""));
+                if(getGraphic() != row) setGraphic(row);
             }
         });
 
@@ -106,6 +109,7 @@ public class CommentSuggestions {
         popup.setAutoFix(true);
 
         field.focusedProperty().addListener((o, oldValue, newValue) -> {
+            scanned = false;
             if(newValue){
                 if(field.getText().isBlank()) Platform.runLater(this::update); // Once the panel scrolled to the field
             }else hide();
@@ -118,6 +122,8 @@ public class CommentSuggestions {
             if(popup.isShowing()) place();
         });
     }
+
+    private boolean scanned;
 
     public boolean isShowing(){
         return popup.isShowing();
@@ -191,7 +197,12 @@ public class CommentSuggestions {
             hide();
             return;
         }
-        EvaluationComments.scanPendingNow(); // The comments just written must be up to date
+        // The comments just written must be known: once when the field gets the focus, not at each key (the scan of the
+        // copy is too slow to be done while typing; the comment being typed is left out below anyway)
+        if(!scanned){
+            scanned = true;
+            EvaluationComments.scanPendingNow();
+        }
         // Not the comment of this field on this copy (being typed): only on this copy, for this grade
         String copy = MainWindow.mainScreen.hasDocument(false) ? MainWindow.mainScreen.document.getFile().getName() : null;
         List<CommentBank.Entry> entries = EvaluationComments.getBank().suggest(current.path(), current.exercise(), field.getText(), MAX + 1).stream()
@@ -201,10 +212,12 @@ public class CommentSuggestions {
             hide();
             return;
         }
-        CommentBank.Entry selected = list.getSelectionModel().getSelectedItem();
-        list.getItems().setAll(entries);
-        if(selected != null && entries.contains(selected)) list.getSelectionModel().select(selected);
-        else list.getSelectionModel().clearSelection();
+        if(!entries.equals(list.getItems())){ // Unchanged while typing a word that filters nothing more
+            CommentBank.Entry selected = list.getSelectionModel().getSelectedItem();
+            list.getItems().setAll(entries);
+            if(selected != null && entries.contains(selected)) list.getSelectionModel().select(selected);
+            else list.getSelectionModel().clearSelection();
+        }
         list.setPrefHeight(Math.min(entries.size(), VISIBLE_ROWS) * ROW_HEIGHT + 2);
         title.setText(TR.tr(field.getText().isBlank() ? "gradingPanel.suggestions.title" : "gradingPanel.suggestions.matching"));
         place();
