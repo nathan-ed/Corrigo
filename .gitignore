@@ -3,3 +3,6 @@ build/*
 .gradle/*
 .idea/*
 *.odt#
+
+__pycache__/
+*.pyc
