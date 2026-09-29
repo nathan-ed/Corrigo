@@ -19,7 +19,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
@@ -250,7 +249,7 @@ public final class TagPicker {
         box.setPadding(new Insets(12));
         box.setPrefWidth(340);
         box.setStyle("-fx-background-color: " + background + "; -fx-border-color: " + border + "; -fx-border-radius: 8; -fx-background-radius: 8;");
-        box.setEffect(new DropShadow(16, Color.rgb(0, 0, 0, .3)));
+        // No shadow: its transparent margin shows as a frame on desktops without compositing
         StyleManager.putStyle(box, fr.clementgre.pdf4teachers.utils.style.Style.DEFAULT);
 
         Popup popup = new Popup();

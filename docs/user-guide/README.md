@@ -25,7 +25,7 @@ settings and lists of PDF4Teachers, if it was installed; PDF4Teachers keeps its 
 1. Scan all the copies into one PDF, in class order.
 2. **File → New evaluation…** ([details](01-getting-started.md#a-new-evaluation-from-the-scan)): the scan, the names
    of the students in the same order, the pages of each copy, then the grade scale (created with the assistant:
-   exercises, their page, sub-questions and points, or imported from another evaluation). It writes one PDF per
+   exercises, their page, sub-questions or criteria and points, or imported from another evaluation). It writes one PDF per
    student, named like `07_DUPONT.pdf`, and opens the first one in the grading panel.
 3. Then grade exercise 1 on every copy: points, comments, and the methods and
    mistakes (which can add or remove points). **Next ungraded ›** (or `Z`) opens the next copy at the same exercise. Then exercise 2, and so on.

@@ -25,7 +25,7 @@ les préférences et les listes de PDF4Teachers s'il était installé ; PDF4Teac
 1. Scannez toutes les copies en un seul PDF, dans l'ordre de la classe.
 2. **Fichier → Nouvelle évaluation…** ([détails](01-premiers-pas.md#une-nouvelle-évaluation-à-partir-du-scan)) : le
    scan, les noms des élèves dans le même ordre, les pages de chaque copie, puis le barème (créé avec l'assistant :
-   exercices, leur page, sous-questions et points, ou importé d'une autre évaluation). Elle écrit un PDF par élève,
+   exercices, leur page, sous-questions ou critères et points, ou importé d'une autre évaluation). Elle écrit un PDF par élève,
    nommé par exemple `07_DUPONT.pdf`, et ouvre le premier dans le panneau de correction.
 3. Corrigez ensuite l'exercice 1 sur toutes les copies : points, commentaires,
    méthodes et erreurs (qui peuvent ajouter ou enlever des points). **À corriger ›** (ou `Z`) ouvre la copie suivante au même

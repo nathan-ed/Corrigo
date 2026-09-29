@@ -5,10 +5,11 @@
 On a copy without grade scale, the grading panel offers **Create the grade scale…**:
 
 1. the number of exercises;
-2. for each exercise, its name, its page, its number of sub-questions (a, b, c…) and their points;
+2. for each exercise, its name, its page, and its points, or its sub-grades: sub-questions (a, b, c… by default) or
+   criteria you name yourself (e.g. Method, Result), each with its points;
 3. **Copy this grade scale to the other copies of the folder** (checked when there are other copies).
 
-The grade of each exercise is placed at the top right of its page, its sub-questions under it: that is how the app
+The grade of each exercise is placed at the top right of its page, its sub-grades under it: that is how the app
 knows the page of each exercise. Drag the grades next to the questions if you like, then copy their positions to the
 other copies (link icon of the /20 tab). Change the scale later in the /20 tab.
 

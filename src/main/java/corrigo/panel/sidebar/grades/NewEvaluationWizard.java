@@ -193,7 +193,7 @@ public final class NewEvaluationWizard {
         Button changeFolder = new Button(TR.tr("newEvaluation.folder.change"));
         changeFolder.setOnAction(e -> {
             File chosen = FilesChooserManager.showDirectoryDialog(FilesChooserManager.SyncVar.LAST_OPEN_DIR);
-            if(chosen != null) folder.setText(chosen.getAbsolutePath());
+            if(chosen != null) folder.setText(fr.clementgre.pdf4teachers.utils.FilesUtils.getPathReplacingUserHome(chosen.getAbsolutePath()));
         });
         HBox folderBox = new HBox(8, folder, changeFolder);
         folderBox.setAlignment(Pos.CENTER_LEFT);
@@ -212,9 +212,16 @@ public final class NewEvaluationWizard {
             folderWarning.setVisible(false);
             return;
         }
-        File[] pdfs = new File(folder.getText().strip()).listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
+        File[] pdfs = getFolder().listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
         folderWarning.setVisible(pdfs != null && pdfs.length > 0);
         if(pdfs != null && pdfs.length > 0) folderWarning.setText(TR.tr("newEvaluation.folder.notEmpty", String.valueOf(pdfs.length)));
+    }
+
+    // The folder typed or chosen: "~" is the home folder (it is shown so)
+    private File getFolder(){
+        String path = folder.getText().strip();
+        if(path.equals("~") || path.startsWith("~/") || path.startsWith("~\\")) path = System.getProperty("user.home") + path.substring(1);
+        return new File(path);
     }
 
     private void chooseScan(){
@@ -235,7 +242,7 @@ public final class NewEvaluationWizard {
         scanLabel.setText(TR.tr("newEvaluation.scan.chosen", chosen.getName(), String.valueOf(scanPages)));
         // The copies go in a folder named after the scan, next to it
         String baseName = chosen.getName().replaceFirst("(?i)\\.pdf$", "");
-        folder.setText(new File(chosen.getParentFile(), baseName).getAbsolutePath());
+        folder.setText(fr.clementgre.pdf4teachers.utils.FilesUtils.getPathReplacingUserHome(new File(chosen.getParentFile(), baseName).getAbsolutePath()));
         validate();
     }
 
@@ -414,7 +421,7 @@ public final class NewEvaluationWizard {
     // CREATION
 
     private void create(){
-        File directory = new File(folder.getText().strip());
+        File directory = getFolder();
         List<Copy> plan = getPlan();
         List<File> files = plan.stream().map(copy -> new File(directory, copy.fileName())).toList();
         // Never written over: the copies of another evaluation keep their annotations, comments, methods and mistakes
@@ -436,6 +443,11 @@ public final class NewEvaluationWizard {
             String failure = null;
             try{
                 directory.mkdirs();
+                // Annotations left by a copy of the same path that was deleted: they are not the ones of the new copy
+                for(File file : files){
+                    File editFile = Edition.getEditFile(file);
+                    if(editFile != null && editFile.exists() && !editFile.delete()) Log.w("Unable to delete the old edition " + editFile);
+                }
                 for(int i = 0; i < plan.size(); i++){
                     Copy copy = plan.get(i);
                     try(PDDocument extracted = new PageExtractor(document, copy.firstPage() + 1, copy.lastPage() + 1).extract()){

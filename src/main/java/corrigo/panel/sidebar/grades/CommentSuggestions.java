@@ -19,7 +19,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
@@ -103,7 +102,7 @@ public class CommentSuggestions {
         VBox box = new VBox(4, title, list);
         box.setPadding(new Insets(6));
         box.setStyle("-fx-background-color: " + background + "; -fx-border-color: " + border + "; -fx-border-radius: 6; -fx-background-radius: 6;");
-        box.setEffect(new DropShadow(12, Color.rgb(0, 0, 0, .25)));
+        // No shadow: its transparent margin shows as a frame on desktops without compositing
         StyleManager.putStyle(box, fr.clementgre.pdf4teachers.utils.style.Style.DEFAULT);
         popup.getContent().add(box);
         popup.setAutoFix(true);

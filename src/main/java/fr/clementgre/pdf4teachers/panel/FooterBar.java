@@ -348,14 +348,9 @@ public class FooterBar extends StackPane {
         exerciseSelector.setPrefWidth(130); // Shows the exercise names
         exerciseSelector.setMaxHeight(19);
         exerciseSelector.setOnAction(e -> {
-            ScoredComments.fireChanged(false); // The scored comments panel lists the entries of the selected exercise
             if(updatingExerciseControls) return;
             String selected = exerciseSelector.getSelectionModel().getSelectedItem();
-            if(selected != null) selectedExerciseKey = selected;
-            ExerciseCorrectionData.requestSave();
-            MainWindow.filesTab.preloadNeighborExercisePages();
-            navigateToSelectedExercisePage();
-            reloadGradingPanel();
+            if(selected != null) applySelectedExercise(selected);
         });
         
         exercisePages.setTooltip(PaneUtils.genWrappedToolTip(TR.tr("footerBar.exercisePages.tooltip")));
@@ -541,20 +536,34 @@ public class FooterBar extends StackPane {
         if(!isExerciseCorrectionMode() && (MainWindow.gradingTab == null || !MainWindow.gradingTab.isSelected())) return false;
         return selectExercise(delta);
     }
+    // The exercise to grade: saved, its page shown, the grading panel on it. (Modified by Nathan, 2026: applied directly,
+    // the selector is no longer shown and its action is not a reliable way to apply it)
+    private void applySelectedExercise(String key){
+        ScoredComments.fireChanged(false); // The scored comments panel lists the entries of the selected exercise
+        selectedExerciseKey = key;
+        updatingExerciseControls = true;
+        exerciseSelector.getSelectionModel().select(key);
+        updatingExerciseControls = false;
+        ExerciseCorrectionData.requestSave();
+        MainWindow.filesTab.preloadNeighborExercisePages();
+        navigateToSelectedExercisePage();
+        reloadGradingPanel();
+    }
+    
     // Selects the previous (delta = -1) or next (delta = 1) exercise, also outside exercise correction mode.
     public boolean selectExercise(int delta){
-        if(!MainWindow.mainScreen.hasDocument(false) || exerciseSelector.getItems().isEmpty()) return false;
-        int index = Math.clamp(exerciseSelector.getSelectionModel().getSelectedIndex() + delta, 0, exerciseSelector.getItems().size() - 1);
-        exerciseSelector.getSelectionModel().select(index); // Fires the selector action: saves and navigates.
-        showToast(Color.web("#424242"), Color.WHITE, exerciseSelector.getSelectionModel().getSelectedItem());
+        if(!MainWindow.mainScreen.hasDocument(false) || exerciseKeys.isEmpty()) return false;
+        int index = Math.clamp(exerciseKeys.indexOf(selectedExerciseKey) + delta, 0, exerciseKeys.size() - 1);
+        applySelectedExercise(exerciseKeys.get(index));
+        showToast(Color.web("#424242"), Color.WHITE, selectedExerciseKey);
         return true;
     }
     
     // Selects the exercise at this index and scrolls to its page, even if it is already selected.
     public boolean goToExercise(int topLevelIndex){
-        if(!MainWindow.mainScreen.hasDocument(false) || topLevelIndex < 0 || topLevelIndex >= exerciseSelector.getItems().size()) return false;
-        if(topLevelIndex == exerciseSelector.getSelectionModel().getSelectedIndex()) navigateToSelectedExercisePage();
-        else exerciseSelector.getSelectionModel().select(topLevelIndex); // Fires the selector action: saves and navigates.
+        if(!MainWindow.mainScreen.hasDocument(false) || topLevelIndex < 0 || topLevelIndex >= exerciseKeys.size()) return false;
+        if(exerciseKeys.get(topLevelIndex).equals(selectedExerciseKey)) navigateToSelectedExercisePage();
+        else applySelectedExercise(exerciseKeys.get(topLevelIndex));
         return true;
     }
     

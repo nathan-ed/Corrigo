@@ -680,7 +680,7 @@ public class GradingPanel extends VBox {
         if(isInTextField(e.getTarget()) || isInTextField(getScene() == null ? null : getScene().getFocusOwner())) return;
         Section section = getActive();
 
-        Integer number = MathUtils.parseIntFromKeyEventOrNull(e);
+        Integer number = MathUtils.parseDigitTypedOrNull(e);
         if(number != null && section != null){
             e.consume();
             if(number == 0) section.setTypedPoints("0");

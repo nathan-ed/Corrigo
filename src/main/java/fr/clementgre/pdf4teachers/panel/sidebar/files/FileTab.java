@@ -102,6 +102,11 @@ public class FileTab extends SideTab {
         infoLabel.setStyle("-fx-font-size: 16;");
         VBox.setMargin(infoLabel, new Insets(0, 0, 10, 0));
         
+        Hyperlink newEvaluation = new Hyperlink(TR.tr("menuBar.file.newEvaluation"));
+        newEvaluation.setOnAction(e -> corrigo.panel.sidebar.grades.NewEvaluationWizard.show());
+        newEvaluation.setStyle("-fx-font-weight: bold;");
+        VBox.setMargin(newEvaluation, new Insets(-2, 0, 4, 0));
+        
         Hyperlink openFile = new Hyperlink(TR.tr("menuBar.file.openFiles"));
         openFile.setOnAction(e -> MainWindow.menuBar.file1Open.fire());
         VBox.setMargin(openFile, new Insets(-2, 0, -2, 0));
@@ -116,7 +121,7 @@ public class FileTab extends SideTab {
         
         VBox.setMargin(info, new Insets(20, 0, 20, 0));
         info.setAlignment(Pos.CENTER);
-        info.getChildren().addAll(infoLabel, openFile, openDir, convert);
+        info.getChildren().addAll(infoLabel, newEvaluation, openFile, openDir, convert);
         
         
         info.visibleProperty().bind(Bindings.size(files.getItems()).isEqualTo(0));

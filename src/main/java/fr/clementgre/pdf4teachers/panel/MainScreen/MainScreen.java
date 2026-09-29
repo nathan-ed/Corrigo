@@ -167,8 +167,9 @@ public class MainScreen extends Pane {
                 infoLink.setVisible(true);
                 info.setStyle("-fx-text-fill: white; -fx-font: 30 'Arial Rounded MT Bold' !important;");
                 info.setText(TR.tr("footerBar.documentStatus.noDocument"));
-                infoLink.setText(TR.tr("menuBar.tools.convertImages"));
-                infoLink.setOnAction(e -> new ConvertDocument());
+                // A new evaluation from its scan: what a teacher starts with (Modified by Nathan, 2026)
+                infoLink.setText(TR.tr("menuBar.file.newEvaluation"));
+                infoLink.setOnAction(e -> corrigo.panel.sidebar.grades.NewEvaluationWizard.show());
                 
             }else if(status.get() == Status.ERROR){
                 info.setStyle("-fx-text-fill: white; -fx-font: 23 'Arial Rounded MT Bold' !important;");

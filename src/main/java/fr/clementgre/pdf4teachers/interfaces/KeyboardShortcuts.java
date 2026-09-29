@@ -195,7 +195,7 @@ public class KeyboardShortcuts {
         // Alt+1 to 9: jump to the page of the n-th exercise
         shortcuts.add(new ShortcutRecord(TR.tr("shortcuts.navigation.jumpToExercise"),
                 new CustomKeyCombination(e -> {
-            Integer number = MathUtils.parseIntFromKeyEventOrNull(e);
+            Integer number = MathUtils.parseDigitTypedOrNull(e);
             return number != null && number >= 1 && number <= 9;
         }, KeyCodesCombination.ALT_DOWN), e -> {
             if(MainWindow.gradingPanel.jumpToExercise(MathUtils.parseIntFromKeyEventOrNull(e) - 1)) e.consume();
@@ -342,7 +342,7 @@ public class KeyboardShortcuts {
         // 1 to 9 put the n-th method or mistake of the exercise at the mouse position.
         lazyShortcuts.add(new ShortcutRecord("",
                 new CustomKeyCombination(e -> {
-            Integer number = MathUtils.parseIntFromKeyEventOrNull(e);
+            Integer number = MathUtils.parseDigitTypedOrNull(e);
             return number != null && number >= 1 && number <= 9;
         }, KeyCodesCombination.SHIFT_ANY), e -> {
             if(!MainWindow.mainScreen.hasDocument(false) || MainWindow.mainScreen.isEditPagesMode()) return;
@@ -352,7 +352,7 @@ public class KeyboardShortcuts {
             // Nor when typed in a popup of the window (the # picker, its points field...)
             if(e.getTarget() instanceof TextInputControl || corrigo.panel.sidebar.grades.tags.TagPicker.isOpen()) return;
             // The n-th method or mistake of the exercise, where the mouse is
-            if(corrigo.panel.sidebar.grades.tags.TagPicker.applyAtMouse(MathUtils.parseIntFromKeyEventOrNull(e))) e.consume();
+            if(corrigo.panel.sidebar.grades.tags.TagPicker.applyAtMouse(MathUtils.parseDigitTypedOrNull(e))) e.consume();
         }));
         lazyShortcuts.add(new ShortcutRecord("",
                 new KeyCodeCombination(KeyCode.ESCAPE), e -> {

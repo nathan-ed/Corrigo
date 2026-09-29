@@ -5,10 +5,11 @@
 Sur une copie sans barème, le panneau de correction propose **Créer le barème…** :
 
 1. le nombre d'exercices ;
-2. pour chaque exercice, son nom, sa page, son nombre de sous-questions (a, b, c…) et leurs points ;
+2. pour chaque exercice, son nom, sa page, et ses points, ou ses sous-notes : sous-questions (a, b, c… par défaut) ou
+   critères que vous nommez (par exemple Méthode, Résultat), chacune avec ses points ;
 3. **Copier ce barème sur les autres copies du dossier** (coché s'il y a d'autres copies).
 
-La note de chaque exercice est placée en haut à droite de sa page, ses sous-questions en dessous : c'est ainsi que
+La note de chaque exercice est placée en haut à droite de sa page, ses sous-notes en dessous : c'est ainsi que
 l'application connaît la page de chaque exercice. Glissez les notes à côté des questions si vous voulez, puis recopiez
 leurs positions sur les autres copies (icône lien de l'onglet /20). L'onglet /20 sert ensuite à modifier le barème.
 

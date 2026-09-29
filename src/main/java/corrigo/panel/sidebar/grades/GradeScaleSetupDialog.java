@@ -57,13 +57,14 @@ public final class GradeScaleSetupDialog {
         return new GradeScaleSetupDialog(MainWindow.mainScreen.document.getPagesNumber()).open();
     }
 
-    // One exercise: its name, page, sub-questions and their points
+    // One exercise: its name, page, sub-grades (sub-questions a, b… or criteria named by the teacher) and their points
     private final class Row {
         final TextField name = new TextField();
         final Spinner<Integer> page = new Spinner<>(1, Math.max(1, pagesNumber), 1);
         final Spinner<Integer> subQuestions = new Spinner<>(0, MAX_SUB_QUESTIONS, 0);
-        final HBox points = new HBox(6);
+        final FlowPane points = new FlowPane(10, 6);
         final List<TextField> pointFields = new ArrayList<>();
+        final List<TextField> subNameFields = new ArrayList<>();
         final GridPane grid;
         final int index;
 
@@ -78,16 +79,20 @@ public final class GradeScaleSetupDialog {
             subQuestions.setPrefWidth(76);
             subQuestions.setEditable(true);
             points.setAlignment(Pos.CENTER_LEFT);
+            points.setPrefWrapLength(400);
+            points.setMaxWidth(400); // Several sub-grades go on several lines
             subQuestions.valueProperty().addListener((o, oldValue, newValue) -> buildPoints());
             name.textProperty().addListener((o, oldValue, newValue) -> validate());
             buildPoints();
             grid.addRow(index + 1, name, page, subQuestions, points);
         }
 
-        // One points field for the exercise, or one per sub-question (a, b, c…)
+        // One points field for the exercise, or a name and points for each sub-grade (a, b, c… by default)
         void buildPoints(){
             List<String> previous = pointFields.stream().map(TextField::getText).toList();
+            List<String> previousNames = subNameFields.stream().map(TextField::getText).toList();
             pointFields.clear();
+            subNameFields.clear();
             points.getChildren().clear();
             int count = subQuestions.getValue();
             for(int i = 0; i < Math.max(1, count); i++){
@@ -97,13 +102,22 @@ public final class GradeScaleSetupDialog {
                 field.textProperty().addListener((o, oldValue, newValue) -> validate());
                 pointFields.add(field);
                 if(count > 0){
-                    Label label = new Label(subQuestionName(i));
-                    label.setMinWidth(Region.USE_PREF_SIZE);
-                    points.getChildren().add(label);
+                    TextField subName = new TextField(i < previousNames.size() ? previousNames.get(i) : subQuestionName(i));
+                    subName.setPrefColumnCount(6);
+                    subName.setPromptText(TR.tr("gradeScaleSetup.subName.prompt"));
+                    subName.textProperty().addListener((o, oldValue, newValue) -> validate());
+                    subNameFields.add(subName);
+                    HBox pair = new HBox(4, subName, field);
+                    pair.setAlignment(Pos.CENTER_LEFT);
+                    points.getChildren().add(pair);
+                }else{
+                    points.getChildren().add(field);
                 }
-                points.getChildren().add(field);
             }
             validate();
+        }
+        List<String> getSubNames(){
+            return subNameFields.stream().map(field -> field.getText().strip()).toList();
         }
 
         String getName(){
@@ -158,7 +172,7 @@ public final class GradeScaleSetupDialog {
 
         VBox content = new VBox(12, countBox, scroll, total, copyToOthers, help);
         content.setPadding(new Insets(10));
-        content.setPrefWidth(620);
+        content.setPrefWidth(760);
         dialog.getDialogPane().setContent(content);
         create = new ButtonType(TR.tr("gradeScaleSetup.create"), ButtonBar.ButtonData.OK_DONE);
         ButtonType cancel = new ButtonType(TR.tr("actions.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -213,6 +227,13 @@ public final class GradeScaleSetupDialog {
             boolean nameValid = !row.getName().isEmpty() && !row.getName().contains("\\") && names.add(row.getName());
             row.name.setStyle(nameValid ? "" : "-fx-border-color: #c62828;");
             valid &= nameValid;
+            HashSet<String> subNames = new HashSet<>();
+            for(TextField subName : row.subNameFields){
+                String text = subName.getText().strip();
+                boolean subValid = !text.isEmpty() && !text.contains("\\") && subNames.add(text);
+                subName.setStyle(subValid ? "" : "-fx-border-color: #c62828;");
+                valid &= subValid;
+            }
             for(int i = 0; i < row.pointFields.size(); i++){
                 Double points = row.getPoints().get(i);
                 boolean pointsValid = points != null && points > 0;
@@ -240,7 +261,7 @@ public final class GradeScaleSetupDialog {
             if(!hasSubQuestions) continue;
             String exercisePath = totalPath + "\\" + row.getName();
             for(int i = 0; i < points.size(); i++){
-                addGrade(page, i + 1, subQuestionName(i), points.get(i), i, exercisePath);
+                addGrade(page, i + 1, row.getSubNames().get(i), points.get(i), i, exercisePath);
             }
         }
         // The totals of the exercises, then of the evaluation
