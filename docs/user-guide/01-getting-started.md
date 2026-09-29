@@ -22,6 +22,25 @@
 - **Footer bar**: zoom, **Edit pages** mode, column/grid view, the number of elements of the copy, the total, and the
   save status.
 
+## A new evaluation from the scan
+
+**File → New evaluation…** (or the button of the empty grading panel) makes the copies of a test from the scan of all
+of them, in one PDF:
+
+1. **The scan**: choose the PDF. It is not changed. The copies go in a new folder named after it, next to it (you can
+   choose another one). A folder that already has copies is never written over: the assistant asks for another one.
+2. **The students**: their names, one per line, in the order of the copies in the scan (paste a column of a
+   spreadsheet if you like; a line `12;Name` keeps the name). Copies are numbered (`01_`, `02_`…) and in capitals,
+   both optional: `07_DUPONT.pdf`.
+3. **The pages of each copy**: guessed from the scan and the number of students. The top of the first page of each
+   copy is shown with its file name: check that each one is the right student. The assistant says when the scan has
+   too few or too many pages.
+4. **The grade scale**: create it now with the assistant (see [Creating the grade scale](03-grading.md#creating-the-grade-scale)),
+   import it (an exported grade scale `.yml`, or a copy of the same test in another evaluation, whose grades are
+   placed at the same spots), or later.
+
+The copies are then listed in the Files tab, and the first one opens in the grading panel at the first exercise.
+
 ## Opening copies
 
 - **File → Open file(s)** (`Ctrl+O`) adds PDF files to the Files tab; **File → Open folder** (`Ctrl+Shift+O`) adds

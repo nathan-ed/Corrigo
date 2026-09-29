@@ -24,6 +24,27 @@
 - **Barre du bas** : zoom, mode **Édition des pages**, vue en colonne/en grille, nombre d'éléments de la copie, total,
   état de la sauvegarde.
 
+## Une nouvelle évaluation à partir du scan
+
+**Fichier → Nouvelle évaluation…** (ou le bouton du panneau de correction vide) crée les copies d'une évaluation à
+partir du scan de toutes les copies, en un seul PDF :
+
+1. **Le scan** : choisissez le PDF. Il n'est pas modifié. Les copies vont dans un nouveau dossier du nom du scan, à
+   côté de lui (vous pouvez en choisir un autre). Un dossier qui a déjà des copies n'est jamais écrasé : l'assistant
+   en demande un autre.
+2. **Les élèves** : leurs noms, un par ligne, dans l'ordre des copies dans le scan (collez une colonne d'un tableur si
+   vous voulez ; une ligne `12;Nom` garde le nom). Les copies sont numérotées (`01_`, `02_`…) et en majuscules, les
+   deux au choix : `07_DUPONT.pdf`.
+3. **Les pages de chaque copie** : devinées à partir du scan et du nombre d'élèves. Le haut de la première page de
+   chaque copie est affiché avec son nom de fichier : vérifiez que c'est le bon élève. L'assistant indique quand le
+   scan a trop peu ou trop de pages.
+4. **Le barème** : le créer maintenant avec l'assistant (voir [Créer le barème](03-correction.md#créer-le-barème)),
+   l'importer (un barème exporté `.yml`, ou une copie du même test dans une autre évaluation, dont les notes sont
+   placées aux mêmes endroits), ou plus tard.
+
+Les copies sont ensuite listées dans l'onglet Fichiers, et la première s'ouvre dans le panneau de correction au
+premier exercice.
+
 ## Ouvrir les copies
 
 - **Fichier → Ouvrir un ou plusieurs fichiers** (`Ctrl+O`) ajoute des PDF à l'onglet Fichiers ; **Fichier → Ouvrir un

@@ -50,7 +50,9 @@ public final class NewEvaluationWizard {
 
     private enum ScaleChoice { CREATE, IMPORT, LATER }
 
-    private static final double THUMBNAIL_DPI = 28;
+    // The top of the first page of each copy, where the name is written, large enough to be read
+    private static final double THUMBNAIL_DPI = 80, THUMBNAIL_TOP = .33;
+    private static final int THUMBNAIL_WIDTH = 330;
 
     private final Dialog<ButtonType> dialog = new Dialog<>();
     private final StackPane stepPane = new StackPane();
@@ -64,6 +66,7 @@ public final class NewEvaluationWizard {
     private int scanPages;
     private final Label scanLabel = new Label();
     private final TextField folder = new TextField();
+    private final Label folderWarning = new Label();
     // Step 2: the students
     private final TextArea students = new TextArea();
     private final Label studentsCount = new Label();
@@ -154,6 +157,7 @@ public final class NewEvaluationWizard {
     }
 
     private void validate(){
+        if(step == 0) updateFolderWarning();
         String problem = switch(step){
             case 0 -> scan == null ? TR.tr("newEvaluation.error.noScan") : folder.getText().isBlank() ? TR.tr("newEvaluation.error.noFolder") : null;
             case 1 -> getStudents().isEmpty() ? TR.tr("newEvaluation.error.noStudent") : null;
@@ -167,6 +171,7 @@ public final class NewEvaluationWizard {
         error.setVisible(problem != null);
         dialog.getDialogPane().lookupButton(next).setDisable(problem != null);
     }
+
 
     // 1. THE SCAN
 
@@ -191,7 +196,22 @@ public final class NewEvaluationWizard {
         folderBox.setAlignment(Pos.CENTER_LEFT);
         Label folderHelp = muted(TR.tr("newEvaluation.folder.help"));
 
-        steps.add(new VBox(12, intro, scanBox, new Separator(), folderLabel, folderBox, folderHelp));
+        folderWarning.setWrapText(true);
+        folderWarning.setStyle("-fx-text-fill: #ffb74d;");
+        folderWarning.managedProperty().bind(folderWarning.visibleProperty());
+        folderWarning.setVisible(false);
+        steps.add(new VBox(12, intro, scanBox, new Separator(), folderLabel, folderBox, folderWarning, folderHelp));
+    }
+
+    // The folder already has PDF files: another evaluation, whose copies are never replaced
+    private void updateFolderWarning(){
+        if(folder.getText().isBlank()){
+            folderWarning.setVisible(false);
+            return;
+        }
+        File[] pdfs = new File(folder.getText().strip()).listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
+        folderWarning.setVisible(pdfs != null && pdfs.length > 0);
+        if(pdfs != null && pdfs.length > 0) folderWarning.setText(TR.tr("newEvaluation.folder.notEmpty", String.valueOf(pdfs.length)));
     }
 
     private void chooseScan(){
@@ -295,10 +315,10 @@ public final class NewEvaluationWizard {
         PDDocument document = scanDocument;
         for(Copy copy : plan){
             StackPane image = new StackPane(new ProgressIndicator());
-            image.setPrefSize(130, 180);
+            image.setPrefSize(THUMBNAIL_WIDTH, THUMBNAIL_WIDTH * THUMBNAIL_TOP * 1.414);
             image.setStyle("-fx-background-color: rgba(128,128,128,.15);");
             Label name = new Label(copy.fileName());
-            name.setMaxWidth(140);
+            name.setMaxWidth(THUMBNAIL_WIDTH);
             name.setStyle("-fx-font-size: 11;");
             Label pages = muted(TR.tr("newEvaluation.pages.range", String.valueOf(copy.firstPage() + 1), String.valueOf(copy.lastPage() + 1)));
             VBox card = new VBox(3, image, name, pages);
@@ -308,12 +328,13 @@ public final class NewEvaluationWizard {
             renderer.execute(() -> {
                 if(generation != renderGeneration) return; // Replaced by newer previews
                 try{
-                    BufferedImage rendered = new PDFRenderer(document).renderImageWithDPI(copy.firstPage(), (float) THUMBNAIL_DPI);
+                    BufferedImage page = new PDFRenderer(document).renderImageWithDPI(copy.firstPage(), (float) THUMBNAIL_DPI);
+                    BufferedImage rendered = page.getSubimage(0, 0, page.getWidth(), (int) Math.max(1, page.getHeight() * THUMBNAIL_TOP));
                     Platform.runLater(() -> {
                         ImageView view = new ImageView(SwingFXUtils.toFXImage(rendered, null));
                         view.setPreserveRatio(true);
-                        view.setFitWidth(130);
-                        view.setFitHeight(180);
+                        view.setSmooth(true);
+                        view.setFitWidth(THUMBNAIL_WIDTH);
                         image.getChildren().setAll(view);
                     });
                 }catch(Exception e){
@@ -393,14 +414,12 @@ public final class NewEvaluationWizard {
         File directory = new File(folder.getText().strip());
         List<Copy> plan = getPlan();
         List<File> files = plan.stream().map(copy -> new File(directory, copy.fileName())).toList();
+        // Never written over: the copies of another evaluation keep their annotations, comments, methods and mistakes
         long existing = files.stream().filter(File::exists).count();
         if(existing > 0){
-            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, TR.tr("newEvaluation.existing.details", String.valueOf(existing), directory.getName()),
-                    new ButtonType(TR.tr("newEvaluation.existing.replace"), ButtonBar.ButtonData.OK_DONE), new ButtonType(TR.tr("actions.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE));
-            confirm.initOwner(dialog.getDialogPane().getScene().getWindow());
-            confirm.setHeaderText(TR.tr("newEvaluation.existing.header"));
-            StyleManager.putStyle(confirm.getDialogPane(), Style.DEFAULT);
-            if(confirm.showAndWait().map(button -> button.getButtonData() != ButtonBar.ButtonData.OK_DONE).orElse(true)) return;
+            error.setText(TR.tr("newEvaluation.error.existing", String.valueOf(existing), directory.getName()));
+            error.setVisible(true);
+            return;
         }
 
         ScaleChoice choice = getScaleChoice();
@@ -456,7 +475,16 @@ public final class NewEvaluationWizard {
         MainWindow.filesTab.openFiles(files, false);
         MainWindow.mainScreen.openFile(files.getFirst());
         MainWindow.gradingTab.select();
-        if(createScale) whenOpen(files.getFirst(), 40, GradeScaleSetupDialog::show);
+        whenOpen(files.getFirst(), 40, () -> {
+            if(createScale || GradeTreeView.getTotal().getChildren().isEmpty()){
+                if(createScale) GradeScaleSetupDialog.show();
+                return;
+            }
+            // Grading starts with the first exercise, at its page
+            MainWindow.footerBar.refreshExerciseChoices();
+            MainWindow.footerBar.setSelectedExerciseKey(MainWindow.footerBar.getExerciseKey(0));
+            MainWindow.footerBar.navigateToSelectedExercisePage();
+        });
     }
     private static void whenOpen(File file, int retries, Runnable action){
         PlatformUtils.runLaterOnUIThread(250, () -> {

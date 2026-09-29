@@ -22,15 +22,16 @@ les préférences et les listes de PDF4Teachers s'il était installé ; PDF4Teac
 
 ## Une correction type, en bref
 
-1. Mettez les copies scannées d'une évaluation dans un dossier, un PDF par élève, nommé par exemple `07_DUPONT.pdf`.
-2. **Fichier → Ouvrir un dossier**, ouvrez la première copie.
-3. Dans le panneau de **correction**, **Créer le barème…** : les exercices, leur page, leurs sous-questions et leurs
-   points, copiés sur les autres copies.
-4. Corrigez ensuite l'exercice 1 sur toutes les copies : points, commentaires,
+1. Scannez toutes les copies en un seul PDF, dans l'ordre de la classe.
+2. **Fichier → Nouvelle évaluation…** ([détails](01-premiers-pas.md#une-nouvelle-évaluation-à-partir-du-scan)) : le
+   scan, les noms des élèves dans le même ordre, les pages de chaque copie, puis le barème (créé avec l'assistant :
+   exercices, leur page, sous-questions et points, ou importé d'une autre évaluation). Elle écrit un PDF par élève,
+   nommé par exemple `07_DUPONT.pdf`, et ouvre le premier dans le panneau de correction.
+3. Corrigez ensuite l'exercice 1 sur toutes les copies : points, commentaires,
    méthodes et erreurs (qui peuvent ajouter ou enlever des points). **À corriger ›** (ou `Z`) ouvre la copie suivante au même
    exercice. Puis l'exercice 2, et ainsi de suite.
-5. Regardez le bilan de la classe des méthodes et erreurs, vérifiez les copies douteuses avec les aperçus.
-6. **Calculer les notes**, puis exportez les copies (**Fichier → Tout exporter**) ou envoyez-les par Moodle
+4. Regardez le bilan de la classe des méthodes et erreurs, vérifiez les copies douteuses avec les aperçus.
+5. **Calculer les notes**, puis exportez les copies (**Fichier → Tout exporter**) ou envoyez-les par Moodle
    (**Fichier → Exporter pour Moodle…**).
 
 *English version: [user guide](../user-guide/README.md).*
