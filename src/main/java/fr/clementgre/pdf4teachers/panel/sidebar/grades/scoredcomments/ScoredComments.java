@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2026. Clément Grennerat
- * All rights reserved. You must refer to the licence Apache 2.
+ * Copyright (c) 2026 Nathan
+ * Licensed under the Apache License, Version 2.0: see the LICENSE file.
+ * Part of a fork of PDF4Teachers (https://github.com/ClementGre/PDF4Teachers).
  */
 
 package fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments;
@@ -247,7 +248,7 @@ public class ScoredComments {
         if(grade == null || grade.getGradeTreeItem() == null || grade.getGradeTreeItem().hasSubGrade()) return;
 
         List<Double> points = getPlacedComments().stream()
-                .filter(c -> gradePath.equals(c.getGradePath()))
+                .filter(c -> gradePath.equals(c.getGradePath()) && !c.isNoPoints())
                 .map(ScoredCommentElement::getPoints)
                 .toList();
 

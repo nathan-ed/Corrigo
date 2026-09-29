@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2019-2024. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.interfaces.windows;

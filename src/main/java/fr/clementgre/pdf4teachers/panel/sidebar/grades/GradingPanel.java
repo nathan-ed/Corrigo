@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2026. Clément Grennerat
- * All rights reserved. You must refer to the licence Apache 2.
+ * Copyright (c) 2026 Nathan
+ * Licensed under the Apache License, Version 2.0: see the LICENSE file.
+ * Part of a fork of PDF4Teachers (https://github.com/ClementGre/PDF4Teachers).
  */
 
 package fr.clementgre.pdf4teachers.panel.sidebar.grades;
@@ -50,7 +51,8 @@ import java.util.OptionalInt;
 
 /**
  * Grading panel docked at the right of the document, inspired by Gradescope:
- * all the sub-grades of the selected exercise with their scored comments (rubric items),
+ * all the sub-grades of the selected exercise, with their points and comments, the methods and mistakes of the copy
+ * (1-9 add one, possibly with points),
  * points and comments, a general comment, and "Next ungraded" to open the next copy to grade.
  */
 public class GradingPanel extends VBox {
@@ -79,17 +81,15 @@ public class GradingPanel extends VBox {
     private final FlowPane exerciseJumps = new FlowPane(4, 4);
 
     // CONTENT
-    private final VBox sectionsBox = new VBox(10);
+    private final VBox sectionsBox = new VBox(4);
     private final ScrollPane scroll = new ScrollPane(sectionsBox);
-    private final VBox generalBox = new VBox(6);
+    private final HBox generalBox = new HBox(8);
     private final TextField general = new TextField();
     private CommentSuggestions generalSuggestions;
 
     // FOOTER
     private final Button previousUngraded = new Button();
     private final Button nextUngraded = new Button();
-    private final Button markPosition = new Button();
-    private final Button computeMarks = new Button();
     private final Label hint = new Label();
 
     private GradeTreeItem exercise;
@@ -199,8 +199,14 @@ public class GradingPanel extends VBox {
         VBox.setVgrow(scroll, Priority.ALWAYS);
         getChildren().add(scroll);
 
-        Label generalTitle = new Label(TR.tr("gradingPanel.generalTitle"));
+        Label generalTitle = new Label(TR.tr("gradingPanel.generalShort"));
         generalTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: " + palette.text() + ";");
+        generalTitle.setMinWidth(Region.USE_PREF_SIZE);
+        generalTitle.setTooltip(new Tooltip(TR.tr("gradingPanel.generalTitle")));
+        general.setPromptText(TR.tr("gradingPanel.generalTitle"));
+        HBox.setHgrow(general, Priority.ALWAYS);
+        generalBox.setAlignment(Pos.CENTER_LEFT);
+        generalBox.setPadding(new Insets(6, 0, 4, 0));
         general.setOnMousePressed(e -> setActive(sections.size(), false));
         setupLiveComment(general, () -> exercise);
         generalSuggestions = createSuggestions(general, () -> exercise);
@@ -240,39 +246,53 @@ public class GradingPanel extends VBox {
     }
 
     private void setupFooter(){
-        previousUngraded.setText(TR.tr("gradingPanel.previousUngraded"));
+        // ‹ previous ungraded · Next ungraded › · Marks ▾ · ?
+        previousUngraded.setText("‹");
+        previousUngraded.setTooltip(new Tooltip(TR.tr("gradingPanel.previousUngraded.tooltip")));
         nextUngraded.setText(TR.tr("gradingPanel.nextUngraded"));
-        previousUngraded.setTooltip(new Tooltip("Shift+Z"));
-        nextUngraded.setTooltip(new Tooltip("Z"));
-        previousUngraded.setFocusTraversable(false);
-        nextUngraded.setFocusTraversable(false);
+        nextUngraded.setTooltip(new Tooltip(TR.tr("gradingPanel.nextUngraded.tooltip")));
+        for(Button button : new Button[]{previousUngraded, nextUngraded}) button.setFocusTraversable(false);
         previousUngraded.setOnAction(e -> commitComment(general, exercise, false, () -> openUngradedCopy(-1)));
         nextUngraded.setOnAction(e -> commitComment(general, exercise, false, () -> openUngradedCopy(1)));
         nextUngraded.setMaxWidth(Double.MAX_VALUE);
+        nextUngraded.setWrapText(true); // Long labels (French…) go on two lines instead of being cut
+        nextUngraded.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+        nextUngraded.setMinHeight(Region.USE_PREF_SIZE);
         HBox.setHgrow(nextUngraded, Priority.ALWAYS);
-        nextUngraded.setStyle("-fx-background-color: " + palette.accent() + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 7 12; -fx-background-radius: 4;");
-        previousUngraded.setStyle("-fx-padding: 7 12; -fx-background-radius: 4;");
+        nextUngraded.setStyle("-fx-background-color: " + palette.accent() + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 6 10; -fx-background-radius: 4;");
+        previousUngraded.setStyle("-fx-padding: 6 10; -fx-background-radius: 4; -fx-font-weight: bold;");
+        previousUngraded.setMinWidth(Region.USE_PREF_SIZE);
 
+        // Marks: used once per evaluation, in a menu
+        MenuItem markPositionItem = new MenuItem(TR.tr("marks.position"));
+        markPositionItem.setOnAction(e -> armMarkPlacement(false));
+        MenuItem computeMarksItem = new MenuItem(TR.tr("marks.compute"));
+        computeMarksItem.setOnAction(e -> computeMarks());
+        MenuButton marks = new MenuButton(TR.tr("marks.menu"), null, markPositionItem, computeMarksItem);
+        marks.setFocusTraversable(false);
+        marks.setMinWidth(Region.USE_PREF_SIZE);
+        marks.setTooltip(new Tooltip(TR.tr("marks.position.tooltip") + "\n" + TR.tr("marks.compute.tooltip")));
+        marks.setStyle("-fx-padding: 2 2; -fx-background-radius: 4;");
+
+        // The keys, on demand
+        Label keys = new Label("?");
+        keys.setMinWidth(Region.USE_PREF_SIZE);
+        keys.setStyle("-fx-font-weight: bold; -fx-text-fill: " + palette.muted() + "; -fx-border-color: " + palette.border() + "; -fx-border-radius: 10; -fx-padding: 1 7;");
+        Tooltip keysTooltip = new Tooltip(TR.tr("gradingPanel.hint"));
+        keysTooltip.setWrapText(true);
+        keysTooltip.setMaxWidth(320);
+        keysTooltip.setShowDelay(Duration.millis(150));
+        keys.setTooltip(keysTooltip);
+
+        // What to do now, only while waiting for a click on the page
         hint.setWrapText(true);
-        hint.setStyle("-fx-font-size: 11; -fx-text-fill: " + palette.muted() + ";");
+        hint.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: " + palette.accent() + ";");
+        hint.managedProperty().bind(hint.visibleProperty());
 
-        markPosition.setText(TR.tr("marks.position"));
-        markPosition.setTooltip(new Tooltip(TR.tr("marks.position.tooltip")));
-        computeMarks.setText(TR.tr("marks.compute"));
-        computeMarks.setTooltip(new Tooltip(TR.tr("marks.compute.tooltip")));
-        for(Button button : new Button[]{markPosition, computeMarks}){
-            button.setFocusTraversable(false);
-            button.setStyle("-fx-padding: 5 12; -fx-background-radius: 4;");
-        }
-        computeMarks.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(computeMarks, Priority.ALWAYS);
-        markPosition.setOnAction(e -> armMarkPlacement(false));
-        computeMarks.setOnAction(e -> computeMarks());
-
-        HBox buttons = new HBox(8, previousUngraded, nextUngraded);
-        HBox marks = new HBox(8, markPosition, computeMarks);
-        VBox footer = new VBox(8, buttons, marks, hint);
-        footer.setPadding(new Insets(10, 12, 10, 12));
+        HBox buttons = new HBox(6, previousUngraded, nextUngraded, marks, keys);
+        buttons.setAlignment(Pos.CENTER_LEFT);
+        VBox footer = new VBox(6, hint, buttons);
+        footer.setPadding(new Insets(8, 10, 8, 10));
         footer.setStyle("-fx-border-color: " + palette.border() + "; -fx-border-width: 1 0 0 0;");
         getChildren().add(footer);
     }
@@ -396,7 +416,8 @@ public class GradingPanel extends VBox {
         tagsCard.refreshScores(); // The points of the copy may have changed
         if(!general.isFocused()) general.setText(getCommentText(exercise));
         updateActiveStyle();
-        hint.setText(TR.tr(pendingMark ? "marks.hint.clickToPlace" : pendingText != null ? "gradingPanel.hint.clickToPlace" : "gradingPanel.hint"));
+        hint.setVisible(pendingMark || pendingText != null);
+        hint.setText(TR.tr(pendingMark ? "marks.hint.clickToPlace" : "gradingPanel.hint.clickToPlace"));
     }
 
     private void updateHeader(){
@@ -409,7 +430,8 @@ public class GradingPanel extends VBox {
         nextExercise.setDisable(index >= exercises - 1);
 
         int files = MainWindow.filesTab.files.getItems().size();
-        int file = MainWindow.filesTab.files.getSelectionModel().getSelectedIndex();
+        // Position of the open copy in the list (the selection of the list may be empty)
+        int file = MainWindow.filesTab.files.getItems().indexOf(MainWindow.mainScreen.document.getFile());
         copyInfo.setText(TR.tr("gradingPanel.copy", MainWindow.mainScreen.document.getFileName(), String.valueOf(file + 1), String.valueOf(files)));
         updateExerciseJumps();
     }
@@ -456,6 +478,13 @@ public class GradingPanel extends VBox {
     }
 
     // ACTIVE SECTION
+
+    // Path of the active sub-grade if the panel shows this exercise, else null.
+    public String getActiveLeafPath(String exerciseName){
+        if(exercise == null || !exercise.getCore().getName().equals(exerciseName)) return null;
+        Section section = getActive();
+        return (section == null ? sections.isEmpty() ? exercise : sections.getFirst().leaf : section.leaf).getCore().getPath();
+    }
 
     private Section getActive(){
         return active < sections.size() ? sections.get(active) : null;
@@ -605,7 +634,7 @@ public class GradingPanel extends VBox {
         if(number != null && section != null){
             e.consume();
             if(number == 0) section.setTypedPoints("0");
-            else if(number <= section.entries.size()) section.toggle(section.entries.get(number - 1));
+            else addTag(number); // The n-th method or mistake of the card, on the active sub-grade
             return;
         }
         if(("=".equals(e.getText()) || "+".equals(e.getText())) && section != null){
@@ -639,11 +668,6 @@ public class GradingPanel extends VBox {
                 if(section != null) section.comment.requestFocus();
                 else general.requestFocus();
             }
-            case N -> {
-                e.consume();
-                swallowNextTyped = true;
-                if(section != null) section.showNewItem();
-            }
             case G -> {
                 e.consume();
                 swallowNextTyped = true;
@@ -658,7 +682,11 @@ public class GradingPanel extends VBox {
                 e.consume();
                 MainWindow.mainScreen.requestFocus();
             }
-            case DELETE, BACK_SPACE -> {
+            case BACK_SPACE -> {
+                e.consume();
+                removeLastTag();
+            }
+            case DELETE -> {
                 // Deletes the comment selected on the document (e.g. the one just placed)
                 if(MainWindow.mainScreen.getSelected() instanceof TextElement text){
                     e.consume();
@@ -667,6 +695,28 @@ public class GradingPanel extends VBox {
                 }
             }
         }
+    }
+
+    // METHODS AND MISTAKES
+
+    // Keys 1-9: adds an occurrence of the n-th method or mistake of the card to the copy, on the active sub-grade.
+    private void addTag(int number){
+        if(exercise == null) return;
+        String exerciseName = exercise.getCore().getName();
+        List<fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.EvaluationTags.Tag> tags =
+                fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTagsCard.getOrderedTags(exerciseName);
+        if(number > tags.size()) return;
+        fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTagsCard.addToOpenCopy(exerciseName, tags.get(number - 1));
+    }
+    // Backspace: removes the last method or mistake added to the copy for this exercise.
+    private void removeLastTag(){
+        String copy = fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTags.getOpenCopy();
+        if(exercise == null || copy == null) return;
+        String exerciseName = exercise.getCore().getName();
+        fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTags.getData().getUses(copy).stream()
+                .filter(use -> use.exercise().equals(exerciseName))
+                .reduce((first, second) -> second)
+                .ifPresent(use -> fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTags.removeOccurrence(copy, use.id()));
     }
 
     // COMMENTS
@@ -853,25 +903,21 @@ public class GradingPanel extends VBox {
     private class Section extends VBox {
         private final GradeTreeItem leaf;
         private final String path;
-        private List<ScoredComment> entries = List.of();
 
         private final Label name = new Label();
         private final Label base = new Label();
         private final TextField points = new TextField();
         private final Label total = new Label();
-        private final VBox items = new VBox(4);
-        private final Label addItem = new Label(TR.tr("gradingPanel.addItem"));
-        private final HBox newItem;
-        private final TextField newItemPoints = new TextField();
-        private final TextField newItemText = new TextField();
+        // The comment of an inactive sub-grade, on one line (its field is shown when the sub-grade is active)
+        private final Label commentPreview = new Label();
         private final TextField comment = new TextField();
         private final CommentSuggestions suggestions;
 
         Section(GradeTreeItem leaf){
-            super(6);
+            super(4);
             this.leaf = leaf;
             this.path = leaf.getCore().getPath();
-            setPadding(new Insets(8, 10, 10, 10));
+            setPadding(new Insets(5, 10, 6, 10));
             setOnMousePressed(e -> {
                 activate(false);
                 if(!isInTextField(e.getTarget())) scroll.requestFocus();
@@ -887,8 +933,9 @@ public class GradingPanel extends VBox {
             base.setTooltip(new Tooltip(TR.tr("gradingPanel.base.tooltip")));
             base.setOnMouseClicked(e -> ScoredComments.setBase(path, ScoredComments.getCatalog().getBase(path) == ScoredCommentCatalog.Base.FULL
                     ? ScoredCommentCatalog.Base.ZERO : ScoredCommentCatalog.Base.FULL));
-            points.setPrefWidth(52);
-            points.setAlignment(Pos.CENTER_RIGHT);
+            points.setPrefWidth(64); // The digits and the clear button of the field
+            points.setMinWidth(Region.USE_PREF_SIZE);
+            points.setAlignment(Pos.CENTER); // Right-aligned, the digits would be under the clear button of the focused field
             points.setPromptText("–");
             points.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
                 switch(e.getCode()){
@@ -924,29 +971,6 @@ public class GradingPanel extends VBox {
             HBox header = new HBox(6, name, base, points, total);
             header.setAlignment(Pos.CENTER_LEFT);
 
-            // New rubric item
-            addItem.setCursor(Cursor.HAND);
-            addItem.setStyle("-fx-text-fill: " + palette.accent() + "; -fx-font-size: 12;");
-            addItem.setOnMouseClicked(e -> showNewItem());
-            newItemPoints.setPromptText("-1");
-            newItemPoints.setPrefWidth(52);
-            newItemText.setPromptText(TR.tr("gradingPanel.newItemText"));
-            HBox.setHgrow(newItemText, Priority.ALWAYS);
-            for(TextField field : new TextField[]{newItemPoints, newItemText}){
-                field.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-                    if(e.getCode() == KeyCode.ENTER){
-                        e.consume();
-                        createItem();
-                    }else if(e.getCode() == KeyCode.ESCAPE){
-                        e.consume();
-                        hideNewItem();
-                        scroll.requestFocus();
-                    }
-                });
-            }
-            newItem = new HBox(6, newItemPoints, newItemText);
-            hideNewItem();
-
             // Comment on the copy
             comment.setPromptText(TR.tr("gradingPanel.comment"));
             setupLiveComment(comment, () -> leaf);
@@ -979,95 +1003,52 @@ public class GradingPanel extends VBox {
             comment.focusedProperty().addListener((o, oldValue, newValue) -> {
                 if(newValue) activate(false);
                 else commitComment(comment, leaf, false, null);
+                updateCompact();
             });
+            comment.managedProperty().bind(comment.visibleProperty());
+            commentPreview.textProperty().bind(comment.textProperty());
+            commentPreview.setStyle("-fx-font-size: 12; -fx-text-fill: " + palette.muted() + ";");
+            commentPreview.setMinWidth(0);
+            commentPreview.setCursor(Cursor.TEXT);
+            commentPreview.managedProperty().bind(commentPreview.visibleProperty());
+            commentPreview.setOnMousePressed(e -> { // Edits it right away
+                e.consume();
+                activate(false);
+                comment.setVisible(true);
+                comment.requestFocus();
+                comment.end();
+            });
+            base.managedProperty().bind(base.visibleProperty());
 
-            getChildren().addAll(header, items, addItem, newItem, comment);
+            getChildren().addAll(header, comment, commentPreview);
             bindValue(leaf.getCore(), this::syncPointsIfNotFocused);
         }
 
         void update(){
-            entries = ScoredComments.getEntriesFor(path);
             boolean fromFull = ScoredComments.getCatalog().getBase(path) == ScoredCommentCatalog.Base.FULL;
             base.setText(TR.tr(fromFull ? "gradingPanel.base.full" : "gradingPanel.base.zero"));
             base.setStyle("-fx-font-size: 11; -fx-text-fill: " + palette.muted() + "; -fx-underline: true;");
             total.setText("/ " + MainWindow.gradesDigFormat.format(leaf.getCore().getTotal()));
             syncPointsIfNotFocused();
             if(!comment.isFocused()) comment.setText(getCommentText(leaf));
-
-            items.getChildren().clear();
-            boolean isActive = sections.indexOf(this) == active;
-            for(int i = 0; i < entries.size(); i++){
-                items.getChildren().add(buildItem(entries.get(i), isActive && i < 9 ? String.valueOf(i + 1) : ""));
-            }
+            updateCompact();
         }
 
-        private Node buildItem(ScoredComment entry, String key){
-            boolean applied = ScoredComments.findPlaced(entry.getId(), path).isPresent();
-            Color color = ScoredComments.getColor(entry);
-            String web = toWeb(color);
-
-            Label keyLabel = new Label(key);
-            keyLabel.setMinWidth(20);
-            keyLabel.setAlignment(Pos.CENTER);
-            keyLabel.setStyle("-fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: " + palette.muted() + ";"
-                    + (key.isEmpty() ? "" : "-fx-border-color: " + palette.border() + "; -fx-border-radius: 3; -fx-padding: 0 4;"));
-
-            Label value = new Label(ScoredCommentGrades.formatPoints(entry.getPoints(), MainWindow.gradesDigFormat));
-            value.setMinWidth(Region.USE_PREF_SIZE);
-            value.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12; -fx-padding: 1 7; -fx-background-radius: 10; -fx-background-color: " + web + ";");
-
-            Label text = new Label(entry.getText());
-            text.setWrapText(true);
-            text.setMinWidth(0);
-            text.setMaxWidth(Double.MAX_VALUE);
-            text.setStyle("-fx-font-size: 13; -fx-text-fill: " + palette.text() + ";" + (applied ? "-fx-font-weight: bold;" : ""));
-            HBox.setHgrow(text, Priority.ALWAYS);
-
-            // Deletes the scored comment from the list (confirmation: the copies where it is placed are listed)
-            Button remove = new Button("×");
-            remove.setFocusTraversable(false);
-            remove.setCursor(Cursor.HAND);
-            remove.setTooltip(new Tooltip(TR.tr("gradingPanel.deleteItem")));
-            remove.setStyle("-fx-background-color: transparent; -fx-padding: 0 4; -fx-font-size: 14; -fx-text-fill: " + palette.muted() + ";");
-            remove.setOnAction(e -> MainWindow.gradeTab.scoredCommentPanel.deleteEntry(entry));
-            remove.setOpacity(0);
-            
-            HBox row = new HBox(8, keyLabel, value, text, remove);
-            row.setAlignment(Pos.CENTER_LEFT);
-            row.setOnMouseEntered(e -> remove.setOpacity(1));
-            row.setOnMouseExited(e -> remove.setOpacity(0));
-            MenuItem editItem = new MenuItem(TR.tr("actions.edit"));
-            editItem.setOnAction(e -> MainWindow.gradeTab.scoredCommentPanel.editEntry(entry));
-            MenuItem deleteItem = new MenuItem(TR.tr("gradingPanel.deleteItem"));
-            deleteItem.setOnAction(e -> MainWindow.gradeTab.scoredCommentPanel.deleteEntry(entry));
-            ContextMenu menu = new ContextMenu(editItem, deleteItem);
-            row.setOnContextMenuRequested(e -> {
-                menu.show(row, e.getScreenX(), e.getScreenY());
-                e.consume();
-            });
-            row.setPadding(new Insets(6, 8, 6, 6));
-            row.setCursor(Cursor.HAND);
-            row.setStyle(applied
-                    ? "-fx-background-color: " + toWeb(color.deriveColor(0, 1, 1, .22)) + "; -fx-background-radius: 4; -fx-border-color: " + web + "; -fx-border-radius: 4; -fx-border-width: 1 1 1 4;"
-                    : "-fx-background-color: " + palette.card() + "; -fx-background-radius: 4; -fx-border-color: " + palette.border() + "; -fx-border-radius: 4;");
-            row.setOnMouseClicked(e -> {
-                if(e.getButton() == MouseButton.PRIMARY && !(e.getTarget() instanceof Node node && isInside(node, remove))) toggle(entry);
-            });
-            return row;
+        // Inactive: one line (name, points), its comment as a line of text if any; "from max" on the active one only.
+        private boolean shownActive;
+        void updateCompact(){
+            boolean editing = shownActive || comment.isFocused();
+            comment.setVisible(editing);
+            commentPreview.setVisible(!editing && !comment.getText().isBlank());
+            base.setVisible(shownActive); // How the points of the methods and mistakes count
         }
 
         void markActive(boolean isActive){
+            shownActive = isActive;
+            updateCompact();
             setStyle(isActive
                     ? "-fx-background-color: " + palette.activeBackground() + "; -fx-background-radius: 6; -fx-border-color: " + palette.accent() + "; -fx-border-width: 0 0 0 3;"
                     : "-fx-background-color: transparent;");
-            // The keys 1-9 are only shown on the active section
-            for(int i = 0; i < items.getChildren().size() && i < entries.size(); i++){
-                if(items.getChildren().get(i) instanceof HBox row && row.getChildren().getFirst() instanceof Label key){
-                    key.setText(isActive && i < 9 ? String.valueOf(i + 1) : "");
-                    key.setStyle("-fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: " + palette.muted() + ";"
-                            + (key.getText().isEmpty() ? "" : "-fx-border-color: " + palette.border() + "; -fx-border-radius: 3; -fx-padding: 0 4;"));
-                }
-            }
         }
 
         private void activate(boolean focus){
@@ -1075,55 +1056,6 @@ public class GradingPanel extends VBox {
             if(index != active) GradingPanel.this.setActive(index, focus);
         }
         
-        void toggle(ScoredComment entry){
-            if(!MainWindow.mainScreen.hasDocument(false)) return;
-            activate(false);
-            ScoredComments.findPlaced(entry.getId(), path).ifPresentOrElse(
-                    placed -> placed.delete(true, UType.ELEMENT),
-                    () -> {
-                        QuickGradePlacement.Spot spot = QuickGradePlacement.nextSpot(leaf.getCore(), getFallbackPageIndex());
-                        ScoredCommentElement element = ScoredComments.placeOnGrid(entry, spot.page(), spot.x(), spot.y(), QuickGradePlacement.COLUMN_WIDTH);
-                        if(element != null) MainWindow.mainScreen.setSelected(element);
-                    });
-            refresh();
-        }
-
-        void showNewItem(){
-            newItem.setVisible(true);
-            newItem.setManaged(true);
-            addItem.setVisible(false);
-            addItem.setManaged(false);
-            newItemPoints.requestFocus();
-        }
-        void hideNewItem(){
-            newItemPoints.clear();
-            newItemText.clear();
-            newItem.setVisible(false);
-            newItem.setManaged(false);
-            addItem.setVisible(true);
-            addItem.setManaged(true);
-        }
-        private void createItem(){
-            String text = newItemText.getText().trim();
-            if(text.isEmpty()){
-                newItemText.requestFocus();
-                return;
-            }
-            double value;
-            try{
-                value = Double.parseDouble(newItemPoints.getText().trim().replace(',', '.').replace('−', '-'));
-            }catch(NumberFormatException ex){
-                newItemPoints.requestFocus();
-                return;
-            }
-            ScoredComment entry = new ScoredComment(path, text, value, null);
-            ScoredComments.getCatalog().add(entry);
-            ScoredComments.fireChanged(true);
-            hideNewItem();
-            toggle(entry);
-            scroll.requestFocus();
-        }
-
         // Typed points: same rules as the grade field of the tree (a typed value wins over the scored comments).
         void applyPoints(){
             if(leaf.isDeleted()) return;

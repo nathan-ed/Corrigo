@@ -1,9 +1,12 @@
 /*
  * Copyright (c) 2020-2023. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.interfaces.windows.language;
+
+import fr.clementgre.pdf4teachers.AppLinks;
 
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.interfaces.windows.AlternativeWindow;
@@ -80,7 +83,7 @@ public class LanguageWindow extends AlternativeWindow<ListView<LanguagePane>> {
         Button contribute = new Button(TR.tr("language.chooseLanguageWindow.contributeButton"));
         Button apply = new Button(Main.window == null ? TR.tr("actions.apply") : TR.tr("actions.applyAndRestart"));
         
-        contribute.setOnAction((ActionEvent event) -> Main.hostServices.showDocument("https://pdf4teachers.org/Contribute/"));
+        contribute.setOnAction((ActionEvent event) -> Main.hostServices.showDocument(AppLinks.REPOSITORY_URL));
         apply.setOnAction((ActionEvent event) -> {
             TR.updateLocale();
             close();

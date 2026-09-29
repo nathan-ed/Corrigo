@@ -45,15 +45,15 @@
 | `Alt+↑` / `Alt+↓` | previous / next exercise (exercise mode) |
 | `Alt+1`…`9` | go to the page of exercise 1…9 |
 | `Ctrl+Shift+G` | focus the grading panel |
-| `1`…`9` | place a scored comment (see below) |
+| `1`…`9` | add the n-th method or mistake (see below) |
 | `#`, `Ctrl+Shift+M` | add a method or a mistake at the mouse |
 | `Ctrl+Shift+N` | new personal note |
 | `Ctrl+Shift+S` | personal note with a screenshot |
 
-In the grading panel: `1`…`9` scored comments, `0` zero, `=` full points, `↑` `↓` sub-grade, `←` `→` copy,
-`Tab` / `Shift+Tab` fields, `C` comment, `N` new scored comment, `G` general comment, `Z` / `Shift+Z` next / previous
+In the grading panel: `1`…`9` add the n-th method or mistake, `⌫` remove the last one, `0` zero, `=` full points,
+`↑` `↓` sub-grade, `←` `→` copy, `Tab` / `Shift+Tab` fields, `C` comment, `G` general comment, `Z` / `Shift+Z` next / previous
 ungraded copy, `Esc` back to the document ([details](03-grading.md#keyboard-in-the-panel)).
 
-Outside the panel, `1`…`9` place the scored comments listed in the Grades tab at the mouse position.
+With the mouse on the copy, `1`…`9` put the n-th method or mistake of the card at the mouse position.
 
 The shortcuts of figures and images can be set by right-clicking them in the Paint tab.

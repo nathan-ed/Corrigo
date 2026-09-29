@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2021-2025. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.document.editions.elements;
@@ -52,6 +53,8 @@ public class GradeElement extends Element {
     // The value is computed from the scored comments of this grade (see ScoredComments), until a value is typed.
     private final BooleanProperty valueFromComments = new SimpleBooleanProperty(false);
     private boolean settingValueFromComments;
+    // Value before it was computed from comments (typed, or -1): given back when no comment counts any more
+    private double valueBeforeComments = -1;
     
     public int nextRealYToUse;
     
@@ -371,7 +374,10 @@ public class GradeElement extends Element {
         data.put("outOfTotal", outOfTotal.getValue());
         data.put("name", name.getValue());
         data.put("alwaysVisible", alwaysVisible.get());
-        if(isValueFromComments()) data.put(ScoredCommentGrades.KEY_VALUE_SOURCE, ScoredCommentGrades.VALUE_SOURCE_COMMENTS);
+        if(isValueFromComments()){
+            data.put(ScoredCommentGrades.KEY_VALUE_SOURCE, ScoredCommentGrades.VALUE_SOURCE_COMMENTS);
+            data.put(ScoredCommentGrades.KEY_VALUE_BEFORE, valueBeforeComments);
+        }
         
         return data;
     }
@@ -415,6 +421,7 @@ public class GradeElement extends Element {
         
         GradeElement element = new GradeElement(x, y, page, hasPage, value, total, outOfTotal, index, parentPath, name, alwaysVisible);
         element.valueFromComments.set(ScoredCommentGrades.VALUE_SOURCE_COMMENTS.equals(Config.getString(data, ScoredCommentGrades.KEY_VALUE_SOURCE)));
+        element.valueBeforeComments = data.get(ScoredCommentGrades.KEY_VALUE_BEFORE) instanceof Number before ? before.doubleValue() : -1;
         return element;
     }
     
@@ -542,7 +549,13 @@ public class GradeElement extends Element {
     
     // Sets a value computed from the scored comments: it is not an undo action, the comments are.
     public void setComputedValue(double value){
-        valueFromComments.set(value != -1);
+        if(value == -1){ // No comment counts any more: the value it had before
+            if(valueFromComments.get()) value = valueBeforeComments;
+            valueFromComments.set(false);
+        }else{
+            if(!valueFromComments.get()) valueBeforeComments = this.value.get(); // Starts to be computed
+            valueFromComments.set(true);
+        }
         settingValueFromComments = true;
         try{
             this.value.set(value);
@@ -675,6 +688,7 @@ public class GradeElement extends Element {
     public Element clone(){
         GradeElement element = new GradeElement(getRealX(), getRealY(), pageNumber, true, value.getValue(), total.getValue(), outOfTotal.getValue(), index, parentPath, name.getValue(), alwaysVisible.get());
         element.valueFromComments.set(isValueFromComments());
+        element.valueBeforeComments = valueBeforeComments;
         return element;
     }
     /**
@@ -712,6 +726,7 @@ public class GradeElement extends Element {
     public Element cloneHeadless(){
         GradeElement element = new GradeElement(getRealX(), getRealY(), pageNumber, false, value.getValue(), total.getValue(), outOfTotal.getValue(), index, parentPath, name.getValue(), alwaysVisible.get());
         element.valueFromComments.set(isValueFromComments());
+        element.valueBeforeComments = valueBeforeComments;
         return element;
     }
     public int compareStructureTo(GradeElement grade){

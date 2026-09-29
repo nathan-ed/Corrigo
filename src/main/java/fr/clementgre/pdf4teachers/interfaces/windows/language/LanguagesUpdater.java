@@ -1,9 +1,12 @@
 /*
  * Copyright (c) 2020-2024. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.interfaces.windows.language;
+
+import fr.clementgre.pdf4teachers.AppLinks;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -130,6 +133,10 @@ public class LanguagesUpdater {
     }
     
     public void updateStats(CallBack callBack){
+        if(!AppLinks.USE_PDF4TEACHERS_SERVER){
+            if(callBack != null) callBack.call();
+            return;
+        }
         new Thread(() -> {
             String uuid = Log.doDebug() ? "DEBUG" : MainWindow.userData.uuid;
             HttpURLConnection con = null;
@@ -156,6 +163,10 @@ public class LanguagesUpdater {
     }
     
     public void update(CallBackArg<List<Language>> callBack, boolean hideFirstDialogState, boolean provideData){
+        if(!AppLinks.USE_PDF4TEACHERS_SERVER){ // The languages of this version are those it ships
+            callBack.call(new ArrayList<>());
+            return;
+        }
         
         if(!hideFirstDialogState) loadingAlert.show();
         

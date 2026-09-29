@@ -1,10 +1,12 @@
 /*
  * Copyright (c) 2019-2024. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.interfaces.windows;
 
+import fr.clementgre.pdf4teachers.AppLinks;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.utils.StagesUtils;
@@ -34,6 +36,13 @@ public class AboutWindow extends Stage {
     public Label versionName;
     public Button newRelease;
     
+    public Label appName;
+    public Label forkLabel;
+    public Hyperlink repositoryLink;
+    public Hyperlink guideLink;
+    public Label basedOnLabel;
+    public Hyperlink contributorsLink;
+
     public Label developerLabel;
     public Label designerLabel;
     public Label translatorText;
@@ -88,8 +97,20 @@ public class AboutWindow extends Stage {
         setupChildrenHyperlinks(root);
         
         versionName.setText(TR.tr("aboutWindow.version", Main.VERSION));
-        
-        if(UpdateWindow.newVersion){
+        appName.setText(AppLinks.APP_NAME);
+        forkLabel.setText(TR.tr("aboutWindow.fork", AppLinks.AUTHOR));
+        repositoryLink.setText(AppLinks.REPOSITORY_URL.replace("https://", ""));
+        repositoryLink.setOnAction(e -> Main.hostServices.showDocument(AppLinks.REPOSITORY_URL));
+        guideLink.setText(TR.tr("menuBar.help.loadDocumentation"));
+        guideLink.setOnAction(e -> TR.openUserGuide());
+        basedOnLabel.setText(TR.tr("aboutWindow.basedOn"));
+        contributorsLink.setText(TR.tr("aboutWindow.contributors"));
+
+        if(!AppLinks.CHECK_UPDATES){ // No update check: the releases instead
+            newRelease.setText(TR.tr("aboutWindow.releases"));
+            newRelease.setStyle("");
+            newRelease.setOnAction(event -> Main.hostServices.showDocument(AppLinks.RELEASES_URL));
+        }else if(UpdateWindow.newVersion){
             newRelease.setText(TR.tr("aboutWindow.version.update.available"));
             newRelease.setStyle("-fx-background-color: #e5b100;");
             newRelease.setOnAction(event -> new UpdateWindow());
@@ -111,9 +132,10 @@ public class AboutWindow extends Stage {
             translatorText.setText(TR.tr("aboutWindow.info.translator"));
         }else root.getChildren().remove(translatorText);
         
-        githubLabel.setText(TR.tr("aboutWindow.info.gitHubProject") + " ");
+        githubLabel.setManaged(false); // The link alone: the window is narrow
+        githubLabel.setVisible(false);
         
-        donateLabel.setText(TR.tr("aboutWindow.info.donate") + " ");
+        donateLabel.setText(TR.tr("aboutWindow.info.donateOriginal") + " ");
         paypalLinkPane.setPrefWidth(150);
         githubSponsorsPane.setPrefWidth(150);
         
@@ -121,7 +143,8 @@ public class AboutWindow extends Stage {
         dependenciesLeft.setPrefWidth(160);
         dependenciesRight.setPrefWidth(160);
         
-        licenselabel.setText(TR.tr("aboutWindow.info.license", "Apache 2"));
+        licenselabel.setText(TR.tr("aboutWindow.info.license", "Apache 2.0") + " · NOTICE");
+        licenselabel.setOnAction(e -> Main.hostServices.showDocument(AppLinks.REPOSITORY_URL + "/blob/master/NOTICE"));
         
         statsLabel.setText(TR.tr("aboutWindow.statistics", MainWindow.twoDigFormat.format(MainWindow.userData.foregroundTime / 61d), String.valueOf(MainWindow.userData.startsCount)));
         statsLabel.setWrapText(true);

@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2026. Clément Grennerat
- * All rights reserved. You must refer to the licence Apache 2.
+ * Copyright (c) 2026 Nathan
+ * Licensed under the Apache License, Version 2.0: see the LICENSE file.
+ * Part of a fork of PDF4Teachers (https://github.com/ClementGre/PDF4Teachers).
  */
 
 package fr.clementgre.pdf4teachers.panel.sidebar.grades.tags;
@@ -100,10 +101,14 @@ public class ExerciseTagsCard extends VBox {
         getChildren().add(header);
 
         int copies = ExerciseTags.getFolderCopies().size();
+        List<Tag> ordered = getOrderedTags(exerciseName);
         for(Kind kind : Kind.values()){
             FlowPane chips = new FlowPane(5, 5);
-            for(Tag tag : tags){
-                if(tag.getKind() == kind) chips.getChildren().add(buildChip(tag, copy != null && data.has(copy, exerciseName, tag), data.getCopies(exerciseName, tag).size(), copies));
+            for(Tag tag : ordered){
+                if(tag.getKind() != kind) continue;
+                int index = ordered.indexOf(tag);
+                chips.getChildren().add(buildChip(tag, copy == null ? 0 : data.count(copy, exerciseName, tag),
+                        data.getCopies(exerciseName, tag).size(), copies, index < 9 ? index + 1 : 0));
             }
             chips.getChildren().add(buildAdd(kind));
             Label kindLabel = new Label(TR.tr(kind == Kind.METHOD ? "tags.kind.methods" : "tags.kind.mistakes"));
@@ -167,14 +172,45 @@ public class ExerciseTagsCard extends VBox {
 
     // CHIPS
 
-    private Node buildChip(Tag tag, boolean applied, int count, int copies){
+    // The tags of the exercise as the card shows them: the methods, then the mistakes (keys 1 to 9 of the grading panel)
+    public static List<Tag> getOrderedTags(String exerciseName){
+        List<Tag> tags = ExerciseTags.getData().getTags(exerciseName);
+        ArrayList<Tag> ordered = new ArrayList<>();
+        for(Kind kind : Kind.values()) tags.stream().filter(tag -> tag.getKind() == kind).forEach(ordered::add);
+        return ordered;
+    }
+
+    // Adds an occurrence of the tag on the open copy, for this exercise (from the panel: not at a spot of the copy)
+    public static void addToOpenCopy(String exerciseName, Tag tag){
+        String copy = ExerciseTags.getOpenCopy();
+        if(copy != null) ExerciseTags.addOccurrence(copy, exerciseName, tag, ExerciseTags.getExercisePlacement());
+    }
+    // Removes the last occurrence of the tag on the open copy for this exercise. Returns false if there is none.
+    public static boolean removeLastFromOpenCopy(String exerciseName, Tag tag){
+        String copy = ExerciseTags.getOpenCopy();
+        if(copy == null) return false;
+        List<EvaluationTags.Use> uses = ExerciseTags.getData().getUses(copy, exerciseName, tag);
+        if(uses.isEmpty()) return false;
+        ExerciseTags.removeOccurrence(copy, uses.getLast().id());
+        return true;
+    }
+
+    // occurrences: on the open copy for this exercise; count: copies having it in this exercise; key: 1-9 or 0
+    private Node buildChip(Tag tag, int occurrences, int count, int copies, int key){
         String color = getColor(tag.getKind());
-        Label name = new Label(tag.getName());
+        boolean applied = occurrences > 0;
+        Label keyLabel = new Label(key == 0 ? "" : String.valueOf(key));
+        keyLabel.setManaged(key != 0);
+        Label name = new Label(tag.getName() + (occurrences > 1 ? " ×" + occurrences : ""));
+        Label points = new Label(tag.getPointsLabel(getExerciseName(), MainWindow.gradesDigFormat));
+        points.setManaged(!points.getText().isEmpty());
         Label badge = new Label(String.valueOf(count));
-        HBox chip = count == 0 ? new HBox(6, name) : new HBox(6, name, badge);
+        HBox chip = new HBox(5, keyLabel, name, points);
+        if(count > 0) chip.getChildren().add(badge);
         chip.setAlignment(Pos.CENTER_LEFT);
         chip.setCursor(Cursor.HAND);
-        chip.setPadding(new Insets(3, count == 0 ? 10 : 5, 3, 10));
+        chip.setPadding(new Insets(3, count == 0 ? 10 : 5, 3, key == 0 ? 10 : 7));
+        String text = applied ? "white" : color;
         if(applied){
             chip.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 14; -fx-border-color: " + color + "; -fx-border-radius: 14;");
             name.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
@@ -184,14 +220,24 @@ public class ExerciseTagsCard extends VBox {
             name.setStyle("-fx-text-fill: " + color + ";");
             badge.setStyle("-fx-text-fill: " + color + "; -fx-background-color: " + color + "22; -fx-background-radius: 9; -fx-padding: 0 6; -fx-font-size: 11;");
         }
+        keyLabel.setStyle("-fx-text-fill: " + text + "; -fx-opacity: .6; -fx-font-size: 10; -fx-font-weight: bold;");
+        points.setStyle("-fx-text-fill: " + text + "; -fx-font-size: 11; -fx-font-weight: bold;");
         badge.setCursor(Cursor.HAND);
         Tooltip.install(badge, new Tooltip(TR.tr("tags.chip.showCopies")));
         String share = copies == 0 ? "" : " (" + Math.round(100.0 * count / copies) + " %)";
-        Tooltip.install(name, new Tooltip(TR.tr(applied ? "tags.chip.remove" : "tags.chip.add") + "\n" + TR.tr("tags.chip.count", String.valueOf(count)) + share));
+        StringBuilder tooltip = new StringBuilder(TR.tr(applied ? "tags.chip.remove" : "tags.chip.add")).append("\n").append(TR.tr("tags.chip.more"));
+        if(key != 0) tooltip.append("\n").append(TR.tr("tags.chip.key", String.valueOf(key)));
+        String written = TagEditFiles.describe(tag, getExerciseName(), MainWindow.gradesDigFormat);
+        if(!written.isEmpty()) tooltip.append("\n").append(TR.tr("tags.chip.written", written));
+        tooltip.append("\n").append(TR.tr("tags.chip.count", String.valueOf(count))).append(share);
+        Tooltip.install(name, new Tooltip(tooltip.toString()));
         chip.setOnMouseClicked(e -> {
             if(e.getButton() != MouseButton.PRIMARY) return;
+            String copy = ExerciseTags.getOpenCopy();
             if(isIn(e.getTarget(), badge)) showCopies(tag, false);
-            else ExerciseTags.toggleOnOpenCopy(getExerciseName(), tag, ExerciseTags.getExercisePlacement());
+            else if(copy == null) return;
+            else if(e.isShiftDown() || !applied) addToOpenCopy(getExerciseName(), tag); // Shift: one more occurrence
+            else ExerciseTags.removeAllOccurrences(copy, getExerciseName(), tag);
         });
         chip.setOnContextMenuRequested(e -> {
             buildMenu(tag).show(chip, e.getScreenX(), e.getScreenY());
@@ -216,19 +262,19 @@ public class ExerciseTagsCard extends VBox {
         MenuItem reviewAll = new MenuItem(TR.tr("tags.menu.reviewAll"));
         reviewAll.setOnAction(e -> startReview(tag, true));
         reviewAll.setDisable(data.getCopies(tag).isEmpty());
+        MenuItem scoring = new MenuItem(TR.tr("tags.menu.scoring"));
+        scoring.setOnAction(e -> TagScoringDialog.show(tag, getExerciseName(), getScene() == null ? null : getScene().getWindow()));
         MenuItem rename = new MenuItem(TR.tr("tags.menu.rename"));
         rename.setOnAction(e -> rename(tag));
         MenuItem kind = new MenuItem(TR.tr(tag.getKind() == Kind.METHOD ? "tags.menu.toMistake" : "tags.menu.toMethod"));
-        kind.setOnAction(e -> {
-            ExerciseTags.getData().setKind(tag, tag.getKind() == Kind.METHOD ? Kind.MISTAKE : Kind.METHOD);
-            ExerciseTags.fireChanged(true);
-        });
+        kind.setOnAction(e -> ExerciseTags.setKind(tag, tag.getKind() == Kind.METHOD ? Kind.MISTAKE : Kind.METHOD));
         MenuItem delete = new MenuItem(TR.tr("tags.menu.delete"));
         delete.setOnAction(e -> delete(tag));
-        return new ContextMenu(show, review, showAll, reviewAll, new SeparatorMenuItem(), rename, kind, new SeparatorMenuItem(), delete);
+        return new ContextMenu(scoring, new SeparatorMenuItem(), show, review, showAll, reviewAll, new SeparatorMenuItem(), rename, kind,
+                new SeparatorMenuItem(), delete);
     }
 
-    // "+ Method": a text field, Enter creates the tag and adds it to the copy
+    // "+ Method": a name field and a points field (optional), Enter creates the tag and adds it to the copy
     private Node buildAdd(Kind kind){
         Label add = new Label(TR.tr(kind == Kind.METHOD ? "tags.add.method" : "tags.add.mistake"));
         add.setCursor(Cursor.HAND);
@@ -238,33 +284,72 @@ public class ExerciseTagsCard extends VBox {
             if(e.getButton() != MouseButton.PRIMARY) return;
             TextField field = new TextField();
             field.setPromptText(TR.tr(kind == Kind.METHOD ? "tags.add.method.prompt" : "tags.add.mistake.prompt"));
-            field.setPrefColumnCount(14);
-            field.setOnKeyPressed(k -> {
-                if(k.getCode() == KeyCode.ENTER){
-                    k.consume();
-                    String text = field.getText().strip();
-                    if(text.isEmpty()){
-                        update();
-                        return;
-                    }
-                    Tag tag = ExerciseTags.getData().create(getExerciseName(), text, kind);
-                    String copy = ExerciseTags.getOpenCopy();
-                    if(copy != null && !ExerciseTags.getData().has(copy, getExerciseName(), tag)){
-                        ExerciseTags.toggleOnOpenCopy(getExerciseName(), tag, ExerciseTags.getExercisePlacement());
-                    }
-                    else ExerciseTags.fireChanged(true);
-                }else if(k.getCode() == KeyCode.ESCAPE){
-                    k.consume();
+            field.setPrefColumnCount(11);
+            TextField pointsField = new TextField();
+            pointsField.setPromptText(TR.tr(kind == Kind.METHOD ? "tags.add.points.method" : "tags.add.points.mistake"));
+            pointsField.setPrefColumnCount(4);
+            pointsField.setTooltip(new Tooltip(TR.tr(kind == Kind.METHOD ? "tags.scoring.points.method" : "tags.scoring.points.mistake")));
+            TextField commentField = new TextField();
+            commentField.setPromptText(TR.tr("tags.picker.comment"));
+            commentField.setTooltip(new Tooltip(TR.tr("tags.scoring.comment.prompt")));
+            HBox.setHgrow(commentField, Priority.ALWAYS);
+            field.setMaxWidth(Double.MAX_VALUE);
+            HBox second = new HBox(4, pointsField, commentField);
+            second.setAlignment(Pos.CENTER_LEFT);
+            VBox fields = new VBox(4, field, second);
+            fields.setPrefWidth(230);
+            Runnable create = () -> {
+                EvaluationTags.Typed typed = EvaluationTags.parseTyped(field.getText());
+                if(typed.name().isEmpty()){
                     update();
+                    return;
                 }
-            });
-            field.focusedProperty().addListener((o, oldValue, newValue) -> {
-                if(!newValue) Platform.runLater(this::update); // Clicked elsewhere: cancelled
-            });
-            ((Pane) add.getParent()).getChildren().set(((Pane) add.getParent()).getChildren().indexOf(add), field);
+                Double points = parsePoints(pointsField.getText());
+                if(points == null) points = typed.points(); // "Sign error -1" in the name field
+                boolean isNew = ExerciseTags.getData().find(typed.name()).isEmpty();
+                Tag tag = ExerciseTags.getData().create(getExerciseName(), typed.name(), kind);
+                if(isNew && (points != null || !commentField.getText().isBlank())) ExerciseTags.getData().setScoring(tag, points, commentField.getText());
+                String copy = ExerciseTags.getOpenCopy();
+                if(copy != null && !ExerciseTags.getData().has(copy, getExerciseName(), tag)) addToOpenCopy(getExerciseName(), tag);
+                else ExerciseTags.fireChanged(true);
+            };
+            TextField[] order = {field, pointsField, commentField};
+            for(TextField f : order){
+                f.setOnKeyPressed(k -> {
+                    if(k.getCode() == KeyCode.TAB){ // Name → points → comment
+                        k.consume();
+                        int index = java.util.Arrays.asList(order).indexOf(f) + (k.isShiftDown() ? -1 : 1);
+                        order[(index + order.length) % order.length].requestFocus();
+                    }else if(k.getCode() == KeyCode.ENTER){
+                        k.consume();
+                        create.run();
+                    }else if(k.getCode() == KeyCode.ESCAPE){
+                        k.consume();
+                        update();
+                    }
+                });
+                f.focusedProperty().addListener((o, oldValue, newValue) -> {
+                    // Clicked elsewhere (not in the other field): cancelled
+                    if(!newValue) Platform.runLater(() -> {
+                        if(!field.isFocused() && !pointsField.isFocused() && !commentField.isFocused()) update();
+                    });
+                });
+            }
+            ((Pane) add.getParent()).getChildren().set(((Pane) add.getParent()).getChildren().indexOf(add), fields);
             Platform.runLater(field::requestFocus);
         });
         return add;
+    }
+    // "1", "-0,5": the number of points (positive), or null
+    static Double parsePoints(String text){
+        String value = text == null ? "" : text.strip().replace(',', '.').replace('−', '-');
+        if(value.isEmpty()) return null;
+        try{
+            double points = Math.abs(Double.parseDouble(value));
+            return points == 0 ? null : points;
+        }catch(NumberFormatException e){
+            return null;
+        }
     }
 
     private void rename(Tag tag){
@@ -280,13 +365,13 @@ public class ExerciseTagsCard extends VBox {
     private void delete(Tag tag){
         int count = ExerciseTags.getData().getCopies(tag).size();
         if(count > 0){
-            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, TR.tr("tags.menu.delete"), TR.tr("tags.delete.header", tag.getName(), String.valueOf(count)));
+            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, TR.tr("tags.menu.delete"), (count == 1 ? TR.tr("tags.delete.header.one", tag.getName()) : TR.tr("tags.delete.header", tag.getName(), String.valueOf(count)))
+                    + (tag.isWrittenOnCopy() ? "\n" + TR.tr("tags.delete.written") : ""));
             alert.addCancelButton(ButtonPosition.CLOSE);
             alert.addDeleteButton(ButtonPosition.DEFAULT);
             if(alert.getShowAndWaitGetButtonPosition(ButtonPosition.CLOSE) != ButtonPosition.DEFAULT) return;
         }
-        ExerciseTags.getData().delete(tag);
-        ExerciseTags.fireChanged(true);
+        ExerciseTags.deleteTag(tag);
     }
 
     // OVERVIEW
@@ -428,9 +513,15 @@ public class ExerciseTagsCard extends VBox {
             scores = loaded;
             scoresExercise = getExerciseName();
             // No text: a marker at the spot (the name of the tag is the title of the window). Points of this exercise only.
-            List<CommentUsages.Usage> usages = uses.stream().map(use -> new CommentUsages.Usage(folder, new File(folder, use.copy()),
-                    use.placement().page(), use.placement().x(), use.placement().y(), use.exercise(), "", style,
-                    use.exercise().equals(exerciseName) ? getScoreDetail(use.copy()) : null)).toList();
+            // A preview by occurrence: its menu changes this occurrence.
+            IdentityHashMap<CommentUsages.Usage, EvaluationTags.Use> occurrences = new IdentityHashMap<>();
+            List<CommentUsages.Usage> usages = uses.stream().map(use -> {
+                CommentUsages.Usage usage = new CommentUsages.Usage(folder, new File(folder, use.copy()),
+                        use.placement().page(), use.placement().x(), use.placement().y(), use.exercise(), "", style,
+                        use.exercise().equals(exerciseName) ? getScoreDetail(use.copy()) : null);
+                occurrences.put(usage, use);
+                return usage;
+            }).toList();
             Button review = new Button(TR.tr(all ? "tags.menu.reviewAll" : "tags.menu.review"));
             review.setDisable(usages.isEmpty());
             CommentUsagesWindow[] window = new CommentUsagesWindow[1];
@@ -441,34 +532,21 @@ public class ExerciseTagsCard extends VBox {
             window[0] = new CommentUsagesWindow(tag.getName(), subHeader, (onFolder, onDone) -> {
                 if(!usages.isEmpty()) onFolder.accept(usages);
                 onDone.run();
-            }, TR.tr("tags.gallery.none"), new CommentUsagesWindow.Actions((usage, card) -> buildTagCardMenu(tag, usage, card), List.of(review)));
+            }, TR.tr("tags.gallery.none"), new CommentUsagesWindow.Actions((usage, card) -> buildTagCardMenu(tag, occurrences.get(usage), card), List.of(review)));
         });
     }
 
-    // Right-click on a copy of a tag: remove the tag from it, or change it to another tag (same spot)
-    private List<MenuItem> buildTagCardMenu(Tag tag, CommentUsages.Usage usage, CommentUsagesWindow.Card card){
-        EvaluationTags data = ExerciseTags.getData();
-        String copy = usage.copy().getName();
-        String exerciseName = usage.exercise();
-        Placement placement = data.getPlacement(copy, exerciseName, tag);
-        if(placement == null) return List.of(); // Changed meanwhile
-
+    // Right-click on an occurrence of a tag: remove it from the copy, or change it to another tag (same spot and sub-grade)
+    private List<MenuItem> buildTagCardMenu(Tag tag, EvaluationTags.Use use, CommentUsagesWindow.Card card){
+        if(use == null || ExerciseTags.getData().getUse(use.copy(), use.id()) == null) return List.of(); // Changed meanwhile
         MenuItem remove = new MenuItem(TR.tr("tags.gallery.remove", tag.getName()));
         remove.setOnAction(e -> {
-            data.remove(copy, exerciseName, tag);
-            ExerciseTags.fireChanged(true);
-            card.setDone(TR.tr("tags.gallery.removed"), () -> {
-                data.add(copy, exerciseName, tag, placement);
-                ExerciseTags.fireChanged(true);
-            });
+            EvaluationTags.Use removed = ExerciseTags.removeOccurrence(use.copy(), use.id());
+            if(removed != null) card.setDone(TR.tr("tags.gallery.removed"), () -> ExerciseTags.restoreOccurrence(removed));
         });
-        List<MenuItem> change = headed(TR.tr("tags.gallery.changeTo"), buildTagChoices(card.getWindow(), exerciseName, tag.getKind(), other -> other != tag, other -> {
-            boolean added = ExerciseTags.change(copy, exerciseName, tag, other, placement);
-            card.setDone("→ " + other.getName(), () -> {
-                if(added) data.remove(copy, exerciseName, other);
-                data.add(copy, exerciseName, tag, placement);
-                ExerciseTags.fireChanged(true);
-            });
+        List<MenuItem> change = headed(TR.tr("tags.gallery.changeTo"), buildTagChoices(card.getWindow(), use.exercise(), tag.getKind(), other -> other != tag, other -> {
+            ExerciseTags.changeOccurrence(use.copy(), use.id(), other);
+            card.setDone("→ " + other.getName(), () -> ExerciseTags.changeOccurrence(use.copy(), use.id(), tag));
         }));
         ArrayList<MenuItem> items = new ArrayList<>(List.of(remove, new SeparatorMenuItem()));
         items.addAll(change);
@@ -477,17 +555,12 @@ public class ExerciseTagsCard extends VBox {
 
     // Right-click on a copy without method: give it a method
     private List<MenuItem> buildUnclassifiedCardMenu(CommentUsages.Usage usage, CommentUsagesWindow.Card card){
-        EvaluationTags data = ExerciseTags.getData();
         String copy = usage.copy().getName();
         String exerciseName = usage.exercise();
-        Placement placement = new Placement(usage.page(), usage.x(), usage.y());
+        Placement placement = Placement.exercise(usage.page());
         return headed(TR.tr("tags.gallery.addMethod"), buildTagChoices(card.getWindow(), exerciseName, Kind.METHOD, other -> other.getKind() == Kind.METHOD, method -> {
-            data.add(copy, exerciseName, method, placement);
-            ExerciseTags.fireChanged(true);
-            card.setDone("+ " + method.getName(), () -> {
-                data.remove(copy, exerciseName, method);
-                ExerciseTags.fireChanged(true);
-            });
+            EvaluationTags.Use added = ExerciseTags.addOccurrence(copy, exerciseName, method, placement);
+            card.setDone("+ " + method.getName(), () -> ExerciseTags.removeOccurrence(copy, added.id()));
         }));
     }
 

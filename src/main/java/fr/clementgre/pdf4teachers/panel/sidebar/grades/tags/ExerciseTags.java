@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2026. Clément Grennerat
- * All rights reserved. You must refer to the licence Apache 2.
+ * Copyright (c) 2026 Nathan
+ * Licensed under the Apache License, Version 2.0: see the LICENSE file.
+ * Part of a fork of PDF4Teachers (https://github.com/ClementGre/PDF4Teachers).
  */
 
 package fr.clementgre.pdf4teachers.panel.sidebar.grades.tags;
@@ -13,7 +14,10 @@ import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.log.Log;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.EvaluationTags.Placement;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.EvaluationTags.Kind;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.EvaluationTags.Tag;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.EvaluationTags.Use;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyLongProperty;
 import javafx.beans.property.SimpleLongProperty;
@@ -29,7 +33,6 @@ public final class ExerciseTags {
 
     // Grid size of a page (Element.GRID_WIDTH / GRID_HEIGHT)
     private static final double GRID_WIDTH = 165400, GRID_HEIGHT = 233900;
-    private static final double EXERCISE_SPOT_X = GRID_WIDTH * 0.1, EXERCISE_SPOT_Y = GRID_HEIGHT * 0.12;
 
     private static EvaluationTags data = new EvaluationTags();
     private static final SimpleLongProperty revision = new SimpleLongProperty();
@@ -66,10 +69,35 @@ public final class ExerciseTags {
     public static ReadOnlyLongProperty revisionProperty(){
         return revision;
     }
+    // Copies whose methods and mistakes changed: what is written on them is updated with the next fireChanged(true)
+    private static final Set<String> dirtyCopies = new HashSet<>();
+
     public static void fireChanged(boolean save){
-        if(save) EvaluationFolders.requestSave(FOLDER_PART);
+        if(save){
+            EvaluationFolders.requestSave(FOLDER_PART);
+            ArrayList<String> copies = new ArrayList<>(dirtyCopies);
+            dirtyCopies.clear();
+            TagScoring.sync(copies);
+        }
         revision.set(revision.get() + 1);
         if(save) TagMarkers.update();
+    }
+
+    // The edition of the open copy is loaded: what is written for its methods and mistakes is checked.
+    public static void onEditionLoaded(){
+        syncWhenReady(50);
+    }
+    // Once the document is ready (its undo engine is set after the edition is loaded)
+    private static void syncWhenReady(int tries){
+        Platform.runLater(() -> {
+            if(!MainWindow.mainScreen.hasDocument(false)) return;
+            if(MainWindow.mainScreen.getUndoEngine() == null){
+                if(tries > 0) syncWhenReady(tries - 1);
+                return;
+            }
+            TagScoring.syncOpenCopy();
+            TagMarkers.update();
+        });
     }
 
     // CONTEXT
@@ -108,36 +136,108 @@ public final class ExerciseTags {
     public static Placement getExercisePlacement(){
         int index = MainWindow.footerBar == null ? -1 : MainWindow.footerBar.getSelectedExerciseIndex();
         OptionalInt page = index < 0 ? OptionalInt.empty() : MainWindow.footerBar.getExercisePage(index);
-        return new Placement(page.orElse(0), EXERCISE_SPOT_X, EXERCISE_SPOT_Y);
-    }
-    // Same page, and close (2 % of the width, 1.5 % of the height)
-    public static boolean isNear(Placement a, Placement b){
-        return a.page() == b.page() && Math.abs(a.x() - b.x()) < GRID_WIDTH * .02 && Math.abs(a.y() - b.y()) < GRID_HEIGHT * .015;
+        return Placement.exercise(page.orElse(0));
     }
     // Placement of a tag added from the panel (not at a spot of the copy)
     public static boolean isExerciseSpot(Placement placement){
-        return placement.x() == EXERCISE_SPOT_X && placement.y() == EXERCISE_SPOT_Y;
+        return placement.isExerciseSpot();
+    }
+    public static boolean isNear(Placement a, Placement b){
+        return a.isNear(b);
     }
 
-    // ACTIONS
+    // ACTIONS (all the changes of the occurrences and of the tags go through here: the copies are updated)
 
-    // Adds the tag to the open copy for this exercise, or removes it. Returns true if the copy has it now.
-    public static boolean toggleOnOpenCopy(String exercise, Tag tag, Placement placement){
-        String copy = getOpenCopy();
-        if(copy == null) return false;
-        boolean has = data.toggle(copy, exercise, tag, placement);
-        fireChanged(true);
-        return has;
+    // The sub-grade the points of a new occurrence count on: the one active in the grading panel if it is of this
+    // exercise, else the first sub-grade of the exercise ("" if there is none).
+    public static String getTargetGrade(String exercise){
+        if(MainWindow.gradingPanel != null){
+            String active = MainWindow.gradingPanel.getActiveLeafPath(exercise);
+            if(active != null) return active;
+        }
+        return getFirstGrade(exercise);
+    }
+    // The first sub-grade of the exercise, the exercise if it has none, or "" if there is no such exercise
+    public static String getFirstGrade(String exercise){
+        if(GradeTreeView.getTotal() == null) return "";
+        for(javafx.scene.control.TreeItem<String> child : GradeTreeView.getTotal().getChildren()){
+            if(!(child instanceof GradeTreeItem item) || !item.getCore().getName().equals(exercise)) continue;
+            return GradeTreeView.getGradesArray(item).stream().filter(g -> !g.hasSubGrade()).findFirst().orElse(item).getCore().getPath();
+        }
+        return "";
     }
 
-    // Replaces a tag of a copy by another one, at the same spot. The copy may already have the other one: then only
-    // the first one is removed. Returns true if the other one was added.
-    public static boolean change(String copy, String exercise, Tag from, Tag to, Placement placement){
-        boolean added = !data.has(copy, exercise, to);
-        data.remove(copy, exercise, from);
-        if(added) data.add(copy, exercise, to, placement);
+    // The sub-grade of the exercise whose grade is the closest to a spot of the copy (same page), or null
+    public static String getGradeNear(String exercise, Placement placement){
+        if(placement.isExerciseSpot() || GradeTreeView.getTotal() == null) return null;
+        for(javafx.scene.control.TreeItem<String> child : GradeTreeView.getTotal().getChildren()){
+            if(!(child instanceof GradeTreeItem item) || !item.getCore().getName().equals(exercise)) continue;
+            return GradeTreeView.getGradesArray(item).stream()
+                    .filter(g -> !g.hasSubGrade() && g.getCore().getPageNumber() == placement.page())
+                    .min(Comparator.comparingDouble(g -> Math.abs(g.getCore().getRealY() - placement.y())))
+                    .map(g -> g.getCore().getPath()).orElse(null);
+        }
+        return null;
+    }
+
+    // Adds an occurrence of the tag on a copy. Its points count on the sub-grade whose grade is the closest to where it
+    // is put, or else on the active sub-grade of the exercise.
+    public static Use addOccurrence(String copy, String exercise, Tag tag, Placement placement){
+        String near = getGradeNear(exercise, placement);
+        Use use = data.add(copy, exercise, tag, near != null ? near : getTargetGrade(exercise), placement);
+        dirtyCopies.add(copy);
         fireChanged(true);
-        return added;
+        return use;
+    }
+    public static Use removeOccurrence(String copy, String useId){
+        Use removed = data.remove(copy, useId);
+        dirtyCopies.add(copy);
+        fireChanged(true);
+        return removed;
+    }
+    // Puts back an occurrence removed before (undo): same id, sub-grade and place.
+    public static void restoreOccurrence(Use use){
+        data.restore(use);
+        dirtyCopies.add(use.copy());
+        fireChanged(true);
+    }
+    public static List<Use> removeAllOccurrences(String copy, String exercise, Tag tag){
+        List<Use> removed = data.removeAll(copy, exercise, tag);
+        dirtyCopies.add(copy);
+        fireChanged(true);
+        return removed;
+    }
+    public static void changeOccurrence(String copy, String useId, Tag tag){
+        data.change(copy, useId, tag);
+        dirtyCopies.add(copy);
+        fireChanged(true);
+    }
+    public static void moveOccurrence(String copy, String useId, Placement placement){
+        data.move(copy, useId, placement); // What is written on the copy stays where it is
+        fireChanged(true);
+    }
+    // Points (positive, or null) and comment of a tag: written on all the copies that have it.
+    public static void setScoring(Tag tag, Double points, String comment){
+        dirtyCopies.addAll(data.getCopies(tag));
+        data.setScoring(tag, points, comment);
+        fireChanged(true);
+    }
+    // Same, with the points by sub-grade of an exercise (empty: they count on the sub-grade they are put for)
+    public static void setScoring(Tag tag, Double points, String comment, String exercise, Map<String, Double> gradePoints){
+        dirtyCopies.addAll(data.getCopies(tag));
+        data.setScoring(tag, points, comment);
+        if(exercise != null) data.setGradePoints(tag, exercise, gradePoints);
+        fireChanged(true);
+    }
+    public static void setKind(Tag tag, Kind kind){
+        dirtyCopies.addAll(data.getCopies(tag)); // The sign of the points and the color change
+        data.setKind(tag, kind);
+        fireChanged(true);
+    }
+    public static void deleteTag(Tag tag){
+        dirtyCopies.addAll(data.getCopies(tag));
+        data.delete(tag);
+        fireChanged(true);
     }
 
     // SCORES

@@ -11,7 +11,7 @@
   | **T** | **Texts** | text annotations and comment lists |
   | Book | **Notes** | your personal notes (never on the copies) |
   | List | **Grading** | the grading panel: grade one exercise at a time |
-  | **/20** | **Grades** | the grade scale, scored comments, grade exports |
+  | **/20** | **Grades** | the grade scale and the grade exports |
   | Skills | **Skills** | skills-based assessment |
   | Brush | **Paint** | drawings, shapes and images |
 

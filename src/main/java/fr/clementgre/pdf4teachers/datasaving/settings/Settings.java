@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2020-2022. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.datasaving.settings;
@@ -62,7 +63,7 @@ public class Settings {
             "settings.sendStatistics.title", "settings.sendStatistics.tooltip");
     
     @SettingsGroup(title = "settings.group.network")
-    public Setting<?>[] networkGroup = {checkUpdates, sendStats};
+    public Setting<?>[] networkGroup = {checkUpdates}; // No statistics are sent by this version (AppLinks)
     
     
     @SettingObject

@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2026. Clément Grennerat
- * All rights reserved. You must refer to the licence Apache 2.
+ * Copyright (c) 2026 Nathan
+ * Licensed under the Apache License, Version 2.0: see the LICENSE file.
+ * Part of a fork of PDF4Teachers (https://github.com/ClementGre/PDF4Teachers).
  */
 
 package fr.clementgre.pdf4teachers.document.editions.elements;
@@ -9,6 +10,7 @@ import fr.clementgre.pdf4teachers.components.menus.NodeMenuItem;
 import fr.clementgre.pdf4teachers.datasaving.Config;
 import fr.clementgre.pdf4teachers.document.editions.Edition;
 import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
+import fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagScoring;
 import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComment;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredCommentGrades;
@@ -37,6 +39,8 @@ public class ScoredCommentElement extends TextElement {
     private double points;
     private boolean localText;
     private boolean localPoints;
+    // Only a comment: written without points and not counted in the grade (method or mistake with a comment only)
+    private boolean noPoints;
 
     public ScoredCommentElement(int x, int y, int pageNumber, boolean hasPage, String text, Color color, Font font, double maxWidth,
                                 String scoredCommentId, String gradePath, String comment, double points, boolean localText, boolean localPoints){
@@ -65,6 +69,13 @@ public class ScoredCommentElement extends TextElement {
 
     private void onTextEdited(String text){
         Optional<ScoredCommentGrades.Parsed> parsed = ScoredCommentGrades.parse(text);
+        if(noPoints && parsed.isEmpty()){ // A comment only: the text is the comment
+            localText |= !text.equals(comment);
+            comment = text;
+            Edition.setUnsave("ScoredCommentEdited");
+            return;
+        }
+        noPoints = false;
         String newComment = parsed.map(ScoredCommentGrades.Parsed::comment).orElse(text);
         double newPoints = parsed.map(ScoredCommentGrades.Parsed::points).orElse(points);
         boolean pointsChanged = newPoints != points;
@@ -88,6 +99,7 @@ public class ScoredCommentElement extends TextElement {
     @Override
     protected void setupMenu(){
         super.setupMenu();
+        if(isTagElement()) return; // Changed from its method or mistake
 
         NodeMenuItem changePoints = new NodeMenuItem(TR.tr("scoredComments.elementMenu.changePoints"), false);
         changePoints.setToolTip(TR.tr("scoredComments.elementMenu.changePoints.tooltip"));
@@ -151,6 +163,25 @@ public class ScoredCommentElement extends TextElement {
         setText(ScoredCommentGrades.render(comment, newPoints, MainWindow.gradesDigFormat));
     }
 
+    // Applies the values of its method or mistake (see TagScoring). The local changes are kept.
+    public void applyTag(String gradePath, String newComment, double newPoints, boolean newNoPoints, Color color){
+        String oldGradePath = this.gradePath;
+        this.gradePath = gradePath;
+        if(!localText) comment = newComment;
+        if(!localPoints){
+            points = newPoints;
+            noPoints = newNoPoints;
+        }
+        if(!color.equals(getColor())) setColor(color);
+        String text = noPoints ? comment : ScoredCommentGrades.render(comment, points, MainWindow.gradesDigFormat);
+        if(!text.equals(getText())) setText(text);
+        Edition.setUnsave("TagElementUpdated");
+        if(getPage() != null){
+            if(!oldGradePath.equals(gradePath)) ScoredComments.recomputeGrade(oldGradePath, false);
+            ScoredComments.recomputeGrade(gradePath, true);
+        }
+    }
+
     // Applies the catalog entry to this comment. The local changes are kept, except if resetLocalChanges is true.
     public void applyEntry(ScoredComment entry, boolean resetLocalChanges){
         String oldGradePath = gradePath;
@@ -195,6 +226,8 @@ public class ScoredCommentElement extends TextElement {
     @Override
     public void removedFromDocument(boolean markAsUnsave){
         super.removedFromDocument(markAsUnsave);
+        // Deleted by the teacher: its method or mistake is removed from the copy
+        if(markAsUnsave && isTagElement()) TagScoring.onElementDeleted(scoredCommentId);
         if(markAsUnsave){
             ScoredComments.recomputeGrade(gradePath, false);
             ScoredComments.fireChanged(false);
@@ -212,18 +245,21 @@ public class ScoredCommentElement extends TextElement {
         data.put(ScoredCommentGrades.KEY_POINTS, points);
         data.put(ScoredCommentGrades.KEY_LOCAL_TEXT, localText);
         data.put(ScoredCommentGrades.KEY_LOCAL_POINTS, localPoints);
+        if(noPoints) data.put(ScoredCommentGrades.KEY_NO_POINTS, true);
         return data;
     }
 
     static ScoredCommentElement readYAMLDataAndGive(HashMap<String, Object> data, int x, int y, int page, boolean hasPage,
                                                     String text, Color color, Font font, double maxWidth){
-        return new ScoredCommentElement(x, y, page, hasPage, text, color, font, maxWidth,
+        ScoredCommentElement element = new ScoredCommentElement(x, y, page, hasPage, text, color, font, maxWidth,
                 Config.getString(data, ScoredCommentGrades.KEY_ID),
                 Config.getString(data, ScoredCommentGrades.KEY_GRADE_PATH),
                 Config.getString(data, ScoredCommentGrades.KEY_COMMENT),
                 Config.getDouble(data, ScoredCommentGrades.KEY_POINTS),
                 Config.getBoolean(data, ScoredCommentGrades.KEY_LOCAL_TEXT),
                 Config.getBoolean(data, ScoredCommentGrades.KEY_LOCAL_POINTS));
+        element.noPoints = Config.getBoolean(data, ScoredCommentGrades.KEY_NO_POINTS);
+        return element;
     }
 
     // GETTERS AND SETTERS
@@ -247,6 +283,17 @@ public class ScoredCommentElement extends TextElement {
     public double getPoints(){
         return points;
     }
+    // Only a comment: not counted in the grade
+    public boolean isNoPoints(){
+        return noPoints;
+    }
+    public void setNoPoints(boolean noPoints){
+        this.noPoints = noPoints;
+    }
+    // Written for a method or a mistake (see TagScoring)
+    public boolean isTagElement(){
+        return TagScoring.isTagElementId(scoredCommentId);
+    }
     public boolean isLocalText(){
         return localText;
     }
@@ -264,11 +311,13 @@ public class ScoredCommentElement extends TextElement {
     }
     @Override
     public Element clone(){
+        if(isTagElement()) return toPlainTextElement(); // A copy of the comment: it must not count the points twice
         return new ScoredCommentElement(getRealX(), getRealY(), pageNumber, true, getText(), getColor(), getFont(), getTextMaxWidth(),
                 scoredCommentId, gradePath, comment, points, localText, localPoints);
     }
     @Override
     public Element cloneHeadless(){
+        if(isTagElement()) return new TextElement(getRealX(), getRealY(), pageNumber, false, getText(), getColor(), getFont(), getTextMaxWidth());
         return new ScoredCommentElement(getRealX(), getRealY(), pageNumber, false, getText(), getColor(), getFont(), getTextMaxWidth(),
                 scoredCommentId, gradePath, comment, points, localText, localPoints);
     }

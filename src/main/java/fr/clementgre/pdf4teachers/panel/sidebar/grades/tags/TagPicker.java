@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2026. Clément Grennerat
- * All rights reserved. You must refer to the licence Apache 2.
+ * Copyright (c) 2026 Nathan
+ * Licensed under the Apache License, Version 2.0: see the LICENSE file.
+ * Part of a fork of PDF4Teachers (https://github.com/ClementGre/PDF4Teachers).
  */
 
 package fr.clementgre.pdf4teachers.panel.sidebar.grades.tags;
@@ -45,6 +46,10 @@ public final class TagPicker {
     private static final String METHOD_COLOR_DARK = "#4a9eff", MISTAKE_COLOR_DARK = "#ef5350";
     private static Popup open;
 
+    public static boolean isOpen(){
+        return open != null && open.isShowing();
+    }
+
     private TagPicker(){
     }
 
@@ -58,6 +63,58 @@ public final class TagPicker {
 
     // A new tag to create with the typed name
     private record Create(String name) {}
+
+    /**
+     * Pointing at an occurrence of the tag (its spot): removes it. Else adds an occurrence there (one more if the copy
+     * already has it: the same mistake twice counts twice).
+     */
+    public static void applyAt(String copy, String exerciseName, Tag tag, Placement placement){
+        EvaluationTags data = ExerciseTags.getData();
+        EvaluationTags.Use pointed = placement.isExerciseSpot() ? null : data.getUses(copy, exerciseName, tag).stream()
+                .filter(use -> !use.placement().isExerciseSpot() && use.placement().isNear(placement)).findFirst().orElse(null);
+        if(pointed != null){
+            ExerciseTags.removeOccurrence(copy, pointed.id());
+            MainWindow.footerBar.showToast(Color.web(getColor(tag.getKind())), Color.WHITE, TR.tr("tags.picker.removed", tag.getName()));
+            return;
+        }
+        int before = data.count(copy, exerciseName, tag);
+        ExerciseTags.addOccurrence(copy, exerciseName, tag, placement);
+        MainWindow.footerBar.showToast(Color.web(getColor(tag.getKind())), Color.WHITE,
+                before == 0 ? TR.tr("tags.picker.added", tag.getName()) : TR.tr("tags.picker.addedAgain", tag.getName(), String.valueOf(before + 1)));
+    }
+
+    // Keys 1-9 on the document: the n-th method or mistake of the exercise, where the mouse is. Returns false if there is none.
+    public static boolean applyAtMouse(int number){
+        GradeTreeItem exercise = ExerciseTags.getExercise();
+        String copy = ExerciseTags.getOpenCopy();
+        if(exercise == null || copy == null) return false;
+        String exerciseName = exercise.getCore().getName();
+        List<Tag> tags = ExerciseTagsCard.getOrderedTags(exerciseName);
+        if(number < 1 || number > tags.size()) return false;
+        applyAt(copy, exerciseName, tags.get(number - 1), ExerciseTags.getMousePlacement());
+        return true;
+    }
+
+    // The name, with the points of the points field ("1", "-1", "+0.5") or else those typed after the name
+    private static EvaluationTags.Typed typedWith(String name, String points){
+        EvaluationTags.Typed typed = EvaluationTags.parseTyped(name);
+        String value = points.strip().replace(',', '.').replace('−', '-');
+        if(value.isEmpty()) return typed;
+        try{
+            double number = Double.parseDouble(value);
+            if(number == 0) return new EvaluationTags.Typed(typed.name(), null, null);
+            Boolean negative = value.startsWith("-") ? Boolean.TRUE : value.startsWith("+") ? Boolean.FALSE : null;
+            return new EvaluationTags.Typed(typed.name(), Math.abs(number), negative);
+        }catch(NumberFormatException e){
+            return typed;
+        }
+    }
+
+    // The kind of a new tag: given by the sign of its points if typed, else by the Method / Mistake buttons
+    private static Kind getNewKind(EvaluationTags.Typed typed, boolean methodSelected){
+        if(typed.negative() != null) return typed.negative() ? Kind.MISTAKE : Kind.METHOD;
+        return methodSelected ? Kind.METHOD : Kind.MISTAKE;
+    }
 
     public static void open(){
         GradeTreeItem exercise = ExerciseTags.getExercise();
@@ -102,6 +159,15 @@ public final class TagPicker {
         kinds.setAlignment(Pos.CENTER_LEFT);
 
         TextField field = new TextField();
+        // Points and comment of a new tag
+        TextField pointsField = new TextField();
+        pointsField.setPromptText(TR.tr("tags.picker.points"));
+        pointsField.setPrefColumnCount(4);
+        pointsField.setTooltip(new Tooltip(TR.tr("tags.picker.points.tooltip")));
+        TextField commentField = new TextField();
+        commentField.setPromptText(TR.tr("tags.picker.comment"));
+        commentField.setTooltip(new Tooltip(TR.tr("tags.scoring.comment.prompt")));
+
         field.setPromptText(TR.tr("tags.picker.prompt"));
 
         ListView<Object> list = new ListView<>();
@@ -119,8 +185,11 @@ public final class TagPicker {
                     return;
                 }
                 if(item instanceof Create create){
-                    Kind kind = method.isSelected() ? Kind.METHOD : Kind.MISTAKE;
-                    Label label = new Label(TR.tr(kind == Kind.METHOD ? "tags.picker.createMethod" : "tags.picker.createMistake", create.name()));
+                    EvaluationTags.Typed typed = typedWith(create.name(), pointsField.getText());
+                    Kind kind = getNewKind(typed, method.isSelected());
+                    String points = typed.points() == null ? "" : "  (" + fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredCommentGrades
+                            .formatPoints(kind == Kind.MISTAKE ? -typed.points() : typed.points(), MainWindow.gradesDigFormat) + ")";
+                    Label label = new Label(TR.tr(kind == Kind.METHOD ? "tags.picker.createMethod" : "tags.picker.createMistake", typed.name()) + points);
                     label.setStyle("-fx-text-fill: " + (isSelected() ? "white" : getColor(kind)) + "; -fx-font-style: italic;");
                     setGraphic(label);
                     return;
@@ -131,17 +200,28 @@ public final class TagPicker {
                 Label name = new Label(tag.getName());
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
+                Label points = new Label(tag.getPointsLabel(exerciseName, MainWindow.gradesDigFormat));
+                points.setStyle("-fx-font-size: 11; -fx-font-weight: bold;");
                 int copies = data.getCopies(exerciseName, tag).size(); // In this exercise
                 Label count = new Label(copies == 0 ? "" : String.valueOf(copies));
                 count.setStyle("-fx-font-size: 11; -fx-opacity: .7;");
-                Label check = new Label(data.has(copy, exerciseName, tag) ? "✓" : "");
-                check.setMinWidth(14);
+                int here = data.count(copy, exerciseName, tag);
+                Label check = new Label(here == 0 ? "" : here == 1 ? "✓" : "×" + here);
+                check.setMinWidth(18);
                 check.setStyle("-fx-font-weight: bold;");
-                HBox row = new HBox(8, dot, name, spacer, count, check);
+                HBox row = new HBox(8, dot, name, spacer, points, count, check);
                 row.setAlignment(Pos.CENTER_LEFT);
                 setGraphic(row);
             }
         });
+
+        // Points and comment of a new tag (shown when the typed name is new)
+        HBox.setHgrow(commentField, Priority.ALWAYS);
+        HBox newFields = new HBox(6, pointsField, commentField);
+        newFields.setAlignment(Pos.CENTER_LEFT);
+        newFields.managedProperty().bind(newFields.visibleProperty());
+        kinds.managedProperty().bind(kinds.visibleProperty());
+        pointsField.textProperty().addListener((o, oldValue, newValue) -> list.refresh()); // The kind may follow the sign
 
         Runnable filter = () -> {
             String query = field.getText().strip().toLowerCase(Locale.ROOT);
@@ -149,9 +229,12 @@ public final class TagPicker {
             for(Tag tag : data.getTags(exerciseName)){
                 if(query.isEmpty() || tag.getName().toLowerCase(Locale.ROOT).contains(query)) items.add(tag);
             }
-            if(!query.isEmpty() && data.find(field.getText()).isEmpty()) items.add(new Create(field.getText().strip()));
+            if(!query.isEmpty() && data.find(EvaluationTags.parseTyped(field.getText()).name()).isEmpty()) items.add(new Create(field.getText().strip()));
             list.getItems().setAll(items);
             list.getSelectionModel().selectFirst();
+            boolean creating = items.stream().anyMatch(item -> item instanceof Create);
+            newFields.setVisible(creating);
+            kinds.setVisible(creating);
             // As high as its rows, up to 7 rows
             list.setPrefHeight(Math.clamp(items.size() * 30 + 4, 34, 7 * 30 + 4));
         };
@@ -163,7 +246,7 @@ public final class TagPicker {
         hint.setWrapText(true);
         hint.setStyle("-fx-font-size: 11; -fx-text-fill: " + muted + ";");
 
-        VBox box = new VBox(8, title, field, list, kinds, hint);
+        VBox box = new VBox(8, title, field, list, newFields, kinds, hint);
         box.setPadding(new Insets(12));
         box.setPrefWidth(340);
         box.setStyle("-fx-background-color: " + background + "; -fx-border-color: " + border + "; -fx-border-radius: 8; -fx-background-radius: 8;");
@@ -182,21 +265,40 @@ public final class TagPicker {
             Object item = list.getSelectionModel().getSelectedItem();
             Tag tag;
             if(item instanceof Tag existing) tag = existing;
-            else if(item instanceof Create create) tag = data.create(exerciseName, create.name(), method.isSelected() ? Kind.METHOD : Kind.MISTAKE);
+            else if(item instanceof Create create){
+                // Points in their field (or after the name: "Sign error -1"); a signed value gives the kind
+                EvaluationTags.Typed typed = typedWith(create.name(), pointsField.getText());
+                tag = data.create(exerciseName, typed.name(), getNewKind(typed, method.isSelected()));
+                if(typed.points() != null || !commentField.getText().isBlank()) data.setScoring(tag, typed.points(), commentField.getText());
+            }
             else return;
             popup.hide();
-            // Already on the copy, pointed elsewhere: moved here; pointed at it (or not on a page): removed
-            Placement current = data.getPlacement(copy, exerciseName, tag);
-            if(current != null && !ExerciseTags.isExerciseSpot(placement) && !ExerciseTags.isNear(current, placement)){
-                data.add(copy, exerciseName, tag, placement);
-                ExerciseTags.fireChanged(true);
-                MainWindow.footerBar.showToast(Color.web(getColor(tag.getKind())), Color.WHITE, TR.tr("tags.picker.moved", tag.getName()));
-                return;
-            }
-            boolean has = ExerciseTags.toggleOnOpenCopy(exerciseName, tag, placement);
-            MainWindow.footerBar.showToast(Color.web(getColor(tag.getKind())), Color.WHITE,
-                    TR.tr(has ? "tags.picker.added" : "tags.picker.removed", tag.getName()));
+            applyAt(copy, exerciseName, tag, placement);
         };
+        // Tab: name → points → comment (a new tag), or method / mistake
+        TextField[] order = {field, pointsField, commentField};
+        for(TextField other : new TextField[]{pointsField, commentField}){
+            other.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+                switch(e.getCode()){
+                    case ENTER -> {
+                        e.consume();
+                        list.getSelectionModel().select(list.getItems().stream().filter(item -> item instanceof Create).findFirst().orElse(null));
+                        apply.run();
+                    }
+                    case ESCAPE -> {
+                        e.consume();
+                        popup.hide();
+                    }
+                    case TAB -> {
+                        e.consume();
+                        int index = java.util.Arrays.asList(order).indexOf(other) + (e.isShiftDown() ? -1 : 1);
+                        order[(index + order.length) % order.length].requestFocus();
+                    }
+                    default -> {
+                    }
+                }
+            });
+        }
         field.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             switch(e.getCode()){
                 case ENTER -> {
@@ -209,7 +311,8 @@ public final class TagPicker {
                 }
                 case TAB -> {
                     e.consume();
-                    kindGroup.selectToggle(method.isSelected() ? mistake : method);
+                    if(newFields.isVisible()) (e.isShiftDown() ? commentField : pointsField).requestFocus();
+                    else kindGroup.selectToggle(method.isSelected() ? mistake : method);
                 }
                 case DOWN, UP -> {
                     e.consume();

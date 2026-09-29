@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2020-2022. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.interfaces.windows.language;
@@ -232,12 +233,31 @@ public class TR {
         if(LanguageWindow.class.getResource("/translations/" + fileName) == null) return;
         
         File dest = new File(Main.dataFolder + "translations" + File.separator + fileName);
-        if(!dest.exists() || force){
+        // The user guide (.pdf) is replaced as soon as the one of the application differs, even without a new version
+        boolean newGuide = fileName.endsWith(".pdf") && dest.exists()
+                && LanguageWindow.class.getResource("/translations/" + fileName).openConnection().getContentLengthLong() != dest.length();
+        if(!dest.exists() || force || newGuide){
             InputStream res = LanguageWindow.class.getResourceAsStream("/translations/" + fileName);
             Files.copy(res, dest.getAbsoluteFile().toPath(), REPLACE_EXISTING);
         }
     }
     
+    // Opens the user guide (one HTML page with an outline) in the browser, in the language of the application.
+    public static void openUserGuide(){
+        try{
+            String language = Main.settings.language.getValue();
+            if(LanguageWindow.class.getResource("/translations/" + language + ".html") == null) language = "en_us";
+            File guide = new File(Main.dataFolder + "translations" + File.separator + language + ".html");
+            guide.getParentFile().mkdirs();
+            try(InputStream res = LanguageWindow.class.getResourceAsStream("/translations/" + language + ".html")){
+                Files.copy(res, guide.toPath(), REPLACE_EXISTING); // Always the guide of this version
+            }
+            Main.hostServices.showDocument(guide.toURI().toString());
+        }catch(IOException e){
+            Log.eNotified(e);
+        }
+    }
+
     public static File getDocFile(){
         File doc = new File(Main.dataFolder + "translations" + File.separator + Main.settings.language.getValue() + ".pdf");
         if(!doc.exists()){

@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2026. Clément Grennerat
- * All rights reserved. You must refer to the licence Apache 2.
+ * Copyright (c) 2026 Nathan
+ * Licensed under the Apache License, Version 2.0: see the LICENSE file.
+ * Part of a fork of PDF4Teachers (https://github.com/ClementGre/PDF4Teachers).
  */
 
 package fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments;
@@ -23,9 +24,13 @@ public class ScoredCommentGrades {
     public static final String KEY_POINTS = "points";
     public static final String KEY_LOCAL_TEXT = "localText";
     public static final String KEY_LOCAL_POINTS = "localPoints";
+    // A comment only (method or mistake without points): not counted in the grade
+    public static final String KEY_NO_POINTS = "noPoints";
     // Key added to the grades data of the edit files
     public static final String KEY_VALUE_SOURCE = "valueSource";
     public static final String VALUE_SOURCE_COMMENTS = "COMMENTS";
+    // Value of the grade before it was computed from comments (typed, or -1): given back when no comment counts any more
+    public static final String KEY_VALUE_BEFORE = "valueBeforeComments";
 
     public static final String MINUS = "−";
 
@@ -167,6 +172,7 @@ public class ScoredCommentGrades {
     public static void recomputeGrades(Map<String, Object> editBase, ScoredCommentCatalog catalog, Predicate<String> isBonus){
         HashMap<String, List<Double>> pointsByGrade = new HashMap<>();
         for(Map<String, Object> comment : getPlacedComments(editBase)){
+            if(getBoolean(comment, KEY_NO_POINTS)) continue;
             pointsByGrade.computeIfAbsent(getString(comment, KEY_GRADE_PATH), k -> new ArrayList<>()).add(getDouble(comment, KEY_POINTS, 0));
         }
 
@@ -184,8 +190,9 @@ public class ScoredCommentGrades {
 
             List<Double> points = pointsByGrade.get(path);
             if(points == null || points.isEmpty()){
-                grade.put("value", -1d);
+                grade.put("value", getDouble(grade, KEY_VALUE_BEFORE, -1));
                 grade.remove(KEY_VALUE_SOURCE);
+                grade.remove(KEY_VALUE_BEFORE);
             }else{
                 ScoredCommentCatalog.Base base = catalog == null ? ScoredCommentCatalog.Base.FULL : catalog.getBase(path);
                 grade.put("value", computeLeaf(getDouble(grade, "total", 0), base, points));

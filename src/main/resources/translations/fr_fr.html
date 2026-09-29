@@ -1,0 +1,801 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Guide d&#x27;utilisation</title><style>
+:root { --text: #1c1c1c; --muted: #5f6b7a; --accent: #1565c0; --title: #0d47a1; --bg: #ffffff; --side: #f4f6f9;
+        --border: #d9dee5; --code: #eef2f7; --th: #e7f0fc; }
+@media (prefers-color-scheme: dark) {
+  :root { --text: #e6e6e6; --muted: #a0a8b3; --accent: #64a8ff; --title: #8cc0ff; --bg: #1e1f22; --side: #26282c;
+          --border: #3a3d42; --code: #2c2f34; --th: #243246; }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Open Sans', 'Segoe UI', 'DejaVu Sans', sans-serif;
+       font-size: 15px; line-height: 1.55; }
+nav { position: fixed; top: 0; left: 0; bottom: 0; width: 290px; overflow-y: auto; background: var(--side);
+      border-right: 1px solid var(--border); padding: 20px 16px 40px 20px; font-size: 14px; }
+nav .title { font-weight: 700; font-size: 17px; color: var(--title); margin-bottom: 14px; }
+nav ol { list-style: none; padding: 0; margin: 0; }
+nav li { margin: 0; }
+nav > ol > li { margin-top: 10px; }
+nav > ol > li > a { font-weight: 600; color: var(--text); }
+nav ol ol { margin: 3px 0 0 10px; border-left: 2px solid var(--border); padding-left: 10px; }
+nav ol ol a { color: var(--muted); display: block; padding: 1px 0; }
+nav a { text-decoration: none; }
+nav a:hover { color: var(--accent); }
+nav a.current { color: var(--accent); font-weight: 600; }
+main { margin-left: 290px; padding: 28px 48px 80px 48px; max-width: 980px; }
+h1 { font-size: 28px; color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 6px; margin: 36px 0 12px 0; }
+section.chapter:first-of-type h1 { margin-top: 0; }
+h2 { font-size: 20px; color: var(--title); margin: 28px 0 8px 0; }
+h3 { font-size: 16px; margin: 20px 0 6px 0; }
+a { color: var(--accent); }
+code { font-family: 'DejaVu Sans Mono', Consolas, monospace; font-size: 0.86em; background: var(--code); padding: 1px 5px; border-radius: 4px; }
+pre { background: var(--code); padding: 12px; border-radius: 6px; overflow-x: auto; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; margin: 10px 0; }
+th, td { border: 1px solid var(--border); padding: 5px 10px; text-align: left; vertical-align: top; }
+th { background: var(--th); }
+li { margin: 3px 0; }
+@media (max-width: 900px) { nav { position: static; width: auto; border-right: none; border-bottom: 1px solid var(--border); }
+                            main { margin-left: 0; padding: 20px; } }
+@media print {
+  @page { size: A4; margin: 18mm 17mm 20mm 17mm; }
+  :root { --text: #1c1c1c; --muted: #5f6b7a; --accent: #1565c0; --title: #0d47a1; --bg: #fff; --code: #eef2f7; --th: #e7f0fc; --border: #c9d3de; }
+  nav { display: none; }
+  main { margin: 0; padding: 0; max-width: none; }
+  body { font-size: 10.5pt; }
+  section.chapter { break-before: page; }
+  section.chapter:first-of-type { break-before: auto; }
+  h1 { margin-top: 0; }
+  h2, h3 { break-after: avoid; }
+  table, pre { break-inside: avoid; }
+}
+</style></head><body><nav aria-label="Sommaire"><div class="title">Guide d&#x27;utilisation</div><ol><li><a href="#chapter-README--guide-dutilisation">Guide d&#x27;utilisation</a><ol><li><a href="#chapter-README--sommaire">Sommaire</a></li><li><a href="#chapter-README--une-correction-type-en-bref">Une correction type, en bref</a></li></ol></li><li><a href="#chapter-01-premiers-pas--premiers-pas">Premiers pas</a><ol><li><a href="#chapter-01-premiers-pas--la-fenêtre">La fenêtre</a></li><li><a href="#chapter-01-premiers-pas--ouvrir-les-copies">Ouvrir les copies</a></li><li><a href="#chapter-01-premiers-pas--sauvegarder">Sauvegarder</a></li><li><a href="#chapter-01-premiers-pas--exporter">Exporter</a></li><li><a href="#chapter-01-premiers-pas--annuler">Annuler</a></li></ol></li><li><a href="#chapter-02-annoter--annoter-les-copies">Annoter les copies</a><ol><li><a href="#chapter-02-annoter--textes-onglet-t">Textes (onglet T)</a></li><li><a href="#chapter-02-annoter--dessins-figures-et-images-onglet-dessin">Dessins, figures et images (onglet Dessin)</a></li><li><a href="#chapter-02-annoter--sélectionner-et-modifier-des-éléments">Sélectionner et modifier des éléments</a></li><li><a href="#chapter-02-annoter--pages-mode-édition-des-pages">Pages (mode Édition des pages)</a></li><li><a href="#chapter-02-annoter--outils-pdf">Outils PDF</a></li></ol></li><li><a href="#chapter-03-correction--barème-et-correction">Barème et correction</a><ol><li><a href="#chapter-03-correction--le-barème-onglet-20">Le barème (onglet /20)</a></li><li><a href="#chapter-03-correction--mode-exercice-barre-du-bas">Mode exercice (barre du bas)</a></li><li><a href="#chapter-03-correction--le-panneau-de-correction-icône-liste">Le panneau de correction (icône liste)</a></li><li><a href="#chapter-03-correction--points-des-méthodes-et-erreurs">Points des méthodes et erreurs</a></li><li><a href="#chapter-03-correction--notes-1-à-6">Notes (1 à 6)</a></li></ol></li><li><a href="#chapter-04-methodes-et-erreurs--méthodes-et-erreurs">Méthodes et erreurs</a><ol><li><a href="#chapter-04-methodes-et-erreurs--méthodes-et-erreurs">Méthodes et erreurs</a></li><li><a href="#chapter-04-methodes-et-erreurs--points-et-commentaire">Points et commentaire</a></li><li><a href="#chapter-04-methodes-et-erreurs--classer-une-copie">Classer une copie</a></li><li><a href="#chapter-04-methodes-et-erreurs--pastilles-sur-la-copie">Pastilles sur la copie</a></li><li><a href="#chapter-04-methodes-et-erreurs--la-classe">La classe</a></li><li><a href="#chapter-04-methodes-et-erreurs--aperçus-des-copies-dune-méthode-ou-dune-erreur">Aperçus des copies d&#x27;une méthode ou d&#x27;une erreur</a></li><li><a href="#chapter-04-methodes-et-erreurs--parcourir-les-copies-une-par-une">Parcourir les copies une par une</a></li><li><a href="#chapter-04-methodes-et-erreurs--où-cest-enregistré">Où c&#x27;est enregistré</a></li></ol></li><li><a href="#chapter-05-notes-personnelles--notes-personnelles">Notes personnelles</a></li><li><a href="#chapter-06-export--rendre-les-copies">Rendre les copies</a><ol><li><a href="#chapter-06-export--pdf-annotés">PDF annotés</a></li><li><a href="#chapter-06-export--notes-dans-un-tableur">Notes dans un tableur</a></li><li><a href="#chapter-06-export--fichiers-de-feedback-moodle">Fichiers de feedback Moodle</a></li><li><a href="#chapter-06-export--compétences">Compétences</a></li></ol></li><li><a href="#chapter-07-raccourcis--raccourcis-clavier">Raccourcis clavier</a><ol><li><a href="#chapter-07-raccourcis--fichiers-et-documents">Fichiers et documents</a></li><li><a href="#chapter-07-raccourcis--annotations">Annotations</a></li><li><a href="#chapter-07-raccourcis--correction">Correction</a></li></ol></li><li><a href="#chapter-08-preferences-et-donnees--préférences-données-et-problèmes">Préférences, données et problèmes</a><ol><li><a href="#chapter-08-preferences-et-donnees--préférences-barre-de-menus--préférences">Préférences (barre de menus → Préférences...)</a></li><li><a href="#chapter-08-preferences-et-donnees--où-sont-les-données">Où sont les données</a></li><li><a href="#chapter-08-preferences-et-donnees--problèmes">Problèmes</a></li></ol></li></ol></nav><main><section class="chapter" id="chapter-README"><h1 id="chapter-README--guide-dutilisation">Guide d'utilisation</h1>
+<p>Une application de bureau pour corriger des évaluations scannées : annoter les copies PDF, les corriger exercice par
+exercice avec des commentaires réutilisables, voir quelles méthodes et quelles erreurs apparaissent dans la classe, et
+rendre les copies en PDF ou par Moodle. Les annotations ne modifient jamais les PDF d'origine : tout ce que vous ajoutez
+est gardé à part, et n'est écrit dans de nouveaux fichiers PDF qu'au moment de l'export.</p>
+<p>L'application est une version modifiée de <a href="https://github.com/ClementGre/PDF4Teachers">PDF4Teachers</a>. Les menus, les
+noms de fichiers et les dossiers de données portent encore ce nom pour le moment.</p>
+<h2 id="chapter-README--sommaire">Sommaire</h2>
+<ol>
+<li><a href="#chapter-01-premiers-pas">Premiers pas</a> : ouvrir les copies, la fenêtre, sauvegarder, exporter, où sont les données</li>
+<li><a href="#chapter-02-annoter">Annoter les copies</a> : textes et formules, dessins et images, pages, outils PDF</li>
+<li><a href="#chapter-03-correction">Barème et correction</a> : barème, panneau de correction, commentaires, mode exercice, notes</li>
+<li><a href="#chapter-04-methodes-et-erreurs">Méthodes et erreurs</a> : classer les copies, leurs points et commentaires, pastilles sur la copie, bilan de la classe, parcourir les copies</li>
+<li><a href="#chapter-05-notes-personnelles">Notes personnelles</a> : notes et captures pour vous</li>
+<li><a href="#chapter-06-export">Rendre les copies</a> : export PDF, notes dans un tableur, fichiers de feedback Moodle, compétences</li>
+<li><a href="#chapter-07-raccourcis">Raccourcis clavier</a></li>
+<li><a href="#chapter-08-preferences-et-donnees">Préférences, données et problèmes</a></li>
+</ol>
+<h2 id="chapter-README--une-correction-type-en-bref">Une correction type, en bref</h2>
+<ol>
+<li>Mettez les copies scannées d'une évaluation dans un dossier, un PDF par élève, nommé par exemple <code>07_DUPONT.pdf</code>.</li>
+<li><strong>Fichier → Ouvrir un dossier</strong>, ouvrez la première copie.</li>
+<li>Dans l'onglet <strong>Barème</strong> (icône /20), construisez le barème (exercices et sous-questions avec leurs points). Copiez-le sur
+   les autres copies avec l'icône de lien.</li>
+<li>Dans la barre du bas, activez le mode <strong>Exercice</strong> et indiquez la page de chaque exercice avec <strong>Pages</strong>.</li>
+<li>Dans le panneau de <strong>correction</strong>, corrigez l'exercice 1 sur toutes les copies : points, commentaires,
+   méthodes et erreurs (qui peuvent ajouter ou enlever des points). <strong>À corriger ›</strong> (ou <code>Z</code>) ouvre la copie suivante au même
+   exercice. Puis l'exercice 2, et ainsi de suite.</li>
+<li>Regardez le bilan de la classe des méthodes et erreurs, vérifiez les copies douteuses avec les aperçus.</li>
+<li><strong>Calculer les notes</strong>, puis exportez les copies (<strong>Fichier → Tout exporter</strong>) ou envoyez-les par Moodle
+   (<strong>Fichier → Exporter pour Moodle…</strong>).</li>
+</ol></section><section class="chapter" id="chapter-01-premiers-pas"><h1 id="chapter-01-premiers-pas--premiers-pas">Premiers pas</h1>
+<h2 id="chapter-01-premiers-pas--la-fenêtre">La fenêtre</h2>
+<ul>
+<li><strong>Barre de menus</strong> : Fichier, Édition (annuler/rétablir), Affichage (panneaux latéraux, plein écran), Outils, Aide,
+  Préférences….</li>
+<li><strong>Panneaux latéraux</strong> : des onglets à gauche (et à droite) du document. Chaque onglet est une icône :</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Icône</th>
+<th>Onglet</th>
+<th>Sert à</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Feuille PDF</td>
+<td><strong>Fichiers</strong></td>
+<td>la liste des copies en cours</td>
+</tr>
+<tr>
+<td><strong>T</strong></td>
+<td><strong>Textes</strong></td>
+<td>les annotations textuelles et les listes de commentaires</td>
+</tr>
+<tr>
+<td>Livre</td>
+<td><strong>Mes notes</strong></td>
+<td>vos notes personnelles (jamais sur les copies)</td>
+</tr>
+<tr>
+<td>Liste</td>
+<td><strong>Correction</strong></td>
+<td>le panneau de correction : un exercice à la fois</td>
+</tr>
+<tr>
+<td><strong>/20</strong></td>
+<td><strong>Barème</strong></td>
+<td>le barème et les exports des notes</td>
+</tr>
+<tr>
+<td>Compétences</td>
+<td><strong>Compétences</strong></td>
+<td>l'évaluation par compétences</td>
+</tr>
+<tr>
+<td>Pinceau</td>
+<td><strong>Dessin</strong></td>
+<td>dessins, figures et images</td>
+</tr>
+</tbody>
+</table>
+<p>Glissez un onglet par son icône pour le mettre dans l'autre panneau. <strong>Affichage</strong> permet de masquer les panneaux,
+  de rétablir leur largeur ou de mettre tous les onglets du même côté.
+- <strong>Document</strong> : la copie ouverte. <code>Ctrl</code> + molette pour zoomer ; clic droit sur une page pour les actions rapides.
+- <strong>Barre du bas</strong> : zoom, mode <strong>Édition des pages</strong>, vue en colonne/en grille, mode <strong>Exercice</strong> et choix de
+  l'exercice, nombre d'éléments de la copie, total, état de la sauvegarde.</p>
+<h2 id="chapter-01-premiers-pas--ouvrir-les-copies">Ouvrir les copies</h2>
+<ul>
+<li><strong>Fichier → Ouvrir un ou plusieurs fichiers</strong> (<code>Ctrl+O</code>) ajoute des PDF à l'onglet Fichiers ; <strong>Fichier → Ouvrir un
+  dossier</strong> (<code>Ctrl+Maj+O</code>) ajoute tous les PDF d'un dossier.</li>
+<li>Double-cliquez sur un fichier pour l'ouvrir. <code>Ctrl+Alt+←/→</code> ouvre le fichier précédent/suivant de la liste.</li>
+<li>Clic droit sur un fichier : ouvrir, renommer, créer une copie, retirer de la liste (le fichier reste sur le disque),
+  supprimer.</li>
+<li>Triez la liste avec les boutons du haut (date d'ajout, édition, nom, dossier).</li>
+<li>Renommez les copies depuis l'application (<strong>Fichier → Renommer le fichier PDF</strong> ou le menu du fichier) : les
+  annotations suivent. Renommée avec l'explorateur de fichiers, une copie les perd (voir <strong>Outils → Éditions des
+  documents du même nom</strong> pour les récupérer).</li>
+</ul>
+<h3 id="chapter-01-premiers-pas--organiser-une-évaluation">Organiser une évaluation</h3>
+<p>Gardez un dossier par évaluation, qui ne contient que ses copies, un PDF par élève. Nommez les copies avec un numéro et
+le nom de l'élève, par exemple <code>07_DUPONT.pdf</code> : le nom après le tiret bas identifie l'élève pour l'export Moodle.
+Tout ce que l'application sait de l'évaluation (commentaires, méthodes et erreurs, notes personnelles) est enregistré
+dans ce dossier, dans un sous-dossier caché <code>.pdf4teachers</code> : le dossier peut donc être déplacé ou sauvegardé en entier.</p>
+<p>Les copies scannées se préparent avec les outils PDF : couper un gros scan en un fichier par élève, convertir des
+photos en PDF, tourner ou réordonner les pages (voir <a href="#chapter-02-annoter--outils-pdf">Annoter les copies</a>).</p>
+<h2 id="chapter-01-premiers-pas--sauvegarder">Sauvegarder</h2>
+<p>Les annotations sont enregistrées automatiquement quand vous changez de copie ou fermez l'application (préférence
+<strong>Sauvegarder automatiquement</strong>), et toutes les quelques minutes si <strong>Sauvegarder régulièrement</strong> est activé.
+<strong>Fichier → Sauvegarder l'édition</strong> (<code>Ctrl+S</code>) enregistre tout de suite. La barre du bas affiche « Sauvegardé ! ».</p>
+<p>Les annotations de <code>copie.pdf</code> sont enregistrées à côté d'elle, dans un fichier caché <code>.copie.pdf.yml</code> (préférence
+<strong>Enregistrer les éditions à côté des fichiers PDF</strong>, recommandée), sinon dans le dossier de données de l'application.</p>
+<p><strong>Les changements de pages sont différents</strong> : tourner, déplacer, ajouter ou supprimer des pages, les marges, le
+recadrage et les livrets modifient le fichier PDF lui-même, immédiatement.</p>
+<h2 id="chapter-01-premiers-pas--exporter">Exporter</h2>
+<p><strong>Fichier → Exporter (Régénérer le PDF)</strong> (<code>Ctrl+E</code>) écrit un nouveau PDF avec toutes les annotations ; <strong>Fichier →
+Tout exporter</strong> (<code>Ctrl+Maj+E</code>) le fait pour tous les fichiers de la liste. Les PDF d'origine ne changent pas. Voir
+<a href="#chapter-06-export">Rendre les copies</a>.</p>
+<h2 id="chapter-01-premiers-pas--annuler">Annuler</h2>
+<p><code>Ctrl+Z</code> / <code>Ctrl+Maj+Z</code> annulent et rétablissent les changements des annotations du document. En mode <strong>Édition des
+pages</strong>, ils annulent les changements de pages.</p></section><section class="chapter" id="chapter-02-annoter"><h1 id="chapter-02-annoter--annoter-les-copies">Annoter les copies</h1>
+<p>Tout ce qui est décrit ici est une annotation : elle s'affiche sur la copie, est gardée dans le fichier d'édition de la
+copie, et n'est écrite dans le PDF qu'à l'export. Pour corriger, il vaut mieux écrire la plupart des commentaires depuis
+le <a href="#chapter-03-correction--le-panneau-de-correction-icône-liste">panneau de correction</a>, qui les place à côté de la note et
+propose les commentaires déjà utilisés ; les outils ci-dessous restent pour les annotations libres.</p>
+<h2 id="chapter-02-annoter--textes-onglet-t">Textes (onglet T)</h2>
+<ul>
+<li><strong>Ajouter un texte</strong> : double-clic sur la page, ou <code>Ctrl+T</code> à la position de la souris. Écrivez dans le champ de
+  texte de l'onglet Textes.</li>
+<li><strong>Déplacer / redimensionner</strong> : glissez le texte. Le trait plein à sa droite règle sa largeur maximale (il passe à la
+  ligne au-delà).</li>
+<li><strong>Style</strong> : police (y compris celles du système), taille, gras, italique et couleur dans l'onglet Textes.
+  <code>Ctrl+Alt++</code> / <code>Ctrl+Alt+-</code> changent la taille du texte sélectionné ; <code>Ctrl+Alt+1…9</code> sa couleur.</li>
+<li><strong>Formules</strong> : écrivez les maths entre <code>$…$</code>, comme en LaTeX : <code>la racine est $x = \frac{-b}{2a}$</code>. Le bouton
+  <strong>∑</strong> fait de tout le texte une formule. Les anciens textes écrits avec <code>$$</code> ou LibreOffice Math <code>&amp;&amp;</code> s'affichent
+  toujours.</li>
+<li><strong>Liens</strong> : un texte qui commence par <code>www.</code>, <code>http://</code> ou <code>https://</code> devient un lien cliquable dans le PDF exporté.</li>
+<li><strong>Dupliquer</strong> : double-clic sur un texte. <strong>Envoyer vers la page...</strong> (clic droit) le déplace sur une autre page.</li>
+<li><strong>Copier vers fichiers</strong> : met le texte sélectionné sur les autres copies ouvertes, à la même page et au même
+  endroit.</li>
+</ul>
+<h3 id="chapter-02-annoter--listes-de-commentaires">Listes de commentaires</h3>
+<p>L'onglet Textes garde des listes des textes que vous avez écrits, pour les réinsérer :</p>
+<ul>
+<li><strong>Cette évaluation</strong> : les commentaires écrits sur les copies de l'évaluation, regroupés par exercice (lus dans
+  toutes les copies du dossier). Le nombre indique sur combien de copies se trouve un commentaire. Clic droit sur un
+  commentaire pour :</li>
+<li><strong>Où est-il écrit ?</strong> : les aperçus de toutes les copies où il se trouve, zoomables autour du commentaire ; un
+    clic ouvre la copie à cette page ;</li>
+<li><strong>Déplacer vers l'exercice</strong> : quand il a été classé dans le mauvais exercice ;</li>
+<li><strong>Retirer de cette liste</strong> : le masque (il reste sur les copies).</li>
+<li><strong>Éléments Favoris</strong> : vos textes réutilisables. <code>Ctrl+1…9</code> insère l'un des neuf premiers à la souris.</li>
+<li><strong>Éléments Précédents</strong> : les textes écrits récemment.</li>
+<li><strong>Éléments sur ce document</strong> : les textes de la copie ouverte.</li>
+</ul>
+<p>En écrivant dans le champ de texte, les textes semblables des listes sont mis en évidence ; les flèches et <code>Entrée</code> en
+insèrent un. Un clic sur un élément de liste l'insère ; <code>Maj+clic</code> l'insère <em>lié</em> (le modifier dans la liste le modifie
+sur la page). Les listes peuvent être triées, enregistrées et rechargées (icônes de sauvegarde et de liste).</p>
+<h2 id="chapter-02-annoter--dessins-figures-et-images-onglet-dessin">Dessins, figures et images (onglet Dessin)</h2>
+<ul>
+<li><strong>Dessin à main levée</strong> : <strong>Nouveau dessin à main levée</strong>, ou <code>Ctrl+D</code> pour commencer un dessin sur la page. En mode
+  dessin, <code>Maj</code> (ou <code>L</code> maintenu) trace des lignes droites, <code>M</code> (ou <code>P</code> maintenu) des lignes horizontales/verticales ;
+  <code>Retour arrière</code> annule le dernier trait ; <code>Échap</code>, un clic droit ou un double-clic quittent le mode. L'écriture
+  manuscrite longue est coupée en plusieurs éléments (préférences <strong>Écriture manuscrite</strong>).</li>
+<li><strong>Figures vectorielles</strong> : figures favorites, figures précédentes, <strong>Charger les figures par défaut</strong>, ou ouvrir un
+  fichier SVG.</li>
+<li><strong>Images</strong> : images favorites, et une <strong>Galerie</strong> des dossiers d'images que vous y ajoutez.</li>
+<li>Une figure ou une image peut avoir son propre raccourci clavier (clic droit → <strong>Modifier le raccourcis clavier</strong>).</li>
+</ul>
+<h2 id="chapter-02-annoter--sélectionner-et-modifier-des-éléments">Sélectionner et modifier des éléments</h2>
+<p>Cliquez sur un élément pour le sélectionner ; <code>Ctrl+A</code> sélectionne tous les éléments de la page, <code>Suppr</code> supprime la
+sélection. <code>Ctrl+X</code>, <code>Ctrl+C</code> / <code>Ctrl+V</code> coupent, copient et collent. Clic droit sur un élément pour son menu (favoris,
+supprimer, dupliquer, envoyer vers une page…).</p>
+<h2 id="chapter-02-annoter--pages-mode-édition-des-pages">Pages (mode Édition des pages)</h2>
+<p>Chaque page a des boutons sur le côté : monter/descendre, tourner à gauche/à droite, supprimer, ajouter des pages
+(blanche, d'un autre PDF, ou images converties), capturer en image, recadrer ou ajouter des marges. <strong>Édition des
+pages</strong> dans la barre du bas affiche les pages en grille : sélectionnez-en plusieurs (<code>Ctrl+clic</code>, <code>Maj+clic</code>) et
+glissez-les pour les réordonner.</p>
+<p>Ces actions modifient le fichier PDF lui-même, immédiatement (annulez-les avec <code>Ctrl+Z</code> en mode Édition des pages).</p>
+<h2 id="chapter-02-annoter--outils-pdf">Outils PDF</h2>
+<p>Dans le menu <strong>Outils</strong> (et son sous-menu <strong>Outils de PDF</strong>) :</p>
+<ul>
+<li><strong>Convertir des images en PDF</strong> (<code>Ctrl+Maj+C</code>) : des images en un PDF, ou chaque sous-dossier d'un dossier en son
+  propre PDF (une page par image), avec le format de page et la résolution de votre choix. Sert aussi à ajouter des
+  pages converties à une copie.</li>
+<li><strong>Diviser un PDF</strong> (trois entrées dans <strong>Outils de PDF</strong>) : par pages de séparation d'une couleur (glissez des
+  feuilles foncées entre les élèves au scan), toutes les <em>n</em> pages, ou aux pages sélectionnées, et nommez les fichiers
+  obtenus (les noms peuvent être importés d'un fichier).</li>
+<li><strong>Créer ou démonter un livret</strong> (<strong>Outils de PDF</strong>) : avec des options pour les copies doubles d'examen et l'ordre
+  inversé.</li>
+<li><strong>Ajouter des marges</strong> (<strong>Outils de PDF</strong>) : des marges autour des pages, ou des marges négatives pour les recadrer.</li>
+<li><strong>Capturer (Image)</strong> (bouton sur le côté d'une page) : exporte une page, une sélection ou tout le document en images
+  PNG.</li>
+<li><strong>Exporter/Importer des éditions/barèmes</strong> : enregistrer les annotations ou le barème de copies dans un fichier, et
+  les charger sur d'autres copies.</li>
+<li><strong>Éditions des documents du même nom</strong> : récupérer les annotations d'une copie déplacée ou renommée hors de
+  l'application.</li>
+<li><strong>Supprimer les éditions des fichiers ouverts</strong> : enlève toutes les annotations des copies de la liste (les PDF ne
+  changent pas).</li>
+</ul></section><section class="chapter" id="chapter-03-correction"><h1 id="chapter-03-correction--barème-et-correction">Barème et correction</h1>
+<h2 id="chapter-03-correction--le-barème-onglet-20">Le barème (onglet /20)</h2>
+<p>Le barème est un arbre : le total, les exercices, et leurs sous-questions, chacun avec ses points. Les exercices sont
+le premier niveau sous le total (l'application les appelle <em>exercices</em> partout : mode exercice, panneau de correction,
+commentaires, méthodes et erreurs).</p>
+<ul>
+<li><strong>Le construire</strong> : le <strong>+</strong> d'une note ajoute une sous-note ; <code>Ctrl+G</code> ajoute une note au même niveau que celle
+  sélectionnée. <code>Tab</code> et <code>Entrée</code> passent du nom aux points.</li>
+<li><strong>Saisir les points</strong> dans le champ de la note, ou clic droit : <strong>Mettre à 0</strong>, <strong>Attribuer tous les points</strong>,
+  <strong>Réinitialiser</strong>. Un double-clic la met à 0. <code>Ctrl+N</code> sélectionne la prochaine note à saisir.</li>
+<li>Les parents se calculent tout seuls. Une note nommée <code>Bonus…</code> n'est pas comptée dans le maximum, seulement dans le
+  résultat.</li>
+<li><strong>Ramener sur</strong> : exprimer le total sur une autre échelle (par exemple /20).</li>
+<li><strong>Placer les notes sur la page</strong> : chaque note est écrite là où vous la mettez sur la copie (glissez-la). Clic
+  droit → cacher les notes non saisies.</li>
+<li><strong>Verrou</strong> (cadenas) : empêche de modifier le barème par erreur pendant la correction.</li>
+<li><strong>Polices et Couleurs des Notes</strong> (roue dentée) : police, couleur, préfixe de chaque niveau, afficher le nom, cacher
+  une note, la cacher quand elle a tous les points.</li>
+<li><strong>Copier le barème sur les autres copies</strong> (icône de lien) : sur toutes les copies de la liste ou sur celles du même
+  dossier. Laissez <strong>Copier la position des notes</strong> coché pour que les notes soient au même endroit sur chaque copie.</li>
+<li><strong>Exporter / importer un barème</strong> dans un fichier : <strong>Outils → Exporter/Importer des éditions/barèmes</strong>.</li>
+</ul>
+<p>Un barème suisse typique commence par un exercice « PNF » (présentation), puis Q1…Qn.</p>
+<h2 id="chapter-03-correction--mode-exercice-barre-du-bas">Mode exercice (barre du bas)</h2>
+<p>Corrigez exercice par exercice, pas copie par copie :</p>
+<ol>
+<li>Activez <strong>Exercice</strong> dans la barre du bas et choisissez l'exercice (<code>Alt+↑</code> / <code>Alt+↓</code>).</li>
+<li><strong>Pages</strong> : indiquez la page où se trouve chaque exercice sur les copies. Le panneau de correction et les boutons des
+   pages s'en servent.</li>
+<li>Changer de copie ouvre alors la copie suivante à la page de l'exercice choisi :
+   <code>Ctrl+Alt+Maj+←/→</code> ou <code>Alt+Page préc./suiv.</code> gardent la page (ou vont à la page de l'exercice),
+   <code>Alt+1…9</code> va à la page de l'exercice 1…9.</li>
+</ol>
+<h2 id="chapter-03-correction--le-panneau-de-correction-icône-liste">Le panneau de correction (icône liste)</h2>
+<p>Le panneau montre l'exercice à corriger, ses sous-notes, et tout ce qu'il faut pour le corriger vite. <code>Ctrl+Maj+G</code> y
+va depuis n'importe où.</p>
+<p><strong>En-tête</strong> : l'exercice et ses points, <code>‹ ›</code> pour l'exercice précédent/suivant, la copie (par exemple
+« 07_DUPONT.pdf · copie 7/24 ») et un bouton par exercice pour aller à sa page (✓ quand il est corrigé sur cette copie).
+Le panneau suit la page que vous lisez.</p>
+<p><strong>Une section par sous-note</strong>, celle en cours mise en évidence :</p>
+<ul>
+<li>le champ des points et le maximum ; sur la sous-note en cours, « depuis le max » / « depuis 0 » indique si les
+  points des méthodes et erreurs comptent à partir du maximum ou de zéro (cliquez pour changer) ;</li>
+<li><strong>Commentaire sur la copie (C)</strong> : le commentaire de cette sous-note, écrit à côté de sa note pendant que vous
+  tapez. Vider le champ l'enlève.</li>
+</ul>
+<p>Les autres sous-notes tiennent sur une ligne ; leur commentaire, s'il y en a un, s'affiche en une ligne de texte
+(cliquez dessus pour le modifier).</p>
+<p><strong>Commentaire général (G)</strong> : le commentaire pour tout l'exercice.</p>
+<p><strong>Méthodes &amp; erreurs</strong> : voir <a href="#chapter-04-methodes-et-erreurs">Méthodes et erreurs</a>.</p>
+<p><strong>Bas du panneau</strong> : <strong>‹</strong> / <strong>À corriger ›</strong> ouvrent la copie précédente/suivante où cet exercice n'est pas
+entièrement corrigé ; <strong>Notes ▾</strong> : <strong>Position de la note</strong> / <strong>Calculer les notes</strong> (voir <a href="#chapter-03-correction--notes-1-à-6">Notes</a>) ;
+<strong>?</strong> affiche les touches.</p>
+<h3 id="chapter-03-correction--clavier-dans-le-panneau">Clavier dans le panneau</h3>
+<p>Quand le panneau a le clavier (cliquez dans son espace vide, ou <code>Ctrl+Maj+G</code>) :</p>
+<table>
+<thead>
+<tr>
+<th>Touche</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>1</code>…<code>9</code></td>
+<td>mettre la n-ième méthode ou erreur de la carte sur la copie (ses points comptent sur la sous-note en cours)</td>
+</tr>
+<tr>
+<td><code>⌫</code> Retour arrière</td>
+<td>enlever la dernière méthode ou erreur mise sur la copie pour cet exercice</td>
+</tr>
+<tr>
+<td><code>0</code></td>
+<td>0 point à la sous-note en cours</td>
+</tr>
+<tr>
+<td><code>=</code> ou <code>+</code></td>
+<td>tous les points</td>
+</tr>
+<tr>
+<td><code>↑</code> <code>↓</code>, <code>Entrée</code> / <code>Maj+Entrée</code></td>
+<td>sous-note précédente / suivante</td>
+</tr>
+<tr>
+<td><code>←</code> <code>→</code></td>
+<td>copie précédente / suivante</td>
+</tr>
+<tr>
+<td><code>Tab</code></td>
+<td>le champ des points de la sous-note en cours (<code>Maj+Tab</code> : son commentaire)</td>
+</tr>
+<tr>
+<td><code>C</code></td>
+<td>le champ de commentaire de la sous-note en cours</td>
+</tr>
+<tr>
+<td><code>G</code></td>
+<td>le commentaire général</td>
+</tr>
+<tr>
+<td><code>Z</code> / <code>Maj+Z</code></td>
+<td>copie non corrigée suivante / précédente</td>
+</tr>
+<tr>
+<td><code>Suppr</code></td>
+<td>enlever le commentaire sélectionné sur la copie (par exemple celui qu'on vient de placer)</td>
+</tr>
+<tr>
+<td><code>Échap</code></td>
+<td>rendre le clavier au document</td>
+</tr>
+</tbody>
+</table>
+<p>Dans les champs :</p>
+<ul>
+<li><strong>Tab / Maj+Tab</strong> parcourent tout l'exercice : points → commentaire → points de la sous-note suivante → … →
+  commentaire général, et retour. Les points sont appliqués quand vous quittez le champ.</li>
+<li><strong>Entrée</strong> dans un champ de points l'applique et passe à la sous-note suivante. Dans un champ de commentaire, il
+  écrit le commentaire et passe à la sous-note suivante (depuis le commentaire général : à la copie non corrigée
+  suivante). <strong>Ctrl+Entrée</strong> écrit le commentaire là où vous cliquez sur la page au lieu d'à côté de la note.</li>
+<li><strong>Échap</strong> annule la modification du champ.</li>
+</ul>
+<h3 id="chapter-03-correction--commentaires-proposés">Commentaires proposés</h3>
+<p>Quand un champ de commentaire reçoit le clavier, ou pendant que vous tapez, les commentaires de l'évaluation sont
+proposés en dessous :</p>
+<ol>
+<li>d'abord ceux déjà écrits <strong>dans ce champ</strong> (cette sous-note) sur d'autres copies,</li>
+<li>puis ceux de <strong>cet exercice</strong>,</li>
+<li>puis tous les autres (leur exercice est indiqué à droite, avec le nombre de copies qui les utilisent).</li>
+</ol>
+<p>Taper les filtre (chaque mot, sans tenir compte des accents ni des majuscules). <code>↓</code> en choisit un, <code>Entrée</code> ou un clic
+l'écrit sur la copie. Les propositions viennent des commentaires écrits sur les copies du dossier, depuis le panneau
+comme en texte libre.</p>
+<h2 id="chapter-03-correction--points-des-méthodes-et-erreurs">Points des méthodes et erreurs</h2>
+<p>Les points se donnent ou s'enlèvent avec les <a href="#chapter-04-methodes-et-erreurs--points-et-commentaire">méthodes et erreurs</a> :
+une erreur peut enlever des points (par exemple « Erreur de signe −1 »), une méthode peut en ajouter, et chaque fois
+qu'elle est mise sur une copie, elle écrit ses points (et son commentaire) à côté de la note. La sous-note est alors
+calculée à partir de son maximum (ou de 0, voir « depuis le max ») et de ces points. Une valeur tapée à la main
+l'emporte ; clic droit sur une note → <strong>Calculer depuis les méthodes et erreurs</strong> pour revenir à la valeur calculée.
+Quand il ne reste plus de méthode ou d'erreur avec des points sur une sous-note, elle reprend la valeur qu'elle avait
+avant.</p>
+<p>(Les « commentaires notés » des versions précédentes sont remplacés par les méthodes et erreurs. Ceux déjà sur des
+copies continuent de compter.)</p>
+<h2 id="chapter-03-correction--notes-1-à-6">Notes (1 à 6)</h2>
+<p>Les notes sont sur l'échelle suisse de 1 à 6 : <strong>obtenu / total × 5 + 1, arrondi au demi le plus proche</strong>.</p>
+<ol>
+<li><strong>Position de la note</strong> : cliquez dessus, puis cliquez sur la page où va la note. La position sert pour toutes les
+   copies.</li>
+<li><strong>Calculer les notes</strong> : écrit la note sur chaque copie entièrement corrigée de la liste des fichiers. Si aucune
+   position n'a été indiquée, elle est demandée d'abord.</li>
+</ol>
+<p>La fenêtre de résultat liste les notes, les copies pas entièrement corrigées, et les copies pour lesquelles un demi-point
+ou un point de plus changerait la note (double-clic pour en ouvrir une). Les notes sont aussi disponibles en colonne
+dans l'<a href="#chapter-06-export--notes-dans-un-tableur">export vers un tableur</a>.</p></section><section class="chapter" id="chapter-04-methodes-et-erreurs"><h1 id="chapter-04-methodes-et-erreurs--méthodes-et-erreurs">Méthodes et erreurs</h1>
+<p>Pendant la correction, indiquez sur chaque copie la <strong>méthode</strong> utilisée par l'élève et les <strong>erreurs</strong> commises. Vous
+voyez ensuite, pour la classe, quelles méthodes ont été utilisées, combien de fois chaque erreur apparaît et combien de
+points ces élèves ont obtenus, et vous pouvez regarder côte à côte toutes les copies d'une méthode ou d'une erreur.
+Une méthode ou une erreur peut aussi <strong>donner ou enlever des points</strong> et écrire un <strong>commentaire</strong> sur la copie : elle
+remplace ainsi les « commentaires notés » des versions précédentes. Son nom n'est jamais écrit sur les copies.</p>
+<h2 id="chapter-04-methodes-et-erreurs--méthodes-et-erreurs">Méthodes et erreurs</h2>
+<ul>
+<li>Il y en a deux sortes : les <strong>méthodes</strong> (en bleu) et les <strong>erreurs</strong> (en rouge).</li>
+<li>Une méthode ou une erreur est créée dans un exercice, mais peut servir dans <strong>n'importe quel exercice</strong> : « Erreur de
+  signe » peut être indiquée en Q2 et en Q4.</li>
+<li>Pendant la correction d'un exercice, les siennes (créées pour lui, ou déjà utilisées dedans) viennent d'abord, puis
+  toutes les autres. Les neuf premières sont numérotées : touches <code>1</code>…<code>9</code>.</li>
+<li>Une copie peut avoir plusieurs méthodes et erreurs dans un exercice, et <strong>la même plusieurs fois</strong> : chaque fois est
+  une occurrence, avec sa pastille et, si elle a des points, ses points (deux erreurs de signe coûtent deux fois les
+  points).</li>
+</ul>
+<h2 id="chapter-04-methodes-et-erreurs--points-et-commentaire">Points et commentaire</h2>
+<p>Facultatifs, pour chaque méthode ou erreur : clic droit dessus → <strong>Points et commentaire…</strong>, ou donnez-les en la
+créant.</p>
+<ul>
+<li><strong>Points</strong> : une erreur les enlève, une méthode les ajoute. Ils comptent sur <strong>la sous-note pour laquelle elle est
+  mise</strong> : celle dont la note est la plus proche de l'endroit visé sur la copie, sinon la sous-note en cours dans le
+  panneau de correction.</li>
+<li>Ou <strong>sur des sous-notes choisies</strong> : des points pour chaque sous-note de l'exercice (par exemple a +1, b +2). Chaque
+  occurrence compte alors sur toutes, quelle que soit la sous-note en cours.</li>
+<li><strong>Commentaire</strong> : écrit sur la copie avec les points.</li>
+</ul>
+<p>Ce qui est écrit sur la copie, à côté de l'endroit ou de la note : les points seuls (<code>−1</code>), le commentaire avec les
+points (<code>Attention au signe (−1)</code>), ou le commentaire seul s'il n'y a pas de points ; rien si elle n'a ni l'un ni
+l'autre (seulement la pastille). La fenêtre le montre pendant que vous tapez. Changer les points ou le commentaire met
+à jour toutes les copies qui l'ont, ouvertes ou non, et leurs notes. Une note tapée à la main reste jusqu'à ce qu'une
+méthode ou erreur avec des points soit mise sur sa sous-note ; quand il n'en reste plus, elle reprend cette valeur.</p>
+<h2 id="chapter-04-methodes-et-erreurs--classer-une-copie">Classer une copie</h2>
+<p><strong>Depuis la carte</strong> (Méthodes &amp; erreurs, dans le panneau de correction) : un clic sur une méthode ou une erreur
+l'ajoute à la copie pour cet exercice, un nouveau clic l'enlève (toutes ses occurrences dans cet exercice).
+<strong>Maj+clic</strong> l'ajoute une fois de plus. Le nombre indiqué est le nombre de copies qui l'ont dans cet exercice (cliquez
+sur le nombre pour les voir) ; « ×2 » signifie que la copie l'a deux fois.</p>
+<p><strong>+ Méthode</strong> / <strong>+ Erreur</strong> en créent une nouvelle et l'ajoutent à la copie : tapez le nom, puis <code>Tab</code> pour ses
+points et son commentaire (facultatifs), <code>Entrée</code>.</p>
+<p><strong>À un endroit de la copie</strong> : visez l'endroit sur la page, appuyez sur <code>#</code> (ou <code>Ctrl+Maj+M</code>). Une petite fenêtre
+s'ouvre à la souris :</p>
+<ul>
+<li>tapez pour chercher, ou tapez un nouveau nom : des champs pour ses <strong>points</strong> et son <strong>commentaire</strong> apparaissent
+  (<code>Tab</code> pour y aller). Des points tapés avec un signe choisissent la sorte : <code>-1</code> en fait une erreur, <code>+1</code> une
+  méthode ; sans signe, les boutons Méthode / Erreur décident. <code>Erreur de signe -1</code> tapé comme nom marche aussi ;</li>
+<li><code>↑</code> <code>↓</code> pour choisir, <code>Entrée</code> pour la mettre ici. Viser un de ses points enlève cette occurrence à la place ;</li>
+<li><code>Échap</code> ferme.</li>
+</ul>
+<p><strong>Touches</strong> : dans le panneau de correction, <code>1</code>…<code>9</code> mettent la n-ième méthode ou erreur de la carte (points sur la
+sous-note en cours) et <code>Retour arrière</code> enlève la dernière mise. La souris sur la copie, <code>1</code>…<code>9</code> la mettent à l'endroit
+de la souris. Clic droit sur une page → <strong>Ajouter une méthode ou une erreur ici</strong> fait de même depuis un menu.</p>
+<p>Clic droit sur une méthode ou une erreur dans la carte : <strong>Points et commentaire…</strong>, afficher ses copies, les ouvrir
+une par une, renommer, en faire une méthode/une erreur, ou la supprimer (vous êtes averti si des copies l'utilisent ;
+ce qu'elle y a écrit est enlevé et leurs notes sont recalculées). Supprimer sur une copie le texte qu'elle a écrit
+enlève cette occurrence.</p>
+<h2 id="chapter-04-methodes-et-erreurs--pastilles-sur-la-copie">Pastilles sur la copie</h2>
+<p>Les méthodes et erreurs de la copie ouverte s'affichent sur ses pages en petites pastilles, <strong>seulement à l'écran</strong>
+(jamais imprimées ni exportées) :</p>
+<ul>
+<li>une méthode ou une erreur mise avec <code>#</code> s'affiche en pastille dans la marge de gauche, à la hauteur de l'endroit,
+  avec un point sur l'endroit exact (survolez la pastille pour voir le trait vers son point) ;</li>
+<li>une méthode ou une erreur ajoutée depuis la carte s'affiche sous la note de l'exercice.</li>
+</ul>
+<p>Il y a une pastille par occurrence, avec ses points. Glissez une pastille pour la mettre ailleurs sur la page (elle y reste), ou glissez son point pour déplacer l'endroit.
+Clic droit sur une pastille (ou son point) : l'enlever, <strong>La remettre dans la marge</strong>, la changer en une autre, ou
+masquer toutes les pastilles. La case <strong>Les afficher sur la copie (pas imprimé)</strong> en bas de la carte les affiche ou les
+masque.</p>
+<h2 id="chapter-04-methodes-et-erreurs--la-classe">La classe</h2>
+<p>Sous les méthodes et erreurs, la carte indique pour combien de copies une méthode est indiquée dans cet exercice, avec :</p>
+<ul>
+<li><strong>Voir les N sans méthode</strong> : les aperçus des copies pas encore classées ;</li>
+<li><strong>les ouvrir une par une</strong> : voir <a href="#chapter-04-methodes-et-erreurs--parcourir-les-copies-une-par-une">Parcourir les copies</a>.</li>
+</ul>
+<p><strong>Afficher le bilan de la classe</strong> liste les méthodes et erreurs avec, pour chacune, le nombre et la part des copies.
+Choisissez :</p>
+<ul>
+<li><strong>Cet exercice</strong> : celles de l'exercice, avec la moyenne des points de ces copies à l'exercice (par exemple : les
+  élèves qui ont développé ont-ils moins de points que ceux qui ont dérivé une composée ?) ;</li>
+<li><strong>Toute l'évaluation</strong> : toutes celles utilisées dans l'évaluation, les copies qui l'ont dans n'importe quel exercice,
+  et dans quels exercices (par exemple « Q2 ×5 · Q4 ×3 »).</li>
+</ul>
+<p>Cliquez sur une ligne pour voir ses copies.</p>
+<h2 id="chapter-04-methodes-et-erreurs--aperçus-des-copies-dune-méthode-ou-dune-erreur">Aperçus des copies d'une méthode ou d'une erreur</h2>
+<p>Un clic sur son nombre, sur une ligne du bilan, ou <strong>Afficher les copies</strong> ouvre les aperçus de toutes les copies qui
+l'ont, zoomés autour de l'endroit où elle a été mise, avec les points de chaque copie à l'exercice. Les curseurs
+<strong>Taille</strong> et <strong>Zoom</strong> (ou <code>Ctrl</code> + molette, <code>Ctrl +/-</code>) permettent de comparer beaucoup de copies à la fois.</p>
+<ul>
+<li><strong>Clic</strong> sur un aperçu : ouvre la copie à cette page.</li>
+<li><strong>Clic droit</strong> sur un aperçu : modifie la copie <strong>sans l'ouvrir</strong> :</li>
+<li>l'enlever de cette copie ;</li>
+<li><strong>La changer en :</strong> une autre (ou une nouvelle), au même endroit ;</li>
+<li>dans les aperçus « sans méthode » : <strong>Lui donner la méthode :</strong>.</li>
+</ul>
+<p>L'aperçu est alors grisé avec une note (« → Dérivée composée », « Enlevée ») ; un nouveau clic droit permet
+  d'annuler.
+- <strong>Ouvrir ces copies une par une</strong> lance le parcours de ces copies (ci-dessous).</p>
+<h2 id="chapter-04-methodes-et-erreurs--parcourir-les-copies-une-par-une">Parcourir les copies une par une</h2>
+<p>Un parcours passe par un ensemble choisi de copies : celles qui ont une méthode ou une erreur (dans cet exercice, ou
+dans tous les exercices), ou celles sans méthode.</p>
+<p>Lancez-le depuis le menu clic droit d'une méthode ou d'une erreur (<strong>Ouvrir ces copies une par une</strong>), depuis la fenêtre
+des aperçus, ou avec <strong>les ouvrir une par une</strong> sous « Voir les N sans méthode ». La première copie s'ouvre à l'endroit
+indiqué, et un bandeau bleu apparaît en haut du panneau de correction : « Parcours · copie 2 / 7 » et le nom.</p>
+<p>Tant que le bandeau est affiché, <code>‹</code> <code>›</code> dans le bandeau et toutes les touches de copie précédente/suivante (<code>←</code> <code>→</code>,
+<code>Ctrl+Alt+←/→</code>…) ne passent que par ces copies, chacune ouverte à l'endroit indiqué. Un message prévient quand vous
+arrivez à la première ou à la dernière. <code>✕</code> arrête le parcours.</p>
+<p>Utilisations typiques : vérifier que toutes les copies « Erreur de signe » ont perdu les mêmes points, classer les
+copies sans méthode, ou relire toutes les copies avec une méthode inattendue.</p>
+<h2 id="chapter-04-methodes-et-erreurs--où-cest-enregistré">Où c'est enregistré</h2>
+<p>Dans le dossier de l'évaluation, <code>.pdf4teachers/tags.yml</code> : les méthodes et erreurs, et pour chaque copie laquelle,
+dans quel exercice et à quel endroit. Elles sont gardées par nom de fichier de la copie : renommez les copies depuis
+l'application avant de les classer, pas après.</p></section><section class="chapter" id="chapter-05-notes-personnelles"><h1 id="chapter-05-notes-personnelles--notes-personnelles">Notes personnelles</h1>
+<p>Les notes personnelles sont pour vous seulement : elles ne sont jamais écrites sur les copies. Servez-vous-en pour tout
+ce que vous voulez retenir pendant la correction (« revoir le barème de Q3 avec un collègue », « a copié sur son
+voisin ? », « bon exemple à montrer en classe »).</p>
+<ul>
+<li><code>Ctrl+Maj+N</code> : nouvelle note, depuis n'importe où. Tapez-la, <code>Entrée</code> pour l'enregistrer, <code>Maj+Entrée</code> pour aller à
+  la ligne.</li>
+<li><code>Ctrl+Maj+S</code> : note avec capture. Glissez sur la copie pour choisir une zone (un clic prend toute la page), puis
+  écrivez la note. <code>Échap</code> annule.</li>
+<li>Onglet <strong>Mes notes</strong> (icône livre) : toutes les notes, les plus récentes d'abord, avec la copie et la page où elles
+  ont été prises.</li>
+<li><strong>Rechercher dans les notes</strong> ; <strong>Seulement les notes de cette copie</strong>.</li>
+<li><strong>Aller à la copie</strong> l'ouvre à cette page.</li>
+<li>Cliquez sur une capture pour l'agrandir ; cliquez sur le texte d'une note pour le modifier ; supprimez une note
+    depuis son menu.</li>
+</ul>
+<p>Les notes prises sur une copie sont enregistrées dans le dossier de son évaluation (<code>.pdf4teachers/notes.yml</code>, les
+captures dans <code>.pdf4teachers/notes/</code>). Les notes prises sans copie ouverte sont gardées dans le dossier de données de
+l'application.</p></section><section class="chapter" id="chapter-06-export"><h1 id="chapter-06-export--rendre-les-copies">Rendre les copies</h1>
+<h2 id="chapter-06-export--pdf-annotés">PDF annotés</h2>
+<ul>
+<li><strong>Fichier → Exporter (Régénérer le PDF)</strong> (<code>Ctrl+E</code>) : la copie ouverte.</li>
+<li><strong>Fichier → Tout exporter</strong> (<code>Ctrl+Maj+E</code>) : toutes les copies de la liste des fichiers.</li>
+</ul>
+<p>Choisissez le dossier de destination et les noms des fichiers (un préfixe/suffixe, ou <strong>Remplacer … par …</strong> dans les
+noms), les sortes d'annotations à inclure (textes, notes, dessins, compétences), la qualité des images (dpi), et s'il
+faut exporter seulement les copies annotées. Une copie dont le fichier de destination existe déjà est ignorée. Une autre
+option n'exporte que les annotations, sans le contenu du PDF d'origine (pour les imprimer sur les copies papier).</p>
+<p>Les pastilles des méthodes et erreurs et les notes personnelles ne sont jamais exportées.</p>
+<h2 id="chapter-06-export--notes-dans-un-tableur">Notes dans un tableur</h2>
+<p>Icône d'export de l'onglet Barème : exporte les notes de cette copie, ou de toutes les copies de la liste (dans un
+seul fichier CSV ou un par copie).</p>
+<p>Options : séparateur (virgule ou point-virgule) et langue des nombres/formules ; seulement les copies avec le même
+barème, du même dossier, ou entièrement corrigées ; les niveaux du barème à exporter ; une ligne pour le barème et pour
+la moyenne ; des lignes pour les commentaires ; <strong>Ajouter une colonne pour la note (1 à 6)</strong>, et <strong>Mettre d'abord à jour
+les notes écrites sur les copies</strong>. Le nom de l'élève est tiré du nom du fichier.</p>
+<h2 id="chapter-06-export--fichiers-de-feedback-moodle">Fichiers de feedback Moodle</h2>
+<p><strong>Fichier → Exporter pour Moodle…</strong> crée un zip des copies annotées du dossier de l'évaluation, à déposer dans un devoir
+Moodle : chaque élève reçoit sa propre copie corrigée comme fichier de feedback.</p>
+<p>Une fois, dans les paramètres du devoir Moodle, activez les types de feedback <strong>Fichiers de feedback</strong> et <strong>Fiche
+d'évaluation hors ligne</strong>. Ensuite :</p>
+<ol>
+<li>Dans le devoir : <strong>Action d'évaluation → Télécharger la fiche d'évaluation</strong>. Elle donne l'identifiant Moodle de
+   chaque participant.</li>
+<li>Préparez un <strong>fichier des élèves</strong> (CSV), un élève par ligne : le nom utilisé dans les noms des copies et le
+   courriel, par exemple <code>DUPONT;felix.dupont@ecole.ch</code> pour <code>10_DUPONT.pdf</code>.</li>
+<li><strong>Fichier → Exporter pour Moodle…</strong>, choisissez les deux fichiers. La fenêtre liste chaque copie avec son élève :
+   ✓ prête, ⚠ ne peut pas être envoyée (pas dans le fichier des élèves, plusieurs élèves correspondent, plusieurs copies
+   pour un élève, pas dans la fiche), – participants sans copie.</li>
+<li><strong>Créer le zip</strong> : chaque copie est produite avec toutes ses annotations, nommée comme Moodle l'attend.</li>
+<li>Dans le devoir : <strong>Action d'évaluation → Déposer plusieurs fichiers de feedback dans un fichier ZIP</strong>, et choisissez
+   le zip.</li>
+</ol>
+<h2 id="chapter-06-export--compétences">Compétences</h2>
+<p>L'onglet <strong>Compétences</strong> évalue des compétences plutôt que des points : créez une évaluation, listez les compétences et
+la façon de noter (caractères, couleurs ou icônes), puis donnez à chaque compétence un niveau sur chaque copie. Un
+tableau des compétences peut être placé sur la copie. Les résultats s'exportent en CSV, et les évaluations s'importent
+depuis <strong>SACoche</strong> et s'y exportent.</p></section><section class="chapter" id="chapter-07-raccourcis"><h1 id="chapter-07-raccourcis--raccourcis-clavier">Raccourcis clavier</h1>
+<p><code>Ctrl</code> est <code>Cmd</code> sur macOS, <code>Maj</code> est la touche Majuscule (Shift).</p>
+<h2 id="chapter-07-raccourcis--fichiers-et-documents">Fichiers et documents</h2>
+<table>
+<thead>
+<tr>
+<th>Touches</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Ctrl+O</code> / <code>Ctrl+Maj+O</code></td>
+<td>ouvrir des fichiers / un dossier</td>
+</tr>
+<tr>
+<td><code>Ctrl+S</code></td>
+<td>sauvegarder les annotations</td>
+</tr>
+<tr>
+<td><code>Ctrl+E</code> / <code>Ctrl+Maj+E</code></td>
+<td>exporter la copie / tout exporter</td>
+</tr>
+<tr>
+<td><code>Ctrl+R</code></td>
+<td>renommer le fichier PDF</td>
+</tr>
+<tr>
+<td><code>Ctrl+W</code></td>
+<td>fermer le document</td>
+</tr>
+<tr>
+<td><code>Ctrl+Q</code></td>
+<td>quitter</td>
+</tr>
+<tr>
+<td><code>Ctrl+Alt+←</code> / <code>Ctrl+Alt+→</code></td>
+<td>fichier précédent / suivant de la liste</td>
+</tr>
+<tr>
+<td><code>Ctrl+Alt+Maj+←/→</code>, <code>Alt+Page préc./suiv.</code></td>
+<td>fichier précédent / suivant, en restant à la même page (ou à la page de l'exercice)</td>
+</tr>
+<tr>
+<td><code>←</code> <code>→</code> (vue en colonne)</td>
+<td>fichier précédent / suivant</td>
+</tr>
+<tr>
+<td><code>↑</code> <code>↓</code>, <code>Page préc./suiv.</code>, <code>Début</code>, <code>Fin</code></td>
+<td>se déplacer dans le document</td>
+</tr>
+<tr>
+<td><code>Ctrl+Alt+↑</code> / <code>Ctrl+Alt+↓</code></td>
+<td>page précédente / suivante</td>
+</tr>
+<tr>
+<td><code>Ctrl+-</code>, <code>Ctrl++</code>, <code>Ctrl</code> + molette</td>
+<td>zoom</td>
+</tr>
+<tr>
+<td><code>Ctrl+↓</code></td>
+<td>ajuster à la largeur de la page</td>
+</tr>
+<tr>
+<td><code>Ctrl+Z</code> / <code>Ctrl+Maj+Z</code></td>
+<td>annuler / rétablir</td>
+</tr>
+<tr>
+<td><code>Ctrl+B</code></td>
+<td>afficher / masquer les panneaux latéraux</td>
+</tr>
+<tr>
+<td><code>F11</code></td>
+<td>plein écran</td>
+</tr>
+<tr>
+<td><code>Tab</code> (document)</td>
+<td>passer de l'onglet Textes à l'onglet Dessin</td>
+</tr>
+</tbody>
+</table>
+<h2 id="chapter-07-raccourcis--annotations">Annotations</h2>
+<table>
+<thead>
+<tr>
+<th>Touches</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>double-clic sur la page, <code>Ctrl+T</code></td>
+<td>nouveau texte</td>
+</tr>
+<tr>
+<td><code>Ctrl+1</code>…<code>9</code></td>
+<td>insérer l'un des neuf premiers textes favoris</td>
+</tr>
+<tr>
+<td><code>Ctrl+Alt+1</code>…<code>9</code></td>
+<td>couleur de l'élément sélectionné</td>
+</tr>
+<tr>
+<td><code>Ctrl+Alt++</code> / <code>Ctrl+Alt+-</code></td>
+<td>taille du texte sélectionné (ou épaisseur du trait d'un dessin)</td>
+</tr>
+<tr>
+<td><code>Ctrl+D</code></td>
+<td>nouveau dessin à main levée</td>
+</tr>
+<tr>
+<td><code>Ctrl+A</code>, <code>Suppr</code></td>
+<td>sélectionner tous les éléments de la page, supprimer la sélection</td>
+</tr>
+<tr>
+<td><code>Ctrl+X</code> / <code>Ctrl+C</code> / <code>Ctrl+V</code></td>
+<td>couper / copier / coller</td>
+</tr>
+</tbody>
+</table>
+<h2 id="chapter-07-raccourcis--correction">Correction</h2>
+<table>
+<thead>
+<tr>
+<th>Touches</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Ctrl+G</code></td>
+<td>nouvelle note au même niveau (onglet Barème)</td>
+</tr>
+<tr>
+<td><code>Ctrl+N</code></td>
+<td>prochaine note à saisir</td>
+</tr>
+<tr>
+<td><code>Alt+↑</code> / <code>Alt+↓</code></td>
+<td>exercice précédent / suivant (mode exercice)</td>
+</tr>
+<tr>
+<td><code>Alt+1</code>…<code>9</code></td>
+<td>aller à la page de l'exercice 1…9</td>
+</tr>
+<tr>
+<td><code>Ctrl+Maj+G</code></td>
+<td>aller au panneau de correction</td>
+</tr>
+<tr>
+<td><code>1</code>…<code>9</code></td>
+<td>ajouter la n-ième méthode ou erreur (voir plus bas)</td>
+</tr>
+<tr>
+<td><code>#</code>, <code>Ctrl+Maj+M</code></td>
+<td>ajouter une méthode ou une erreur à la souris</td>
+</tr>
+<tr>
+<td><code>Ctrl+Maj+N</code></td>
+<td>nouvelle note personnelle</td>
+</tr>
+<tr>
+<td><code>Ctrl+Maj+S</code></td>
+<td>note personnelle avec capture</td>
+</tr>
+</tbody>
+</table>
+<p>Dans le panneau de correction : <code>1</code>…<code>9</code> ajoutent la n-ième méthode ou erreur, <code>⌫</code> enlève la dernière, <code>0</code> zéro,
+<code>=</code> tous les points, <code>↑</code> <code>↓</code> sous-note, <code>←</code> <code>→</code> copie, <code>Tab</code> / <code>Maj+Tab</code> champs, <code>C</code> commentaire, <code>G</code> commentaire
+général, <code>Z</code> / <code>Maj+Z</code> copie non corrigée suivante / précédente, <code>Échap</code> retour au document (<a href="#chapter-03-correction--clavier-dans-le-panneau">détails</a>).</p>
+<p>La souris sur la copie, <code>1</code>…<code>9</code> mettent la n-ième méthode ou erreur de la carte à l'endroit de la souris.</p>
+<p>Les raccourcis des figures et des images se définissent par un clic droit sur elles dans l'onglet Dessin.</p></section><section class="chapter" id="chapter-08-preferences-et-donnees"><h1 id="chapter-08-preferences-et-donnees--préférences-données-et-problèmes">Préférences, données et problèmes</h1>
+<h2 id="chapter-08-preferences-et-donnees--préférences-barre-de-menus--préférences">Préférences (barre de menus → Préférences...)</h2>
+<ul>
+<li><strong>Accessibilité</strong> : langue.</li>
+<li><strong>Ergonomie</strong> : thème sombre ou thème du système, toujours restaurer la session précédente, effets de zoom/défilement.</li>
+<li><strong>Sauvegarde et éditions</strong> : sauvegarder automatiquement, sauvegarder régulièrement, <strong>Enregistrer les éditions à côté
+  des fichiers PDF</strong> (recommandé : les annotations suivent alors le dossier).</li>
+<li><strong>Menu contextuel des pages</strong> : ce que propose le clic droit sur une page.</li>
+<li><strong>Listes d'éléments</strong> et <strong>Éléments textuels</strong> : affichage des listes, nombre maximal de textes précédents,
+  comportement des favoris, largeur maximale par défaut d'un nouveau texte.</li>
+<li><strong>Écriture manuscrite</strong> : quand un dessin à main levée est coupé en plusieurs éléments (distance, longueur, durée).</li>
+<li><strong>Réseau</strong> : alerte de mise à jour.</li>
+<li>Derniers groupes : conseils automatiques ; zoom de l'application, zoom du rendu des PDF (pages plus nettes, au prix de
+  la mémoire), rendu adapté au zoom, et une correction pour les menus qui ne s'ouvrent pas avec certains gestionnaires de
+  fenêtres Linux.</li>
+</ul>
+<h2 id="chapter-08-preferences-et-donnees--où-sont-les-données">Où sont les données</h2>
+<p><strong>Dans chaque dossier d'évaluation</strong> (à côté des copies) :</p>
+<pre><code>07_DUPONT.pdf              la copie (pas modifiée par les annotations)
+.07_DUPONT.pdf.yml         ses annotations et ses notes
+.pdf4teachers/
+  comments.yml             les commentaires de l'évaluation, par exercice
+  scoredcomments.yml       comment les points comptent par sous-note (« depuis le max » / « depuis 0 »)
+  tags.yml                 les méthodes et erreurs, leurs points et commentaires, leur place sur chaque copie
+  notes.yml, notes/        les notes personnelles et leurs captures
+</code></pre>
+<p>Les fichiers qui commencent par un point sont cachés : affichez les fichiers cachés dans votre explorateur pour les
+voir. Copiez, déplacez ou sauvegardez le dossier de l'évaluation en entier : les annotations, commentaires, méthodes et
+erreurs et notes personnelles suivent.</p>
+<p><strong>Dans le dossier de données de l'application</strong> (<strong>Outils → Débogue → Ouvrir le dossier de données</strong> ; sous Linux
+<code>~/.local/share/PDF4Teachers</code>) : les préférences, la liste des fichiers, les listes de textes, les figures et images
+favorites, les annotations des copies qui ne sont pas enregistrées à côté de leur PDF, et les notes personnelles prises
+sans copie ouverte.</p>
+<h2 id="chapter-08-preferences-et-donnees--problèmes">Problèmes</h2>
+<ul>
+<li><strong>Une copie a perdu ses annotations après avoir été renommée ou déplacée</strong> : renommez les copies depuis
+  l'application. Sinon, ouvrez la copie et utilisez <strong>Outils → Éditions des documents du même nom</strong> pour reprendre les
+  annotations de l'ancien nom.</li>
+<li><strong>Une copie ne se charge pas</strong> : le PDF est peut-être abîmé ou illisible. Si seules ses annotations sont abîmées,
+  l'application indique où est le fichier d'édition ; corrigez-le ou supprimez-le (<strong>Outils → Débogue → Ouvrir le
+  fichier d'édition</strong>).</li>
+<li><strong>Un commentaire est dans le mauvais exercice dans « Cette évaluation »</strong> : clic droit → <strong>Déplacer vers
+  l'exercice</strong>. <strong>Relire les commentaires des copies</strong> depuis le menu de la liste si quelque chose semble dépassé.</li>
+<li><strong>Méthodes et erreurs rattachées à un ancien nom de fichier</strong> : elles suivent le nom de fichier de la copie ;
+  renommez les copies avant de les classer.</li>
+<li><strong>Autre problème</strong> : <strong>Outils → Débogue → Ouvrir la console d'exécution</strong> montre les messages de l'application ;
+  copiez-les pour signaler un problème (<strong>Aide → Demander de l'aide ou signaler un problème (GitHub)</strong>).</li>
+</ul></section></main><script>
+const links = [...document.querySelectorAll('nav a')];
+const targets = links.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+function update(){
+  let current = targets[0];
+  for(const t of targets){ if(t.getBoundingClientRect().top < 80) current = t; }
+  links.forEach(a => a.classList.toggle('current', current && a.getAttribute('href') === '#' + current.id));
+}
+document.addEventListener('scroll', update, {passive: true});
+update();
+</script></body></html>

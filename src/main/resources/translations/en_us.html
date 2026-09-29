@@ -1,0 +1,754 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>User guide</title><style>
+:root { --text: #1c1c1c; --muted: #5f6b7a; --accent: #1565c0; --title: #0d47a1; --bg: #ffffff; --side: #f4f6f9;
+        --border: #d9dee5; --code: #eef2f7; --th: #e7f0fc; }
+@media (prefers-color-scheme: dark) {
+  :root { --text: #e6e6e6; --muted: #a0a8b3; --accent: #64a8ff; --title: #8cc0ff; --bg: #1e1f22; --side: #26282c;
+          --border: #3a3d42; --code: #2c2f34; --th: #243246; }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Open Sans', 'Segoe UI', 'DejaVu Sans', sans-serif;
+       font-size: 15px; line-height: 1.55; }
+nav { position: fixed; top: 0; left: 0; bottom: 0; width: 290px; overflow-y: auto; background: var(--side);
+      border-right: 1px solid var(--border); padding: 20px 16px 40px 20px; font-size: 14px; }
+nav .title { font-weight: 700; font-size: 17px; color: var(--title); margin-bottom: 14px; }
+nav ol { list-style: none; padding: 0; margin: 0; }
+nav li { margin: 0; }
+nav > ol > li { margin-top: 10px; }
+nav > ol > li > a { font-weight: 600; color: var(--text); }
+nav ol ol { margin: 3px 0 0 10px; border-left: 2px solid var(--border); padding-left: 10px; }
+nav ol ol a { color: var(--muted); display: block; padding: 1px 0; }
+nav a { text-decoration: none; }
+nav a:hover { color: var(--accent); }
+nav a.current { color: var(--accent); font-weight: 600; }
+main { margin-left: 290px; padding: 28px 48px 80px 48px; max-width: 980px; }
+h1 { font-size: 28px; color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 6px; margin: 36px 0 12px 0; }
+section.chapter:first-of-type h1 { margin-top: 0; }
+h2 { font-size: 20px; color: var(--title); margin: 28px 0 8px 0; }
+h3 { font-size: 16px; margin: 20px 0 6px 0; }
+a { color: var(--accent); }
+code { font-family: 'DejaVu Sans Mono', Consolas, monospace; font-size: 0.86em; background: var(--code); padding: 1px 5px; border-radius: 4px; }
+pre { background: var(--code); padding: 12px; border-radius: 6px; overflow-x: auto; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; margin: 10px 0; }
+th, td { border: 1px solid var(--border); padding: 5px 10px; text-align: left; vertical-align: top; }
+th { background: var(--th); }
+li { margin: 3px 0; }
+@media (max-width: 900px) { nav { position: static; width: auto; border-right: none; border-bottom: 1px solid var(--border); }
+                            main { margin-left: 0; padding: 20px; } }
+@media print {
+  @page { size: A4; margin: 18mm 17mm 20mm 17mm; }
+  :root { --text: #1c1c1c; --muted: #5f6b7a; --accent: #1565c0; --title: #0d47a1; --bg: #fff; --code: #eef2f7; --th: #e7f0fc; --border: #c9d3de; }
+  nav { display: none; }
+  main { margin: 0; padding: 0; max-width: none; }
+  body { font-size: 10.5pt; }
+  section.chapter { break-before: page; }
+  section.chapter:first-of-type { break-before: auto; }
+  h1 { margin-top: 0; }
+  h2, h3 { break-after: avoid; }
+  table, pre { break-inside: avoid; }
+}
+</style></head><body><nav aria-label="Contents"><div class="title">User guide</div><ol><li><a href="#chapter-README--user-guide">User guide</a><ol><li><a href="#chapter-README--contents">Contents</a></li><li><a href="#chapter-README--a-typical-correction-in-short">A typical correction, in short</a></li></ol></li><li><a href="#chapter-01-getting-started--getting-started">Getting started</a><ol><li><a href="#chapter-01-getting-started--the-window">The window</a></li><li><a href="#chapter-01-getting-started--opening-copies">Opening copies</a></li><li><a href="#chapter-01-getting-started--saving">Saving</a></li><li><a href="#chapter-01-getting-started--exporting">Exporting</a></li><li><a href="#chapter-01-getting-started--undo">Undo</a></li></ol></li><li><a href="#chapter-02-annotating--annotating-copies">Annotating copies</a><ol><li><a href="#chapter-02-annotating--texts-t-tab">Texts (T tab)</a></li><li><a href="#chapter-02-annotating--drawings-shapes-and-images-paint-tab">Drawings, shapes and images (Paint tab)</a></li><li><a href="#chapter-02-annotating--selecting-and-editing-elements">Selecting and editing elements</a></li><li><a href="#chapter-02-annotating--pages-edit-pages-mode">Pages (Edit pages mode)</a></li><li><a href="#chapter-02-annotating--pdf-tools">PDF tools</a></li></ol></li><li><a href="#chapter-03-grading--grade-scale-and-grading">Grade scale and grading</a><ol><li><a href="#chapter-03-grading--the-grade-scale-20-tab">The grade scale (/20 tab)</a></li><li><a href="#chapter-03-grading--exercise-mode-footer-bar">Exercise mode (footer bar)</a></li><li><a href="#chapter-03-grading--the-grading-panel-list-icon">The grading panel (list icon)</a></li><li><a href="#chapter-03-grading--points-of-the-methods-and-mistakes">Points of the methods and mistakes</a></li><li><a href="#chapter-03-grading--marks">Marks</a></li></ol></li><li><a href="#chapter-04-methods-and-mistakes--methods-and-mistakes">Methods and mistakes</a><ol><li><a href="#chapter-04-methods-and-mistakes--tags">Tags</a></li><li><a href="#chapter-04-methods-and-mistakes--points-and-comment">Points and comment</a></li><li><a href="#chapter-04-methods-and-mistakes--tagging-a-copy">Tagging a copy</a></li><li><a href="#chapter-04-methods-and-mistakes--pills-on-the-copy">Pills on the copy</a></li><li><a href="#chapter-04-methods-and-mistakes--the-class">The class</a></li><li><a href="#chapter-04-methods-and-mistakes--previews-of-the-copies-of-a-tag">Previews of the copies of a tag</a></li><li><a href="#chapter-04-methods-and-mistakes--reviewing-copies-one-by-one">Reviewing copies one by one</a></li><li><a href="#chapter-04-methods-and-mistakes--where-tags-are-stored">Where tags are stored</a></li></ol></li><li><a href="#chapter-05-notes--personal-notes">Personal notes</a></li><li><a href="#chapter-06-export--giving-the-copies-back">Giving the copies back</a><ol><li><a href="#chapter-06-export--annotated-pdfs">Annotated PDFs</a></li><li><a href="#chapter-06-export--marks-to-a-spreadsheet">Marks to a spreadsheet</a></li><li><a href="#chapter-06-export--moodle-feedback-files">Moodle feedback files</a></li><li><a href="#chapter-06-export--skills-competency-based-assessment">Skills (competency-based assessment)</a></li></ol></li><li><a href="#chapter-07-shortcuts--keyboard-shortcuts">Keyboard shortcuts</a><ol><li><a href="#chapter-07-shortcuts--files-and-documents">Files and documents</a></li><li><a href="#chapter-07-shortcuts--annotations">Annotations</a></li><li><a href="#chapter-07-shortcuts--grading">Grading</a></li></ol></li><li><a href="#chapter-08-settings-and-data--settings-data-and-troubleshooting">Settings, data and troubleshooting</a><ol><li><a href="#chapter-08-settings-and-data--settings-menu-bar--settings">Settings (menu bar → Settings…)</a></li><li><a href="#chapter-08-settings-and-data--where-the-data-is">Where the data is</a></li><li><a href="#chapter-08-settings-and-data--troubleshooting">Troubleshooting</a></li></ol></li></ol></nav><main><section class="chapter" id="chapter-README"><h1 id="chapter-README--user-guide">User guide</h1>
+<p>A desktop application to correct scanned tests: annotate PDF copies, grade them exercise by exercise with a
+reusable set of comments, see which methods and mistakes appear in the class, and give the copies back as PDFs or
+through Moodle. The original PDFs are never modified by annotations: everything you add is kept in a separate layer
+and written into new PDF files only when you export.</p>
+<p>The app is a fork of <a href="https://github.com/ClementGre/PDF4Teachers">PDF4Teachers</a>. Menus, file names and data folders
+still use that name for now.</p>
+<h2 id="chapter-README--contents">Contents</h2>
+<ol>
+<li><a href="#chapter-01-getting-started">Getting started</a>: opening copies, the window, saving, exporting, where data is stored</li>
+<li><a href="#chapter-02-annotating">Annotating copies</a>: texts and formulas, drawings and images, page tools, PDF tools</li>
+<li><a href="#chapter-03-grading">Grade scale and grading</a>: grade scale, grading panel, comments, exercise mode, marks</li>
+<li><a href="#chapter-04-methods-and-mistakes">Methods and mistakes</a>: tagging copies, their points and comments, pills on the copy, class overview, reviewing copies</li>
+<li><a href="#chapter-05-notes">Personal notes</a>: notes and screenshots for yourself</li>
+<li><a href="#chapter-06-export">Giving the copies back</a>: PDF export, marks to a spreadsheet, Moodle feedback files, skills</li>
+<li><a href="#chapter-07-shortcuts">Keyboard shortcuts</a></li>
+<li><a href="#chapter-08-settings-and-data">Settings, data and troubleshooting</a></li>
+</ol>
+<h2 id="chapter-README--a-typical-correction-in-short">A typical correction, in short</h2>
+<ol>
+<li>Put the scanned copies of a test in one folder, one PDF per student, named like <code>07_DUPONT.pdf</code>.</li>
+<li><strong>File → Open folder</strong>, open the first copy.</li>
+<li>In the <strong>Grades</strong> tab, build the grade scale (exercises and sub-questions with their points). Copy it to the other
+   copies with the link icon.</li>
+<li>In the footer bar, turn on <strong>Exercise</strong> mode and set the page of each exercise with <strong>Pages</strong>.</li>
+<li>In the <strong>Grading</strong> panel, grade exercise 1 on every copy: points, comments, and the methods and
+   mistakes (which can add or remove points). <strong>Next ungraded ›</strong> (or <code>Z</code>) opens the next copy at the same exercise. Then exercise 2, and so on.</li>
+<li>Look at the class overview of the methods and mistakes, check doubtful copies with the previews.</li>
+<li><strong>Compute marks</strong>, then export the copies (<strong>File → Export all</strong>) or send them through Moodle
+   (<strong>File → Export for Moodle…</strong>).</li>
+</ol></section><section class="chapter" id="chapter-01-getting-started"><h1 id="chapter-01-getting-started--getting-started">Getting started</h1>
+<h2 id="chapter-01-getting-started--the-window">The window</h2>
+<ul>
+<li><strong>Menu bar</strong>: File, Edit (undo/redo), View (sidebars, full screen), Tools, Help, Settings….</li>
+<li><strong>Sidebars</strong>: tabs on the left (and right) of the document. Each tab is an icon:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Icon</th>
+<th>Tab</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PDF sheet</td>
+<td><strong>Files</strong></td>
+<td>the list of copies you are working on</td>
+</tr>
+<tr>
+<td><strong>T</strong></td>
+<td><strong>Texts</strong></td>
+<td>text annotations and comment lists</td>
+</tr>
+<tr>
+<td>Book</td>
+<td><strong>Notes</strong></td>
+<td>your personal notes (never on the copies)</td>
+</tr>
+<tr>
+<td>List</td>
+<td><strong>Grading</strong></td>
+<td>the grading panel: grade one exercise at a time</td>
+</tr>
+<tr>
+<td><strong>/20</strong></td>
+<td><strong>Grades</strong></td>
+<td>the grade scale and the grade exports</td>
+</tr>
+<tr>
+<td>Skills</td>
+<td><strong>Skills</strong></td>
+<td>skills-based assessment</td>
+</tr>
+<tr>
+<td>Brush</td>
+<td><strong>Paint</strong></td>
+<td>drawings, shapes and images</td>
+</tr>
+</tbody>
+</table>
+<p>Drag a tab by its icon to move it to the other sidebar. <strong>View</strong> can minimize the sidebars, restore their widths or
+  move all tabs to one side.
+- <strong>Document</strong>: the open copy. <code>Ctrl</code> + scroll zooms; right-click a page for quick actions.
+- <strong>Footer bar</strong>: zoom, <strong>Edit pages</strong> mode, column/grid view, <strong>Exercise</strong> mode and the exercise selector, the number
+  of elements of the copy, the total, and the save status.</p>
+<h2 id="chapter-01-getting-started--opening-copies">Opening copies</h2>
+<ul>
+<li><strong>File → Open file(s)</strong> (<code>Ctrl+O</code>) adds PDF files to the Files tab; <strong>File → Open folder</strong> (<code>Ctrl+Shift+O</code>) adds
+  all the PDFs of a folder.</li>
+<li>Double-click a file to open it. <code>Ctrl+Alt+←/→</code> opens the previous/next file of the list.</li>
+<li>Right-click a file: open, rename, create a copy, remove it from the list (the file stays on disk), delete it.</li>
+<li>Sort the list with the buttons at the top (date added, edit state, name, folder).</li>
+<li>Rename copies from the app (<strong>File → Rename the PDF file</strong> or the file menu): the annotations follow. Renamed with a
+  file explorer, a copy loses them (see <strong>Tools → Edits of documents with same name</strong> to recover them).</li>
+</ul>
+<h3 id="chapter-01-getting-started--organising-an-evaluation">Organising an evaluation</h3>
+<p>Keep one folder per evaluation, containing only its copies, one PDF per student. Name the copies with a number and the
+student's name, e.g. <code>07_DUPONT.pdf</code>: the name after the underscore identifies the student for the Moodle export.
+Everything the app knows about the evaluation (comments, methods and mistakes, notes) is stored in this folder, in a
+hidden <code>.pdf4teachers</code> sub-folder, so the folder can be moved or backed up as a whole.</p>
+<p>Scanned copies can be prepared with the PDF tools: split one big scan into one file per student, convert photos to
+PDF, rotate or reorder pages (see <a href="#chapter-02-annotating--pdf-tools">Annotating copies</a>).</p>
+<h2 id="chapter-01-getting-started--saving">Saving</h2>
+<p>Annotations are saved automatically when you switch copy or close the app (setting <strong>Autosave the edition</strong>), and
+every few minutes if <strong>Periodical autosave</strong> is on. <strong>File → Save edits</strong> (<code>Ctrl+S</code>) saves now. The footer bar shows
+"Saved!".</p>
+<p>The annotations of <code>copy.pdf</code> are stored next to it in a hidden file <code>.copy.pdf.yml</code> (setting <strong>Store the edits next
+to the PDF files</strong>, recommended), or else in the app's data folder.</p>
+<p><strong>Page changes are different</strong>: rotating, moving, adding or deleting pages, margins, cropping and booklets change the
+PDF file itself, immediately.</p>
+<h2 id="chapter-01-getting-started--exporting">Exporting</h2>
+<p><strong>File → Export (Regenerate PDF)</strong> (<code>Ctrl+E</code>) writes a new PDF with all the annotations; <strong>File → Export all</strong> (<code>Ctrl+Shift+E</code>)
+does it for every file of the list. The original PDFs are not changed. See <a href="#chapter-06-export">Giving the copies back</a>.</p>
+<h2 id="chapter-01-getting-started--undo">Undo</h2>
+<p><code>Ctrl+Z</code> / <code>Ctrl+Shift+Z</code> undo and redo the changes of the document's annotations. In <strong>Edit pages</strong> mode they undo page
+changes instead.</p></section><section class="chapter" id="chapter-02-annotating"><h1 id="chapter-02-annotating--annotating-copies">Annotating copies</h1>
+<p>Everything described here is an annotation: it is shown on the copy, kept in the copy's edit file, and written into
+the PDF only when you export. When grading, most comments are better written from the
+<a href="#chapter-03-grading--the-grading-panel-list-icon">grading panel</a>, which places them next to the grade and suggests the comments already
+used; the tools below remain for free annotations.</p>
+<h2 id="chapter-02-annotating--texts-t-tab">Texts (T tab)</h2>
+<ul>
+<li><strong>Add a text</strong>: double-click on the page, or <code>Ctrl+T</code> at the mouse position. Type in the text field of the Texts tab.</li>
+<li><strong>Move / resize</strong>: drag the text. The solid line on its right sets its maximum width (it wraps beyond).</li>
+<li><strong>Style</strong>: font (including system fonts), size, bold, italic and color in the Texts tab. <code>Ctrl+Alt++</code> / <code>Ctrl+Alt+-</code>
+  change the size of the selected text; <code>Ctrl+Alt+1…9</code> change its color.</li>
+<li><strong>Formulas</strong>: write math between <code>$…$</code>, as in LaTeX: <code>the root is $x = \frac{-b}{2a}$</code>. The <strong>∑</strong> button makes the
+  whole text a formula. Old texts written with <code>$$</code> or LibreOffice Math <code>&amp;&amp;</code> still display.</li>
+<li><strong>Links</strong>: a text starting with <code>www.</code>, <code>http://</code> or <code>https://</code> becomes a clickable link in the exported PDF.</li>
+<li><strong>Duplicate</strong>: double-click a text. <strong>Send to page…</strong> (right-click) moves it to another page.</li>
+<li><strong>Copy to files</strong>: puts the selected text on the other open copies, at the same page and position.</li>
+</ul>
+<h3 id="chapter-02-annotating--comment-lists">Comment lists</h3>
+<p>The Texts tab keeps lists of the texts you wrote, to insert them again:</p>
+<ul>
+<li><strong>This evaluation</strong>: the comments written on the copies of the evaluation, grouped by exercise (read from all the
+  copies of the folder). The number shows on how many copies a comment is. Right-click a comment to:</li>
+<li><strong>Where is it written?</strong>: previews of all the copies where it is, zoomable around the comment; click one to open
+    the copy at that page;</li>
+<li><strong>Move to exercise</strong>: when it was listed under the wrong exercise;</li>
+<li><strong>Remove from this list</strong>: hides it (it stays on the copies).</li>
+<li><strong>Favorite Elements</strong>: your reusable texts. <code>Ctrl+1…9</code> inserts one of the first nine at the mouse.</li>
+<li><strong>Previous Elements</strong>: the texts you wrote recently.</li>
+<li><strong>Current Document Elements</strong>: the texts of the open copy.</li>
+</ul>
+<p>Typing in the text field highlights the matching texts of the lists; use the arrows and <code>Enter</code> to insert one. Click a
+list element to insert it; <code>Shift+click</code> inserts it <em>linked</em> (changing it in the list changes it on the page). The
+lists can be sorted, saved and reloaded (save and list icons).</p>
+<h2 id="chapter-02-annotating--drawings-shapes-and-images-paint-tab">Drawings, shapes and images (Paint tab)</h2>
+<ul>
+<li><strong>Freeform drawing</strong>: <strong>New freeform line</strong>, or <code>Ctrl+D</code> to start a drawing on the page. In drawing mode, <code>Shift</code>
+  (or hold <code>L</code>) draws straight lines, <code>M</code> (or hold <code>P</code>) horizontal/vertical ones; <code>Backspace</code> undoes the last stroke;
+  <code>Esc</code>, a right-click or a double-click leaves the mode. Long handwriting is split into several elements (settings
+  <strong>Handwriting</strong>).</li>
+<li><strong>Vector shapes</strong>: favorite figures, previous figures, <strong>Load default geometric figures</strong>, or open an SVG file.</li>
+<li><strong>Images</strong>: favorite images, and a <strong>Gallery</strong> of the image folders you add to it.</li>
+<li>A figure or image can get its own keyboard shortcut (right-click → <strong>Edit the keyboard shortcut</strong>).</li>
+</ul>
+<h2 id="chapter-02-annotating--selecting-and-editing-elements">Selecting and editing elements</h2>
+<p>Click an element to select it; <code>Ctrl+A</code> selects all the elements of the page, <code>Delete</code> removes the selection.
+<code>Ctrl+X</code>, <code>Ctrl+C</code> / <code>Ctrl+V</code> cut, copy and paste. Right-click an element for its menu (favorites, delete, duplicate,
+send to page…).</p>
+<h2 id="chapter-02-annotating--pages-edit-pages-mode">Pages (Edit pages mode)</h2>
+<p>Each page has side buttons: move up/down, rotate left/right, delete, add pages (blank, from another PDF, or converted
+images), capture as an image, crop or add margins. <strong>Edit pages</strong> in the footer bar shows the pages as a grid where you
+can select several (<code>Ctrl+click</code>, <code>Shift+click</code>) and drag them to reorder.</p>
+<p>These actions change the PDF file itself, immediately (undo them with <code>Ctrl+Z</code> while in Edit pages mode).</p>
+<h2 id="chapter-02-annotating--pdf-tools">PDF tools</h2>
+<p>In the <strong>Tools</strong> menu (and its <strong>PDF tools</strong> sub-menu):</p>
+<ul>
+<li><strong>Convert image files to PDF</strong> (<code>Ctrl+Shift+C</code>): images to one PDF, or each sub-folder of a folder to its own PDF
+  (one page per image), with the page format and resolution of your choice. Also used to add converted pages to a
+  copy.</li>
+<li><strong>Split a PDF</strong> (three entries in <strong>PDF tools</strong>): by marker pages of a color (insert dark sheets between the students when scanning), every <em>n</em> pages,
+  or at the pages you select, and name the resulting files (names can be imported from a file).</li>
+<li><strong>Booklet</strong> (<strong>PDF tools</strong>): assemble a booklet, or undo one (with options for exam double sheets and reversed order).</li>
+<li><strong>Margins</strong> (<strong>PDF tools</strong>): add margins around the pages, or negative margins to crop them.</li>
+<li><strong>Capture</strong> (side button of a page): export a page, a selection or the whole document as PNG images.</li>
+<li><strong>Export/Import edits or marking scales</strong>: save the annotations or the grade scale of copies to a file, and load
+  them onto other copies.</li>
+<li><strong>Edits of documents with same name</strong>: recover the annotations of a copy that was moved or renamed outside the app.</li>
+<li><strong>Delete edits on all opened files</strong>: removes all the annotations of the listed copies (the PDFs are not changed).</li>
+</ul></section><section class="chapter" id="chapter-03-grading"><h1 id="chapter-03-grading--grade-scale-and-grading">Grade scale and grading</h1>
+<h2 id="chapter-03-grading--the-grade-scale-20-tab">The grade scale (/20 tab)</h2>
+<p>The grade scale is a tree: the total, the exercises, and their sub-questions, each with its points. The exercises are
+the first level under the total (the app calls them <em>exercises</em> everywhere: exercise mode, grading panel, comments,
+methods and mistakes).</p>
+<ul>
+<li><strong>Build it</strong>: the <strong>+</strong> of a grade adds a sub-grade under it; <code>Ctrl+G</code> adds a grade at the same level as the
+  selected one. <code>Tab</code> and <code>Enter</code> move between the name and the points fields.</li>
+<li><strong>Enter the points</strong> in the grade's field, or right-click it: <strong>Set to 0</strong>, <strong>Set maximum mark</strong>, <strong>Reset</strong>. A
+  double-click sets it to 0. <code>Ctrl+N</code> selects the next grade to enter.</li>
+<li>The parents are summed automatically. A grade named <code>Bonus…</code> is not counted in the maximum, only in the result.</li>
+<li><strong>Scale to</strong>: express the total on another scale (e.g. /20).</li>
+<li><strong>Place the grades on the page</strong>: each grade is written where you put it on the copy (drag it). Right-click → hide
+  the unfilled grades.</li>
+<li><strong>Lock</strong> (padlock icon): prevents changing the scale by mistake while grading.</li>
+<li><strong>Fonts and colors</strong> (gear icon): font, color, prefix of each level, show the name, hide a grade, hide it when full.</li>
+<li><strong>Copy the scale to the other copies</strong> (link icon): to all the listed copies or to those of the same folder. Keep
+  <strong>Copy marks position</strong> checked so that the grades are at the same place on every copy.</li>
+<li><strong>Export / import a grade scale</strong> as a file: <strong>Tools → Export/Import edits or marking scales</strong>.</li>
+</ul>
+<p>A typical Swiss scale starts with a "PNF" exercise (presentation), then Q1…Qn.</p>
+<h2 id="chapter-03-grading--exercise-mode-footer-bar">Exercise mode (footer bar)</h2>
+<p>Correct exercise by exercise, not copy by copy:</p>
+<ol>
+<li>Turn on <strong>Exercise</strong> in the footer bar and choose the exercise (<code>Alt+↑</code> / <code>Alt+↓</code>).</li>
+<li><strong>Pages</strong>: set the page where each exercise is on the copies. The grading panel and the page buttons use it.</li>
+<li>Switching copy then opens the next copy at the page of the selected exercise:
+   <code>Ctrl+Alt+Shift+←/→</code> or <code>Alt+Page Up/Down</code> keep the page (or go to the exercise page),
+   <code>Alt+1…9</code> jumps to the page of exercise 1…9.</li>
+</ol>
+<h2 id="chapter-03-grading--the-grading-panel-list-icon">The grading panel (list icon)</h2>
+<p>The panel shows the exercise being graded, its sub-grades, and everything to grade it quickly. <code>Ctrl+Shift+G</code> focuses
+it from anywhere.</p>
+<p><strong>Header</strong>: the exercise and its points, <code>‹ ›</code> for the previous/next exercise, the copy (e.g. "07_DUPONT.pdf · copy
+7/24") and a button per exercise to jump to its page (✓ when graded on this copy). The panel follows the page you are
+reading.</p>
+<p><strong>One section per sub-grade</strong>, the active one highlighted:</p>
+<ul>
+<li>the points field and the maximum; on the active sub-grade, "from max" / "from 0" says whether the points of the
+  methods and mistakes count down from the maximum or up from zero (click to switch);</li>
+<li><strong>Comment on the copy (C)</strong>: the comment of this sub-grade, written next to its grade while you type.
+  Emptying the field removes it.</li>
+</ul>
+<p>The inactive sub-grades take one line; their comment, if any, is shown as a line of text (click it to edit it).</p>
+<p><strong>General comment (G)</strong>: the comment for the whole exercise.</p>
+<p><strong>Methods &amp; mistakes</strong>: see <a href="#chapter-04-methods-and-mistakes">Methods and mistakes</a>.</p>
+<p><strong>Footer</strong>: <strong>‹</strong> / <strong>Next ungraded ›</strong> open the previous/next copy where this exercise is not fully graded;
+<strong>Marks ▾</strong>: <strong>Mark position</strong> / <strong>Compute marks</strong> (see <a href="#chapter-03-grading--marks">Marks</a>); <strong>?</strong> shows the keys.</p>
+<h3 id="chapter-03-grading--keyboard-in-the-panel">Keyboard in the panel</h3>
+<p>When the panel has the keyboard (click its empty space, or <code>Ctrl+Shift+G</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>1</code>…<code>9</code></td>
+<td>put the n-th method or mistake of the card on the copy (its points count on the active sub-grade)</td>
+</tr>
+<tr>
+<td><code>⌫</code> Backspace</td>
+<td>remove the last method or mistake put on the copy for this exercise</td>
+</tr>
+<tr>
+<td><code>0</code></td>
+<td>0 points for the active sub-grade</td>
+</tr>
+<tr>
+<td><code>=</code> or <code>+</code></td>
+<td>full points</td>
+</tr>
+<tr>
+<td><code>↑</code> <code>↓</code>, <code>Enter</code> / <code>Shift+Enter</code></td>
+<td>previous / next sub-grade</td>
+</tr>
+<tr>
+<td><code>←</code> <code>→</code></td>
+<td>previous / next copy</td>
+</tr>
+<tr>
+<td><code>Tab</code></td>
+<td>the points field of the active sub-grade (<code>Shift+Tab</code>: its comment)</td>
+</tr>
+<tr>
+<td><code>C</code></td>
+<td>the comment field of the active sub-grade</td>
+</tr>
+<tr>
+<td><code>G</code></td>
+<td>the general comment</td>
+</tr>
+<tr>
+<td><code>Z</code> / <code>Shift+Z</code></td>
+<td>next / previous ungraded copy</td>
+</tr>
+<tr>
+<td><code>Delete</code></td>
+<td>remove the comment selected on the copy (e.g. the one just placed)</td>
+</tr>
+<tr>
+<td><code>Esc</code></td>
+<td>give the keyboard back to the document</td>
+</tr>
+</tbody>
+</table>
+<p>In the fields:</p>
+<ul>
+<li><strong>Tab / Shift+Tab</strong> go through the whole exercise: points → comment → points of the next sub-grade → … → general
+  comment, and back. The points are applied when you leave the field.</li>
+<li><strong>Enter</strong> in a points field applies it and goes to the next sub-grade. In a comment field it writes the comment and
+  goes to the next sub-grade (from the general comment: to the next ungraded copy). <strong>Ctrl+Enter</strong> writes the comment
+  where you click on the page instead of next to the grade.</li>
+<li><strong>Esc</strong> cancels the edit of the field.</li>
+</ul>
+<h3 id="chapter-03-grading--comment-suggestions">Comment suggestions</h3>
+<p>When a comment field gets the focus, or while you type, the comments of the evaluation are suggested under it:</p>
+<ol>
+<li>first those already written <strong>in this field</strong> (this sub-grade) on other copies,</li>
+<li>then those of <strong>this exercise</strong>,</li>
+<li>then all the others (their exercise is shown on the right, with the number of copies using them).</li>
+</ol>
+<p>Typing filters them (every word, accents and case ignored). <code>↓</code> selects one, <code>Enter</code> or a click writes it on the copy.
+The suggestions come from the comments written on the copies of the folder, whether from the panel or as free texts.</p>
+<h2 id="chapter-03-grading--points-of-the-methods-and-mistakes">Points of the methods and mistakes</h2>
+<p>Points are given or removed with the <a href="#chapter-04-methods-and-mistakes--points-and-comment">methods and mistakes</a>: a mistake
+can remove points (e.g. "Sign error −1"), a method can add some, and each time it is put on a copy it writes its
+points (and its comment) next to the grade. The sub-grade is then computed from its maximum (or from 0, see "from
+max") and these points. A value typed by hand wins over them; right-click a grade → <strong>Compute from the methods and
+mistakes</strong> to go back to the computed value. When no method or mistake with points is left on a sub-grade, it gets
+back the value it had before.</p>
+<p>(The "scored comments" of the previous versions are replaced by the methods and mistakes. Those already on copies keep
+counting.)</p>
+<h2 id="chapter-03-grading--marks">Marks</h2>
+<p>Marks are on the Swiss 1–6 scale: <strong>obtained / total × 5 + 1, rounded to the nearest half</strong>.</p>
+<ol>
+<li><strong>Mark position</strong>: click it, then click on the page where the mark goes. The position is used for every copy.</li>
+<li><strong>Compute marks</strong>: writes the mark on every fully graded copy of the files list. If no position was set, it asks
+   for one first.</li>
+</ol>
+<p>The result window lists the marks, the copies that are not fully graded, and the copies for which half a point or one
+point more would change the mark (double-click to open one). The marks are also available as a column in the
+<a href="#chapter-06-export--marks-to-a-spreadsheet">spreadsheet export</a>.</p></section><section class="chapter" id="chapter-04-methods-and-mistakes"><h1 id="chapter-04-methods-and-mistakes--methods-and-mistakes">Methods and mistakes</h1>
+<p>While grading, tag each copy with the <strong>method</strong> the student used and the <strong>mistakes</strong> they made. You then see, for
+the class, which methods were used, how often each mistake happened and how many points those students got, and you
+can look at all the copies with a given method or mistake side by side. A method or mistake can also <strong>give or remove
+points</strong> and write a <strong>comment</strong> on the copy: it then replaces the "scored comments" of earlier versions. Its name is
+never written on the copies.</p>
+<h2 id="chapter-04-methods-and-mistakes--tags">Tags</h2>
+<ul>
+<li>There are two kinds: <strong>methods</strong> (blue) and <strong>mistakes</strong> (red).</li>
+<li>A tag is created in an exercise, but can be used in <strong>any exercise</strong>: "Sign error" can be tagged in Q2 and in Q4.</li>
+<li>When grading an exercise, its own tags (created for it, or already used in it) come first, then all the others.
+  The first nine are numbered: keys <code>1</code>…<code>9</code>.</li>
+<li>A copy can have several methods and mistakes in an exercise, and <strong>the same one several times</strong>: each time is an
+  occurrence, with its own pill and, if it has points, its own points (two sign errors cost twice the points).</li>
+</ul>
+<h2 id="chapter-04-methods-and-mistakes--points-and-comment">Points and comment</h2>
+<p>Optional, for each method or mistake: right-click it → <strong>Points and comment…</strong>, or give them when creating it.</p>
+<ul>
+<li><strong>Points</strong>: a mistake removes them, a method adds them. They count on <strong>the sub-grade it is put for</strong>: the one whose
+  grade is closest to where you point on the copy, or else the sub-grade active in the grading panel.</li>
+<li>Or <strong>on chosen sub-grades</strong>: one amount per sub-grade of the exercise (e.g. a +1, b +2). Each occurrence then counts
+  on all of them, whatever sub-grade is active.</li>
+<li><strong>Comment</strong>: written on the copy with the points.</li>
+</ul>
+<p>What is written on the copy, next to the spot or to the grade: the points only (<code>−1</code>), the comment with the points
+(<code>Check the sign (−1)</code>), or the comment only when there are no points; nothing when it has neither (the pill only).
+The dialog shows it while you type. Changing the points or the comment updates all the copies that have it, open or
+not, and their grades. A grade typed by hand stays until a method or mistake with points is put on its sub-grade; when
+none is left, it gets back that value.</p>
+<h2 id="chapter-04-methods-and-mistakes--tagging-a-copy">Tagging a copy</h2>
+<p><strong>From the card</strong> (Methods &amp; mistakes, in the grading panel): click a tag to add it to the copy for this exercise, click
+it again to remove it (all its occurrences in this exercise). <strong>Shift+click</strong> adds it once more. The number on a tag is
+how many copies have it in this exercise (click the number to see them); "×2" means the copy has it twice.</p>
+<p><strong>+ Method</strong> / <strong>+ Mistake</strong> create a new one and add it to the copy: type the name, then <code>Tab</code> for its points and
+its comment (both optional), <code>Enter</code>.</p>
+<p><strong>At a spot of the copy</strong>: point at the place on the page, press <code>#</code> (or <code>Ctrl+Shift+M</code>). A small window opens at the
+mouse:</p>
+<ul>
+<li>type to search, or type a new name: fields for its <strong>points</strong> and <strong>comment</strong> appear (<code>Tab</code> to reach them). Points
+  typed with a sign choose the kind: <code>-1</code> makes a mistake, <code>+1</code> a method; without a sign, the Method / Mistake buttons
+  decide. <code>Sign error -1</code> typed as the name works too;</li>
+<li><code>↑</code> <code>↓</code> to choose, <code>Enter</code> to put it here. Pointing at one of its dots removes that occurrence instead;</li>
+<li><code>Esc</code> closes it.</li>
+</ul>
+<p><strong>Keys</strong>: in the grading panel, <code>1</code>…<code>9</code> put the n-th tag of the card (points on the active sub-grade) and <code>Backspace</code>
+removes the last one put. With the mouse on the copy, <code>1</code>…<code>9</code> put the n-th tag at the mouse. Right-click on a page →
+<strong>Add a method or a mistake here</strong> does the same from a menu.</p>
+<p>Right-click a tag in the card for <strong>Points and comment…</strong>, to show its copies, open them one by one, rename it, make it a
+method/mistake, or delete it (you are warned if copies use it; what it wrote on them is removed and their grades are
+computed again). Deleting the text it wrote on a copy removes that occurrence.</p>
+<h2 id="chapter-04-methods-and-mistakes--pills-on-the-copy">Pills on the copy</h2>
+<p>The tags of the open copy are shown on its pages as small pills, <strong>on screen only</strong> (never printed or exported):</p>
+<ul>
+<li>a tag put with <code>#</code> shows as a pill in the left margin, at the height of the spot, with a dot on the exact spot
+  (hover the pill to see a line to its dot);</li>
+<li>a tag added from the card shows under the grade of the exercise.</li>
+</ul>
+<p>There is one pill per occurrence, with its points. Drag a pill to put it elsewhere on the page (it stays there), or drag
+its dot to move the spot. Right-click a pill (or
+its dot) to remove it, put it back in the margin, change it to another tag, or hide all the pills. The checkbox
+<strong>Show them on the copy (not printed)</strong> at the bottom of the card shows or hides them.</p>
+<h2 id="chapter-04-methods-and-mistakes--the-class">The class</h2>
+<p>Under the tags, the card shows how many copies have a method for this exercise, with:</p>
+<ul>
+<li><strong>See the N without method</strong>: previews of the copies not classified yet;</li>
+<li><strong>open them one by one</strong>: see <a href="#chapter-04-methods-and-mistakes--reviewing-copies-one-by-one">Reviewing copies</a>.</li>
+</ul>
+<p><strong>Show the class overview</strong> lists the tags with, for each one, the number and share of copies. Choose:</p>
+<ul>
+<li><strong>This exercise</strong>: the tags of the exercise, with the average points of these copies on the exercise (e.g. do the
+  students who expanded get fewer points than those who used the chain rule?);</li>
+<li><strong>Whole evaluation</strong>: every tag used in the evaluation, the copies having it in any exercise, and in which
+  exercises (e.g. "Q2 ×5 · Q4 ×3").</li>
+</ul>
+<p>Click a row to see its copies.</p>
+<h2 id="chapter-04-methods-and-mistakes--previews-of-the-copies-of-a-tag">Previews of the copies of a tag</h2>
+<p>Clicking a tag's number, a row of the overview, or <strong>Show the copies</strong> opens previews of all the copies with the tag,
+zoomed around the spot where it was put, with the points of each copy on the exercise. Use the <strong>Size</strong> and <strong>Zoom</strong>
+sliders (or <code>Ctrl</code> + scroll, <code>Ctrl +/-</code>) to compare many copies at once.</p>
+<ul>
+<li><strong>Click</strong> a preview to open that copy at that page.</li>
+<li><strong>Right-click</strong> a preview to change the copy <strong>without opening it</strong>:</li>
+<li>remove the tag from this copy;</li>
+<li>change it to another tag (or a new one), at the same spot;</li>
+<li>on the "without method" previews: give it a method.</li>
+</ul>
+<p>The preview is then dimmed with a note ("→ Chain rule", "Removed"); right-click it again to undo.
+- <strong>Open these copies one by one</strong> starts a review of these copies (below).</p>
+<h2 id="chapter-04-methods-and-mistakes--reviewing-copies-one-by-one">Reviewing copies one by one</h2>
+<p>A review goes through a chosen set of copies: the copies with a tag (in this exercise, or in all the exercises), or
+the copies without method.</p>
+<p>Start it from the right-click menu of a tag (<strong>Open these copies one by one</strong>), from the previews window, or with
+<strong>open them one by one</strong> under "See the N without method". The first copy opens at the tag's spot and a blue banner
+appears at the top of the grading panel: "Reviewing · copy 2 / 7" and the tag's name.</p>
+<p>While the banner is shown, <code>‹</code> <code>›</code> in the banner and all the previous/next copy keys (<code>←</code> <code>→</code>, <code>Ctrl+Alt+←/→</code>…) only
+go through these copies, each one opened at the tag's spot. A message says when you reach the first or last one.
+<code>✕</code> stops the review.</p>
+<p>Typical uses: check that all the "Sign error" copies lost the same points, classify the copies without method, or
+re-read all the copies with an unexpected method.</p>
+<h2 id="chapter-04-methods-and-mistakes--where-tags-are-stored">Where tags are stored</h2>
+<p>In the evaluation folder, <code>.pdf4teachers/tags.yml</code>: the tags, and for each copy which tag, in which exercise, and
+where. Tags are kept by copy file name: rename copies from the app before tagging, not afterwards.</p></section><section class="chapter" id="chapter-05-notes"><h1 id="chapter-05-notes--personal-notes">Personal notes</h1>
+<p>Notes are for you only: they are never written on the copies. Use them for anything you want to remember while
+grading ("check the scale of Q3 with a colleague", "this student copied the neighbour?", "good example to show in
+class").</p>
+<ul>
+<li><code>Ctrl+Shift+N</code>: new note, from anywhere. Type it, <code>Enter</code> to save, <code>Shift+Enter</code> for a new line.</li>
+<li><code>Ctrl+Shift+S</code>: screenshot note. Drag on the copy to select a region (a click takes the whole page), then write the
+  note. <code>Esc</code> cancels.</li>
+<li><strong>Notes</strong> tab (book icon): all the notes, newest first, with the copy and page they were taken on.</li>
+<li><strong>Search the notes</strong>; <strong>Only the notes of this copy</strong>.</li>
+<li><strong>Go to the copy</strong> opens it at that page.</li>
+<li>Click a screenshot to enlarge it; click a note's text to edit it; delete a note from its menu.</li>
+</ul>
+<p>Notes taken on a copy are stored in its evaluation folder (<code>.pdf4teachers/notes.yml</code>, screenshots in
+<code>.pdf4teachers/notes/</code>). Notes taken with no copy open are kept in the app's data folder.</p></section><section class="chapter" id="chapter-06-export"><h1 id="chapter-06-export--giving-the-copies-back">Giving the copies back</h1>
+<h2 id="chapter-06-export--annotated-pdfs">Annotated PDFs</h2>
+<ul>
+<li><strong>File → Export (Regenerate PDF)</strong> (<code>Ctrl+E</code>): the open copy.</li>
+<li><strong>File → Export all</strong> (<code>Ctrl+Shift+E</code>): every copy of the files list.</li>
+</ul>
+<p>Choose the destination folder and the file names (a prefix/suffix, or <strong>Replace … to …</strong> in the names), which kinds of
+annotations to include (texts, grades, drawings, skills), the image quality (dpi), and whether to export only the
+annotated copies. A copy whose destination already exists is skipped.
+Another option exports only the annotations, without the content of the original PDF (to print them on the paper
+copies).</p>
+<p>Methods &amp; mistakes pills and personal notes are never exported.</p>
+<h2 id="chapter-06-export--marks-to-a-spreadsheet">Marks to a spreadsheet</h2>
+<p>Export icon of the Grades tab: exports the grades of this copy, or of all the listed copies (in one CSV file or one
+per copy).</p>
+<p>Options: separator (comma or semicolon) and number/formula language, only the copies with the same grade scale, of
+the same folder, or fully graded; the levels of the grade scale to export; a row for the grade scale and for the
+average; rows for the comments; <strong>a column for the mark (1 to 6)</strong>, and <strong>Update the marks written on the copies
+first</strong>. The student's name is taken from the file name.</p>
+<h2 id="chapter-06-export--moodle-feedback-files">Moodle feedback files</h2>
+<p><strong>File → Export for Moodle…</strong> creates a zip of the annotated copies of the evaluation folder, to upload in a Moodle
+assignment: each student receives their own corrected copy as a feedback file.</p>
+<p>Once, in the Moodle assignment settings, enable the feedback types <strong>Feedback files</strong> and <strong>Offline grading
+worksheet</strong>. Then:</p>
+<ol>
+<li>In the assignment: <strong>Grading action → Download grading worksheet</strong>. It gives the Moodle participant id of each
+   student.</li>
+<li>Prepare a <strong>students file</strong> (CSV), one student per line: the name used in the copy file names and the email,
+   e.g. <code>DUPONT;felix.dupont@school.ch</code> for <code>10_DUPONT.pdf</code>.</li>
+<li><strong>File → Export for Moodle…</strong>, choose the two files. The window lists each copy with its student:
+   ✓ ready, ⚠ cannot be sent (not in the students file, several students match, several copies for one student, not
+   in the worksheet), – participants without a copy.</li>
+<li><strong>Create the zip</strong>: each copy is rendered with all its annotations, named as Moodle expects.</li>
+<li>In the assignment: <strong>Grading action → Upload multiple feedback files in a zip</strong>, and choose the zip.</li>
+</ol>
+<h2 id="chapter-06-export--skills-competency-based-assessment">Skills (competency-based assessment)</h2>
+<p>The <strong>Skills</strong> tab grades competencies instead of points: create a test, list the skills and the scoring method
+(characters, colors or icons), then give each skill a level on each copy. A skills chart can be placed on the copy.
+Results can be exported to CSV, and tests imported from and exported to <strong>SACoche</strong>.</p></section><section class="chapter" id="chapter-07-shortcuts"><h1 id="chapter-07-shortcuts--keyboard-shortcuts">Keyboard shortcuts</h1>
+<p><code>Ctrl</code> is <code>Cmd</code> on macOS.</p>
+<h2 id="chapter-07-shortcuts--files-and-documents">Files and documents</h2>
+<table>
+<thead>
+<tr>
+<th>Keys</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Ctrl+O</code> / <code>Ctrl+Shift+O</code></td>
+<td>open files / open a folder</td>
+</tr>
+<tr>
+<td><code>Ctrl+S</code></td>
+<td>save the annotations</td>
+</tr>
+<tr>
+<td><code>Ctrl+E</code> / <code>Ctrl+Shift+E</code></td>
+<td>export the copy / export all</td>
+</tr>
+<tr>
+<td><code>Ctrl+R</code></td>
+<td>rename the PDF file</td>
+</tr>
+<tr>
+<td><code>Ctrl+W</code></td>
+<td>close the document</td>
+</tr>
+<tr>
+<td><code>Ctrl+Q</code></td>
+<td>quit</td>
+</tr>
+<tr>
+<td><code>Ctrl+Alt+←</code> / <code>Ctrl+Alt+→</code></td>
+<td>previous / next file of the list</td>
+</tr>
+<tr>
+<td><code>Ctrl+Alt+Shift+←/→</code>, <code>Alt+Page Up/Down</code></td>
+<td>previous / next file, staying on the same page (or the exercise page)</td>
+</tr>
+<tr>
+<td><code>←</code> <code>→</code> (column view)</td>
+<td>previous / next file</td>
+</tr>
+<tr>
+<td><code>↑</code> <code>↓</code>, <code>Page Up/Down</code>, <code>Home</code>, <code>End</code></td>
+<td>move in the document</td>
+</tr>
+<tr>
+<td><code>Ctrl+Alt+↑</code> / <code>Ctrl+Alt+↓</code></td>
+<td>previous / next page</td>
+</tr>
+<tr>
+<td><code>Ctrl+-</code>, <code>Ctrl++</code>, <code>Ctrl</code> + scroll</td>
+<td>zoom</td>
+</tr>
+<tr>
+<td><code>Ctrl+↓</code></td>
+<td>fit the page width</td>
+</tr>
+<tr>
+<td><code>Ctrl+Z</code> / <code>Ctrl+Shift+Z</code></td>
+<td>undo / redo</td>
+</tr>
+<tr>
+<td><code>Ctrl+B</code></td>
+<td>show / hide the sidebars</td>
+</tr>
+<tr>
+<td><code>F11</code></td>
+<td>full screen</td>
+</tr>
+<tr>
+<td><code>Tab</code> (document)</td>
+<td>switch between the Texts and Paint tabs</td>
+</tr>
+</tbody>
+</table>
+<h2 id="chapter-07-shortcuts--annotations">Annotations</h2>
+<table>
+<thead>
+<tr>
+<th>Keys</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>double-click on the page, <code>Ctrl+T</code></td>
+<td>new text</td>
+</tr>
+<tr>
+<td><code>Ctrl+1</code>…<code>9</code></td>
+<td>insert one of the first nine favorite texts</td>
+</tr>
+<tr>
+<td><code>Ctrl+Alt+1</code>…<code>9</code></td>
+<td>color of the selected element</td>
+</tr>
+<tr>
+<td><code>Ctrl+Alt++</code> / <code>Ctrl+Alt+-</code></td>
+<td>size of the selected text (or line width of a drawing)</td>
+</tr>
+<tr>
+<td><code>Ctrl+D</code></td>
+<td>new freeform drawing</td>
+</tr>
+<tr>
+<td><code>Ctrl+A</code>, <code>Delete</code></td>
+<td>select all the elements of the page, delete the selection</td>
+</tr>
+<tr>
+<td><code>Ctrl+X</code> / <code>Ctrl+C</code> / <code>Ctrl+V</code></td>
+<td>cut / copy / paste</td>
+</tr>
+</tbody>
+</table>
+<h2 id="chapter-07-shortcuts--grading">Grading</h2>
+<table>
+<thead>
+<tr>
+<th>Keys</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Ctrl+G</code></td>
+<td>new grade at the same level (Grades tab)</td>
+</tr>
+<tr>
+<td><code>Ctrl+N</code></td>
+<td>next grade to enter</td>
+</tr>
+<tr>
+<td><code>Alt+↑</code> / <code>Alt+↓</code></td>
+<td>previous / next exercise (exercise mode)</td>
+</tr>
+<tr>
+<td><code>Alt+1</code>…<code>9</code></td>
+<td>go to the page of exercise 1…9</td>
+</tr>
+<tr>
+<td><code>Ctrl+Shift+G</code></td>
+<td>focus the grading panel</td>
+</tr>
+<tr>
+<td><code>1</code>…<code>9</code></td>
+<td>add the n-th method or mistake (see below)</td>
+</tr>
+<tr>
+<td><code>#</code>, <code>Ctrl+Shift+M</code></td>
+<td>add a method or a mistake at the mouse</td>
+</tr>
+<tr>
+<td><code>Ctrl+Shift+N</code></td>
+<td>new personal note</td>
+</tr>
+<tr>
+<td><code>Ctrl+Shift+S</code></td>
+<td>personal note with a screenshot</td>
+</tr>
+</tbody>
+</table>
+<p>In the grading panel: <code>1</code>…<code>9</code> add the n-th method or mistake, <code>⌫</code> remove the last one, <code>0</code> zero, <code>=</code> full points,
+<code>↑</code> <code>↓</code> sub-grade, <code>←</code> <code>→</code> copy, <code>Tab</code> / <code>Shift+Tab</code> fields, <code>C</code> comment, <code>G</code> general comment, <code>Z</code> / <code>Shift+Z</code> next / previous
+ungraded copy, <code>Esc</code> back to the document (<a href="#chapter-03-grading--keyboard-in-the-panel">details</a>).</p>
+<p>With the mouse on the copy, <code>1</code>…<code>9</code> put the n-th method or mistake of the card at the mouse position.</p>
+<p>The shortcuts of figures and images can be set by right-clicking them in the Paint tab.</p></section><section class="chapter" id="chapter-08-settings-and-data"><h1 id="chapter-08-settings-and-data--settings-data-and-troubleshooting">Settings, data and troubleshooting</h1>
+<h2 id="chapter-08-settings-and-data--settings-menu-bar--settings">Settings (menu bar → Settings…)</h2>
+<ul>
+<li><strong>Accessibility</strong>: language.</li>
+<li><strong>Usability</strong>: dark theme or system theme, always restore the previous session, zooming/scrolling effects.</li>
+<li><strong>Save and edits</strong>: autosave the edition, periodical autosave, <strong>Store the edits next to the PDF files</strong>
+  (recommended: the annotations then travel with the folder).</li>
+<li><strong>Pages context menu</strong>: what the right-click menu of a page offers.</li>
+<li><strong>Elements lists</strong> and <strong>Text elements</strong>: display of the lists, maximum number of previous texts, favorites
+  behaviour, default maximum width of a new text.</li>
+<li><strong>Handwriting</strong>: when a freeform drawing is split into several elements (distance, length, duration).</li>
+<li><strong>Network</strong>: update notifications.</li>
+<li>Last groups: extended tips; application zoom, PDF rendering zoom (sharper pages at the cost of memory), rendering
+  fitted to the zoom, and a fix for menus that do not open on some Linux window managers.</li>
+</ul>
+<h2 id="chapter-08-settings-and-data--where-the-data-is">Where the data is</h2>
+<p><strong>In each evaluation folder</strong> (next to the copies):</p>
+<pre><code>07_DUPONT.pdf              the copy (unchanged by annotations)
+.07_DUPONT.pdf.yml         its annotations and grades
+.pdf4teachers/
+  comments.yml             the comments of the evaluation, by exercise
+  scoredcomments.yml       how the points count by sub-grade (&quot;from max&quot; / &quot;from 0&quot;)
+  tags.yml                 methods and mistakes, their points and comments, where they are on each copy
+  notes.yml, notes/        personal notes and their screenshots
+</code></pre>
+<p>Files starting with a dot are hidden: show hidden files in your file manager to see them. Copy, move or back up the
+evaluation folder as a whole, and the annotations, comments, tags and notes go with it.</p>
+<p><strong>In the app's data folder</strong> (<strong>Tools → Debug → Open data folder</strong>; on Linux <code>~/.local/share/PDF4Teachers</code>): settings,
+the files list, text lists, favorite figures and images, the annotations of copies not stored next to their PDF, and
+notes taken with no copy open.</p>
+<h2 id="chapter-08-settings-and-data--troubleshooting">Troubleshooting</h2>
+<ul>
+<li><strong>A copy lost its annotations after being renamed or moved</strong>: rename copies from the app. Otherwise open the copy and
+  use <strong>Tools → Edits of documents with same name</strong> to take back the annotations of the old name.</li>
+<li><strong>A copy cannot be loaded</strong>: the PDF may be damaged or unreadable. If only its annotations are damaged, the app says
+  where the edit file is; fix or delete it (<strong>Tools → Debug → Open editings file</strong>).</li>
+<li><strong>Wrong exercise for a comment in "This evaluation"</strong>: right-click it → <strong>Move to exercise</strong>. <strong>Read the comments of
+  the copies again</strong> from the list menu if something looks outdated.</li>
+<li><strong>Tags attached to an old file name</strong>: tags follow the copy's file name; rename copies before tagging.</li>
+<li><strong>Something went wrong</strong>: <strong>Tools → Debug → Open execution console</strong> shows the messages of the app; copy them when
+  reporting a problem.</li>
+</ul></section></main><script>
+const links = [...document.querySelectorAll('nav a')];
+const targets = links.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+function update(){
+  let current = targets[0];
+  for(const t of targets){ if(t.getBoundingClientRect().top < 80) current = t; }
+  links.forEach(a => a.classList.toggle('current', current && a.getAttribute('href') === '#' + current.id));
+}
+document.addEventListener('scroll', update, {passive: true});
+update();
+</script></body></html>

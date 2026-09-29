@@ -3,6 +3,7 @@
 <!--
   ~ Copyright (c) 2021-2024. Clément Grennerat
   ~ All rights reserved. You must refer to the licence Apache 2.
+  ~ Modified by Nathan, 2026.
   -->
 
 <?import javafx.geometry.*?>
@@ -25,8 +26,11 @@
                 <Insets bottom="10.0"/>
             </VBox.margin>
         </ImageView>
-        <Label text="PDF4Teachers">
+        <Label fx:id="appName">
             <style>-fx-font: 23 'Arial Rounded MT Bold';</style>
+        </Label>
+        <Label fx:id="forkLabel" textAlignment="CENTER" wrapText="true">
+            <style>-fx-font-size: 13;</style>
         </Label>
         <Label fx:id="versionName">
             <style>-fx-font-size: 15;</style>
@@ -39,6 +43,20 @@
         </Button>
 
         <HBox>
+            <Label fx:id="githubLabel"/>
+            <Hyperlink fx:id="repositoryLink"/>
+        </HBox>
+        <HBox>
+            <VBox.margin>
+                <Insets bottom="14"/>
+            </VBox.margin>
+            <Hyperlink fx:id="guideLink"/>
+        </HBox>
+
+        <Label fx:id="basedOnLabel">
+            <style>-fx-font-weight: bold;</style>
+        </Label>
+        <HBox>
             <Label fx:id="developerLabel"/>
             <Hyperlink id="https://github.com/clementgre" text="Clément Grennerat"/>
         </HBox>
@@ -48,24 +66,13 @@
         </HBox>
         <Label fx:id="translatorText" textAlignment="CENTER"/>
         <HBox>
-            <VBox.margin>
-                <Insets bottom="7" top="7"/>
-            </VBox.margin>
-            <Hyperlink id="https://pdf4teachers.org" text="https://pdf4teachers.org">
-                <style>-fx-font-size: 20;</style>
-            </Hyperlink>
-        </HBox>
-
-        <HBox>
-            <Label text="X (FR) : "/>
-            <Hyperlink id="https://x.com/Pdf4Teachers" text="\@Pdf4Teachers"/>
+            <Hyperlink id="https://github.com/ClementGre/PDF4Teachers" text="github.com/ClementGre/PDF4Teachers"/>
         </HBox>
         <HBox>
             <VBox.margin>
                 <Insets bottom="10"/>
             </VBox.margin>
-            <Label fx:id="githubLabel"/>
-            <Hyperlink id="https://github.com/clementgre/PDF4Teachers" text="ClementGre/PDF4Teachers"/>
+            <Hyperlink id="https://github.com/ClementGre/PDF4Teachers/graphs/contributors" fx:id="contributorsLink"/>
         </HBox>
         <Label fx:id="donateLabel"/>
         <HBox>
@@ -109,7 +116,7 @@
             </VBox>
         </HBox>
 
-        <Hyperlink id="https://pdf4teachers.org/License/" fx:id="licenselabel">
+        <Hyperlink fx:id="licenselabel">
             <style>-fx-font-size: 12;</style>
         </Hyperlink>
 

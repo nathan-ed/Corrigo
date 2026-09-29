@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2021-2022. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.document.editions;
@@ -118,7 +119,7 @@ public class Edition{
             ScoredComments.onEditionLoaded();
             ScoredComments.fireChanged(false);
             EvaluationComments.onEditionLoaded();
-            fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagMarkers.update();
+            fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTags.onEditionLoaded();
             
             return true;
         }catch(IOException e){

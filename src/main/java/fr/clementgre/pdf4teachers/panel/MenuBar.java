@@ -1,9 +1,12 @@
 /*
  * Copyright (c) 2020-2025. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.panel;
+
+import fr.clementgre.pdf4teachers.AppLinks;
 
 import de.jangassen.MenuToolkit;
 import fr.clementgre.pdf4teachers.Main;
@@ -202,7 +205,6 @@ public class MenuBar extends javafx.scene.control.MenuBar {
     private final Menu help = new Menu(TR.tr("menuBar.help"));
     private final MenuItem help1LoadDoc = createMenuItem(TR.tr("menuBar.help.loadDocumentation"), SVGPathIcons.INFO);
     private final MenuItem help2GitHubIssue = createMenuItem(TR.tr("menuBar.help.gitHubIssue"), SVGPathIcons.GITHUB);
-    private final MenuItem help3Twitter = createMenuItem(TR.tr("menuBar.help.twitter"), SVGPathIcons.TWITTER);
     private final MenuItem help4Website = createMenuItem(TR.tr("menuBar.help.website"), SVGPathIcons.GLOBE);
     
     ////////// EMPTY MENUS //////////
@@ -256,7 +258,7 @@ public class MenuBar extends javafx.scene.control.MenuBar {
         
         ////////// HELP //////////
         
-        help.getItems().addAll(help1LoadDoc, help2GitHubIssue, help3Twitter, help4Website);
+        help.getItems().addAll(help1LoadDoc, help2GitHubIssue, help4Website);
         
         ////////// FILE //////////
         
@@ -485,10 +487,9 @@ public class MenuBar extends javafx.scene.control.MenuBar {
         
         ////////// ABOUT / HELP //////////
         
-        help1LoadDoc.setOnAction((ActionEvent actionEvent) -> MainWindow.mainScreen.openFile(TR.getDocFile()));
-        help2GitHubIssue.setOnAction((ActionEvent actionEvent) -> Main.hostServices.showDocument("https://github.com/themsou/PDF4Teachers/issues/new"));
-        help3Twitter.setOnAction((ActionEvent t) -> Main.hostServices.showDocument("https://x.com/PDF4Teachers"));
-        help4Website.setOnAction((ActionEvent t) -> Main.hostServices.showDocument("https://pdf4teachers.org"));
+        help1LoadDoc.setOnAction((ActionEvent actionEvent) -> TR.openUserGuide());
+        help2GitHubIssue.setOnAction((ActionEvent actionEvent) -> Main.hostServices.showDocument(AppLinks.ISSUES_URL));
+        help4Website.setOnAction((ActionEvent t) -> Main.hostServices.showDocument(AppLinks.USER_GUIDE_URL));
         
         ////////// END PROCESS - OSX ADAPTION & MENU //////////
         

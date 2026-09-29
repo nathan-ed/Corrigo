@@ -10,7 +10,7 @@
 - **Elements lists** and **Text elements**: display of the lists, maximum number of previous texts, favorites
   behaviour, default maximum width of a new text.
 - **Handwriting**: when a freeform drawing is split into several elements (distance, length, duration).
-- **Network**: update notifications, anonymous statistics.
+- **Network**: update notifications.
 - Last groups: extended tips; application zoom, PDF rendering zoom (sharper pages at the cost of memory), rendering
   fitted to the zoom, and a fix for menus that do not open on some Linux window managers.
 
@@ -23,8 +23,8 @@
 .07_DUPONT.pdf.yml         its annotations and grades
 .pdf4teachers/
   comments.yml             the comments of the evaluation, by exercise
-  scoredcomments.yml       the scored comments
-  tags.yml                 methods and mistakes
+  scoredcomments.yml       how the points count by sub-grade ("from max" / "from 0")
+  tags.yml                 methods and mistakes, their points and comments, where they are on each copy
   notes.yml, notes/        personal notes and their screenshots
 ```
 

@@ -43,19 +43,19 @@ reading.
 
 **One section per sub-grade**, the active one highlighted:
 
-- the points field and the maximum; "from max" / "from 0" says whether the scored comments count down from the maximum
-  or up from zero (click to switch);
-- the **scored comments** of this sub-grade (see below): click one to put it on the copy or remove it;
-- **+ Add a scored comment (N)**: type the points (e.g. `-1`) and the text, `Enter`;
+- the points field and the maximum; on the active sub-grade, "from max" / "from 0" says whether the points of the
+  methods and mistakes count down from the maximum or up from zero (click to switch);
 - **Comment on the copy (C)**: the comment of this sub-grade, written next to its grade while you type.
   Emptying the field removes it.
+
+The inactive sub-grades take one line; their comment, if any, is shown as a line of text (click it to edit it).
 
 **General comment (G)**: the comment for the whole exercise.
 
 **Methods & mistakes**: see [Methods and mistakes](04-methods-and-mistakes.md).
 
-**Footer**: **‹ Previous** / **Next ungraded ›** open the previous/next copy where this exercise is not fully graded;
-**Mark position** / **Compute marks** (see [Marks](#marks)).
+**Footer**: **‹** / **Next ungraded ›** open the previous/next copy where this exercise is not fully graded;
+**Marks ▾**: **Mark position** / **Compute marks** (see [Marks](#marks)); **?** shows the keys.
 
 ### Keyboard in the panel
 
@@ -63,14 +63,14 @@ When the panel has the keyboard (click its empty space, or `Ctrl+Shift+G`):
 
 | Key | Action |
 |---|---|
-| `1`…`9` | put (or remove) the n-th scored comment of the active sub-grade |
+| `1`…`9` | put the n-th method or mistake of the card on the copy (its points count on the active sub-grade) |
+| `⌫` Backspace | remove the last method or mistake put on the copy for this exercise |
 | `0` | 0 points for the active sub-grade |
 | `=` or `+` | full points |
 | `↑` `↓`, `Enter` / `Shift+Enter` | previous / next sub-grade |
 | `←` `→` | previous / next copy |
 | `Tab` | the points field of the active sub-grade (`Shift+Tab`: its comment) |
 | `C` | the comment field of the active sub-grade |
-| `N` | new scored comment for the active sub-grade |
 | `G` | the general comment |
 | `Z` / `Shift+Z` | next / previous ungraded copy |
 | `Delete` | remove the comment selected on the copy (e.g. the one just placed) |
@@ -96,24 +96,17 @@ When a comment field gets the focus, or while you type, the comments of the eval
 Typing filters them (every word, accents and case ignored). `↓` selects one, `Enter` or a click writes it on the copy.
 The suggestions come from the comments written on the copies of the folder, whether from the panel or as free texts.
 
-## Scored comments
+## Points of the methods and mistakes
 
-A scored comment is a comment that adds or removes points, e.g. "Sign error −1" or "Nice method +0.5". It belongs to
-a sub-grade. When you put it on a copy, the grade of that sub-grade is computed from its maximum (or from 0) and the
-scored comments on the copy; a value typed by hand wins over them.
+Points are given or removed with the [methods and mistakes](04-methods-and-mistakes.md#points-and-comment): a mistake
+can remove points (e.g. "Sign error −1"), a method can add some, and each time it is put on a copy it writes its
+points (and its comment) next to the grade. The sub-grade is then computed from its maximum (or from 0, see "from
+max") and these points. A value typed by hand wins over them; right-click a grade → **Compute from the methods and
+mistakes** to go back to the computed value. When no method or mistake with points is left on a sub-grade, it gets
+back the value it had before.
 
-- Create them in the grading panel (**+ Add a scored comment**), in the scored comments list of the Grades tab (**+**),
-  or from an existing text (right-click → **Make it a scored comment**).
-- Put them on the copy from the grading panel (click, or `1`…`9`), or from the list of the Grades tab: click it, then
-  click on the page (`Shift+click` to place it several times, `Esc` to stop); `1`…`9` place the listed comments at
-  the mouse.
-- Right-click a scored comment on a copy: change its points **for this copy only**, reset it, save this version as a
-  new comment, or use this version for all the copies (the other copies are listed before being changed).
-- Changing or deleting a scored comment offers to update the copies that use it.
-- **Find in all copies** (right-click in the list): which copies have a given scored comment.
-- Right-click a grade → **Compute from scored comments** replaces a typed value by the computed one.
-
-The scored comments are kept per evaluation (grade scale), in the evaluation folder.
+(The "scored comments" of the previous versions are replaced by the methods and mistakes. Those already on copies keep
+counting.)
 
 ## Marks
 

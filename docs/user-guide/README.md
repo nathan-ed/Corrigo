@@ -12,8 +12,8 @@ still use that name for now.
 
 1. [Getting started](01-getting-started.md): opening copies, the window, saving, exporting, where data is stored
 2. [Annotating copies](02-annotating.md): texts and formulas, drawings and images, page tools, PDF tools
-3. [Grade scale and grading](03-grading.md): grade scale, grading panel, scored comments, comments, exercise mode, marks
-4. [Methods and mistakes](04-methods-and-mistakes.md): tagging copies, pills on the copy, class overview, reviewing copies
+3. [Grade scale and grading](03-grading.md): grade scale, grading panel, comments, exercise mode, marks
+4. [Methods and mistakes](04-methods-and-mistakes.md): tagging copies, their points and comments, pills on the copy, class overview, reviewing copies
 5. [Personal notes](05-notes.md): notes and screenshots for yourself
 6. [Giving the copies back](06-export.md): PDF export, marks to a spreadsheet, Moodle feedback files, skills
 7. [Keyboard shortcuts](07-shortcuts.md)
@@ -26,8 +26,8 @@ still use that name for now.
 3. In the **Grades** tab, build the grade scale (exercises and sub-questions with their points). Copy it to the other
    copies with the link icon.
 4. In the footer bar, turn on **Exercise** mode and set the page of each exercise with **Pages**.
-5. In the **Grading** panel, grade exercise 1 on every copy: points, scored comments, comments, methods and
-   mistakes. **Next ungraded ›** (or `Z`) opens the next copy at the same exercise. Then exercise 2, and so on.
+5. In the **Grading** panel, grade exercise 1 on every copy: points, comments, and the methods and
+   mistakes (which can add or remove points). **Next ungraded ›** (or `Z`) opens the next copy at the same exercise. Then exercise 2, and so on.
 6. Look at the class overview of the methods and mistakes, check doubtful copies with the previews.
 7. **Compute marks**, then export the copies (**File → Export all**) or send them through Moodle
    (**File → Export for Moodle…**).

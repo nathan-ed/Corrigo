@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2019-2024. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.document.render.display;
@@ -628,36 +629,35 @@ public class PageRenderer extends Pane {
         
     }
     
-    // Entries listed in the scored comments panel, then "New…"
-    private Menu getScoredCommentsMenu(double pageX, double pageY){
-        Menu scoredMenu = new Menu(TR.tr("scoredComments.pageMenu"));
-        List<ScoredComment> entries = MainWindow.gradeTab.scoredCommentPanel.getVisibleEntries();
-        for(int i = 0; i < Math.min(entries.size(), 20); i++){
-            ScoredComment entry = entries.get(i);
-            MenuItem item = new MenuItem(ScoredCommentGrades.render(entry.getText(), entry.getPoints(), MainWindow.gradesDigFormat));
-            item.setOnAction(e -> ScoredComments.place(entry, this, pageX, pageY));
-            scoredMenu.getItems().add(item);
+    // The methods and mistakes of the exercise being graded, to add one where the page was clicked
+    private Menu getTagsMenu(double pageX, double pageY){
+        Menu tagsMenu = new Menu(TR.tr("tags.pageMenu"));
+        String copy = fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTags.getOpenCopy();
+        var exercise = fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTags.getExercise();
+        if(copy == null || exercise == null){
+            tagsMenu.setDisable(true);
+            return tagsMenu;
         }
-        if(!scoredMenu.getItems().isEmpty()) scoredMenu.getItems().add(new SeparatorMenuItem());
-        MenuItem newEntry = new MenuItem(TR.tr("scoredComments.pageMenu.new"));
-        newEntry.setOnAction(e -> {
-            int before = ScoredComments.getCatalog().getComments().size();
-            MainWindow.gradeTab.scoredCommentPanel.createEntry(null);
-            List<ScoredComment> comments = ScoredComments.getCatalog().getComments();
-            if(comments.size() > before){
-                ScoredComments.disarm();
-                ScoredComments.place(comments.getLast(), this, pageX, pageY);
-            }
-        });
-        scoredMenu.getItems().add(newEntry);
-        return scoredMenu;
+        String exerciseName = exercise.getCore().getName();
+        var placement = new fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.EvaluationTags.Placement(getPage(), toGridX(pageX), toGridY(pageY));
+        var tags = fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTagsCard.getOrderedTags(exerciseName);
+        for(int i = 0; i < Math.min(tags.size(), 30); i++){
+            var tag = tags.get(i);
+            String label = tag.getPointsLabel(exerciseName, MainWindow.gradesDigFormat);
+            String points = label.isEmpty() ? "" : "  " + label;
+            MenuItem item = new MenuItem((i < 9 ? (i + 1) + "  " : "") + tag.getName() + points);
+            item.setOnAction(e -> fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagPicker.applyAt(copy, exerciseName, tag, placement));
+            tagsMenu.getItems().add(item);
+        }
+        if(tags.isEmpty()) tagsMenu.setDisable(true);
+        return tagsMenu;
     }
     
     public void showContextMenu(double pageX, double pageY, double screenX, double screenY){
         NodeMenuItem pnfMenuItem = new NodeMenuItem(TR.tr("pnf.add"), false);
         pnfMenuItem.setOnAction(e -> PNFAnnotationManager.addPNF(this, pageX, pageY));
         menu.getItems().add(pnfMenuItem);
-        menu.getItems().add(getScoredCommentsMenu(pageX, pageY));
+        menu.getItems().add(getTagsMenu(pageX, pageY));
         
         if(!MainWindow.gradeTab.treeView.getRoot().getChildren().isEmpty()){
             GradeTreeView.defineNaNLocations();

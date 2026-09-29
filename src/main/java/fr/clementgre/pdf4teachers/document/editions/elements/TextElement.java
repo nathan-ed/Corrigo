@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2021-2024. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.document.editions.elements;
@@ -170,10 +171,6 @@ public class TextElement extends Element {
             usages.setToolTip(TR.tr("textTab.usages.menu.tooltip"));
             usages.setOnAction(e -> new CommentUsagesWindow(getText()));
             menu.getItems().add(usages);
-            NodeMenuItem item6 = new NodeMenuItem(TR.tr("scoredComments.textMenu.create"), false);
-            item6.setToolTip(TR.tr("scoredComments.textMenu.create.tooltip"));
-            item6.setOnAction(e -> ScoredComments.convertTextElement(this));
-            menu.getItems().add(item6);
         }
         NodeMenuItem.setupMenu(menu);
         

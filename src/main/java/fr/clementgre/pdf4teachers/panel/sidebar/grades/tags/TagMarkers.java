@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2026. Clément Grennerat
- * All rights reserved. You must refer to the licence Apache 2.
+ * Copyright (c) 2026 Nathan
+ * Licensed under the Apache License, Version 2.0: see the LICENSE file.
+ * Part of a fork of PDF4Teachers (https://github.com/ClementGre/PDF4Teachers).
  */
 
 package fr.clementgre.pdf4teachers.panel.sidebar.grades.tags;
@@ -88,7 +89,7 @@ public final class TagMarkers {
             for(EvaluationTags.Use use : data.getUses(tag)){
                 if(!use.copy().equals(copy)) continue;
                 int page = use.placement().page();
-                if(page >= 0 && page < pages.size()) byPage.get(page).add(new Pill(tag, use.exercise(), use.placement()));
+                if(page >= 0 && page < pages.size()) byPage.get(page).add(new Pill(tag, use));
             }
         }
         for(int i = 0; i < pages.size(); i++){
@@ -115,8 +116,12 @@ public final class TagMarkers {
             getChildren().forEach(node -> node.setManaged(false));
         }
 
-        // First grade of the exercise on this page (top of the page first)
-        private GradeElement findGrade(String exercise){
+        // The grade the points count on if it is on this page, else the first grade of the exercise on this page
+        private GradeElement findGrade(String exercise, String gradePath){
+            GradeElement own = page.getElements().stream()
+                    .filter(element -> element instanceof GradeElement grade && grade.getPath().equals(gradePath))
+                    .map(element -> (GradeElement) element).findFirst().orElse(null);
+            if(own != null) return own;
             return page.getElements().stream()
                     .filter(element -> element instanceof GradeElement grade && exercise.equals(ExerciseLocator.getExercise(grade.getPath())))
                     .map(element -> (GradeElement) element)
@@ -151,7 +156,7 @@ public final class TagMarkers {
                     x = page.fromGridX(pill.placement.labelX());
                     y = page.fromGridY(pill.placement.labelY());
                 }else if(!pill.hasSpot()){ // Added from the panel: under the grade of the exercise, or in the margin
-                    GradeElement grade = findGrade(pill.exercise);
+                    GradeElement grade = findGrade(pill.exercise, pill.grade);
                     if(grade != null){
                         x = grade.getLayoutX();
                         y = grade.getLayoutY() + grade.getBoundsHeight() + 2;
@@ -186,12 +191,12 @@ public final class TagMarkers {
 
     private static final class Pill extends HBox {
         static final double DOT_RADIUS = 2.2;
-        // Page units (a page is 596 wide)
-        static final double MAX_NAME_WIDTH = 50;
         private static final double DRAG_THRESHOLD = 2;
         private final Tag tag;
         private final Placement placement;
         private final String exercise;
+        private final String useId; // The occurrence it shows
+        private final String grade; // Path of the grade its points count on
         private Layer layer;
         // Where it was put (a larger invisible handle to drag it), and the line from the pill to it
         private final Circle spot = new Circle(3);
@@ -203,15 +208,19 @@ public final class TagMarkers {
         private final javafx.scene.shape.Line link = new javafx.scene.shape.Line();
         private boolean hovered;
 
-        Pill(Tag tag, String exercise, Placement placement){
+        Pill(Tag tag, EvaluationTags.Use use){
             super(3);
             this.tag = tag;
-            this.placement = placement;
-            this.exercise = exercise;
+            this.placement = use.placement();
+            this.exercise = use.exercise();
+            this.useId = use.id();
+            this.grade = use.grade();
             String color = TagPicker.getColor(tag.getKind());
             Circle dot = new Circle(DOT_RADIUS, Color.WHITE);
-            Label name = new Label(tag.getName());
-            name.setMaxWidth(MAX_NAME_WIDTH); // Stays in the margin: long names are cut (whole in the tooltip)
+            // Whole: the pill is as long as the name (and its points)
+            String pointsLabel = tag.getPointsLabel(use.exercise(), MainWindow.gradesDigFormat);
+            Label name = new Label(tag.getName() + (pointsLabel.isEmpty() ? "" : "  " + pointsLabel));
+            name.setMinWidth(Region.USE_PREF_SIZE);
             name.setStyle("-fx-text-fill: white; -fx-font-size: " + FONT_SIZE + "; -fx-font-weight: bold;");
             getTransforms().add(labelScale);
             getChildren().addAll(dot, name);
@@ -245,8 +254,12 @@ public final class TagMarkers {
             nameLine.setStyle("-fx-font-weight: bold;");
             Label hintLine = new Label(TR.tr("tags.marker.tooltip"));
             hintLine.setStyle("-fx-opacity: .8;");
-            javafx.scene.layout.VBox lines = new javafx.scene.layout.VBox(2, kindLine, nameLine, hintLine);
-            for(Label line : new Label[]{kindLine, nameLine, hintLine}){
+            String written = TagEditFiles.describe(tag, use.exercise(), MainWindow.gradesDigFormat);
+            Label writtenLine = new Label(written.isEmpty() ? "" : TR.tr("tags.chip.written", written));
+            writtenLine.setManaged(!written.isEmpty());
+            writtenLine.setVisible(!written.isEmpty());
+            javafx.scene.layout.VBox lines = new javafx.scene.layout.VBox(2, kindLine, nameLine, writtenLine, hintLine);
+            for(Label line : new Label[]{kindLine, nameLine, writtenLine, hintLine}){
                 line.setMinHeight(Region.USE_PREF_SIZE);
                 line.setStyle(line.getStyle() + "-fx-font-size: 12px; -fx-text-fill: white;");
             }
@@ -345,8 +358,7 @@ public final class TagMarkers {
                 Placement moved = isSpot
                         ? placement.withSpot(page.toGridX(spot.getCenterX()), page.toGridY(spot.getCenterY()))
                         : placement.withLabel(page.toGridX(getLayoutX()), page.toGridY(getLayoutY()));
-                ExerciseTags.getData().add(copy, exercise, tag, moved);
-                ExerciseTags.fireChanged(true);
+                ExerciseTags.moveOccurrence(copy, useId, moved);
             });
             node.addEventHandler(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);
         }
@@ -356,22 +368,16 @@ public final class TagMarkers {
             String copy = ExerciseTags.getOpenCopy();
             if(copy == null) return;
             MenuItem remove = new MenuItem(TR.tr("tags.marker.remove"));
-            remove.setOnAction(a -> {
-                ExerciseTags.getData().remove(copy, exercise, tag);
-                ExerciseTags.fireChanged(true);
-            });
+            remove.setOnAction(a -> ExerciseTags.removeOccurrence(copy, useId));
             ContextMenu menu = new ContextMenu(remove);
             if(placement.hasLabelPosition()){ // Back in the margin
                 MenuItem reset = new MenuItem(TR.tr("tags.marker.resetPosition"));
-                reset.setOnAction(a -> {
-                    ExerciseTags.getData().add(copy, exercise, tag, placement.withLabel(Double.NaN, Double.NaN));
-                    ExerciseTags.fireChanged(true);
-                });
+                reset.setOnAction(a -> ExerciseTags.moveOccurrence(copy, useId, placement.withLabel(Double.NaN, Double.NaN)));
                 menu.getItems().add(reset);
             }
             menu.getItems().add(new SeparatorMenuItem());
             menu.getItems().addAll(ExerciseTagsCard.headed(TR.tr("tags.gallery.changeTo"), ExerciseTagsCard.buildTagChoices(getScene().getWindow(), exercise, tag.getKind(),
-                    other -> other != tag, other -> ExerciseTags.change(copy, exercise, tag, other, placement))));
+                    other -> other != tag, other -> ExerciseTags.changeOccurrence(copy, useId, other))));
             MenuItem hide = new MenuItem(TR.tr("tags.marker.hideAll"));
             hide.setOnAction(a -> setShown(false));
             menu.getItems().addAll(new SeparatorMenuItem(), hide);

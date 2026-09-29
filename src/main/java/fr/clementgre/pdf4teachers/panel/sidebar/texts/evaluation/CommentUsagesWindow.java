@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2026. Clément Grennerat
- * All rights reserved. You must refer to the licence Apache 2.
+ * Copyright (c) 2026 Nathan
+ * Licensed under the Apache License, Version 2.0: see the LICENSE file.
+ * Part of a fork of PDF4Teachers (https://github.com/ClementGre/PDF4Teachers).
  */
 
 package fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation;
@@ -36,6 +37,7 @@ import javafx.scene.layout.VBox;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -194,7 +196,8 @@ public class CommentUsagesWindow extends AlternativeWindow<VBox> {
 
         // The previews of each copy are rendered together (the PDF is read once)
         LinkedHashMap<File, List<CommentUsages.Usage>> byCopy = new LinkedHashMap<>();
-        LinkedHashMap<CommentUsages.Usage, StackPane> previews = new LinkedHashMap<>();
+        // By identity: two occurrences at the same place are two previews
+        IdentityHashMap<CommentUsages.Usage, StackPane> previews = new IdentityHashMap<>();
         for(CommentUsages.Usage usage : usages){
             StackPane preview = new StackPane(new ProgressIndicator());
             cards.getChildren().add(buildCard(usage, preview));

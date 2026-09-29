@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2020-2024. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.panel.sidebar.grades;
@@ -89,15 +90,10 @@ public class GradeTab extends SideTab {
         
         treeView = new GradeTreeView(this);
         treeView.prefHeightProperty().unbind();
+        // The scored comments are now the points of the methods and mistakes (grading panel): their list is not shown
         scoredCommentPanel = new ScoredCommentPanel();
-        scoredCommentPanel.setupTreeViewListener(treeView);
-        
-        SplitPane split = new SplitPane(treeView, scoredCommentPanel);
-        split.setOrientation(Orientation.VERTICAL);
-        split.setDividerPositions(.55);
-        SplitPane.setResizableWithParent(scoredCommentPanel, false);
-        VBox.setVgrow(split, Priority.ALWAYS);
-        pane.getChildren().addAll(optionPane, split);
+        VBox.setVgrow(treeView, Priority.ALWAYS);
+        pane.getChildren().addAll(optionPane, treeView);
         
     }
     

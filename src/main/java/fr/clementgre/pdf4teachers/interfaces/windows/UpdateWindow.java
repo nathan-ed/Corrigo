@@ -1,9 +1,12 @@
 /*
  * Copyright (c) 2020-2022. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.interfaces.windows;
+
+import fr.clementgre.pdf4teachers.AppLinks;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -32,12 +35,13 @@ public class UpdateWindow extends AlternativeWindow<VBox> {
     public static boolean error;
     
     public static boolean checkVersion(){
+        if(!AppLinks.CHECK_UPDATES) return false;
         
         ////////// GET LAST RELEASE INCLUDING PRE //////////
         String parsedVersion = null;
         HttpURLConnection con = null;
         try{
-            URL url = new URL("https://api.github.com/repos/clementgre/PDF4Teachers/tags");
+            URL url = new URL("https://api.github.com/repos/" + AppLinks.REPOSITORY + "/tags");
             con = (HttpURLConnection) url.openConnection();
             con.setDoOutput(true);
             con.setRequestProperty("Content-Type", "application/json; utf-8");
@@ -73,7 +77,7 @@ public class UpdateWindow extends AlternativeWindow<VBox> {
         String parsedDescription = null;
         con = null;
         try{
-            URL url = new URL("https://api.github.com/repos/clementgre/PDF4Teachers/releases/tags/" + parsedVersion);
+            URL url = new URL("https://api.github.com/repos/" + AppLinks.REPOSITORY + "/releases/tags/" + parsedVersion);
             
             con = (HttpURLConnection) url.openConnection();
             con.setDoOutput(true);
@@ -123,7 +127,7 @@ public class UpdateWindow extends AlternativeWindow<VBox> {
         ////////// GET LAST RELEASE WITHOUT PRE ////////// (isn't up to date && last is pre -> find the latest non-pre version)
         con = null;
         try{
-            URL url = new URL("https://api.github.com/repos/clementgre/PDF4Teachers/releases/latest");
+            URL url = new URL("https://api.github.com/repos/" + AppLinks.REPOSITORY + "/releases/latest");
             
             con = (HttpURLConnection) url.openConnection();
             con.setDoOutput(true);
@@ -208,7 +212,7 @@ public class UpdateWindow extends AlternativeWindow<VBox> {
         ignore.setOnAction((e) -> close());
         
         Button see = new Button(TR.tr("updateWindow.buttons.openDownloadPage"));
-        see.setOnAction(t -> Main.hostServices.showDocument("https://pdf4teachers.org/Download/?v=" + UpdateWindow.version));
+        see.setOnAction(t -> Main.hostServices.showDocument(AppLinks.RELEASES_URL + "/tag/" + UpdateWindow.version));
         
         String platform = "Linux";
         String extension = "deb";
@@ -222,7 +226,7 @@ public class UpdateWindow extends AlternativeWindow<VBox> {
                 platform = "MacOSX-Aarch64";
             }
         }
-        String url = "https://github.com/ClementGre/PDF4Teachers/releases/download/" +
+        String url = AppLinks.RELEASES_URL + "/download/" +
                 UpdateWindow.version + "/PDF4Teachers-" + platform + "-" + UpdateWindow.version + "." + extension;
         
         Button maj = new Button(TR.tr("updateWindow.buttons.directDownload"));

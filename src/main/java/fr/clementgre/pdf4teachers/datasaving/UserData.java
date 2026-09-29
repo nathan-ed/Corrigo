@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2021-2024. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.datasaving;
@@ -342,7 +343,7 @@ public class UserData {
     
                     boolean hasOpenedParamDoc = MainWindow.mainScreen.openFiles(LockManager.getToOpenFiles(Main.params), !Main.window.doOpenDocumentation); // Params
                     if(Main.window.doOpenDocumentation && !hasOpenedParamDoc){ // Documentation
-                        Platform.runLater(() -> MainWindow.mainScreen.openFile(TR.getDocFile(), true));
+                        Platform.runLater(TR::openUserGuide); // In the browser, with its outline
                         
                     }else if(new File(lastOpenedFile).exists() && !hasOpenedParamDoc){ // Last opened file
                         Platform.runLater(() -> MainWindow.mainScreen.openFile(new File(lastOpenedFile)));

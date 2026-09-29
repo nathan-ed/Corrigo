@@ -1,0 +1,13 @@
+This software is a modified version of PDF4Teachers.
+
+PDF4Teachers
+Copyright 2019-2025 Clément Grennerat and the PDF4Teachers contributors
+https://github.com/ClementGre/PDF4Teachers
+Licensed under the Apache License, Version 2.0 (see the LICENSE file).
+
+Modifications and additions (grading panel, scored comments, evaluation folders, methods and mistakes, marks,
+Moodle export, notes, user guide, and the other changes listed in the git history since the fork)
+Copyright 2025-2026 Nathan, licensed under the Apache License, Version 2.0.
+
+The files modified from PDF4Teachers say so in their header; the git history shows every change.
+"PDF4Teachers" is the name of the original project; this version is not made nor endorsed by its authors.

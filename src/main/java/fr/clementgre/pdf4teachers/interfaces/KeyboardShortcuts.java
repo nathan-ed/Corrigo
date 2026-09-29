@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2019-2023. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2025-2026.
  */
 
 package fr.clementgre.pdf4teachers.interfaces;
@@ -336,9 +337,9 @@ public class KeyboardShortcuts {
         }));
         
         /*******************************/
-        /*** LAZY: Scored comments *****/
+        /*** LAZY: Methods & mistakes ***/
         /*******************************/
-        // 1 to 9 place the n-th entry listed in the scored comments panel at the mouse position.
+        // 1 to 9 put the n-th method or mistake of the exercise at the mouse position.
         lazyShortcuts.add(new ShortcutRecord("",
                 new CustomKeyCombination(e -> {
             Integer number = MathUtils.parseIntFromKeyEventOrNull(e);
@@ -348,7 +349,10 @@ public class KeyboardShortcuts {
             // Text fields don't consume the KEY_PRESSED of the characters they receive.
             Node focus = Main.window.getScene().getFocusOwner();
             if(focus instanceof TextInputControl || focus instanceof Spinner<?> || focus instanceof ComboBoxBase<?>) return;
-            if(MainWindow.gradeTab.scoredCommentPanel.placeVisibleEntry(MathUtils.parseIntFromKeyEventOrNull(e) - 1)) e.consume();
+            // Nor when typed in a popup of the window (the # picker, its points field...)
+            if(e.getTarget() instanceof TextInputControl || fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagPicker.isOpen()) return;
+            // The n-th method or mistake of the exercise, where the mouse is
+            if(fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagPicker.applyAtMouse(MathUtils.parseIntFromKeyEventOrNull(e))) e.consume();
         }));
         lazyShortcuts.add(new ShortcutRecord("",
                 new KeyCodeCombination(KeyCode.ESCAPE), e -> {
@@ -408,6 +412,7 @@ public class KeyboardShortcuts {
             if(!"#".equals(e.getCharacter()) || !MainWindow.mainScreen.hasDocument(false)) return;
             Node focus = Main.window.getScene().getFocusOwner();
             if(focus instanceof TextInputControl || focus instanceof Spinner<?> || focus instanceof ComboBoxBase<?>) return;
+            if(e.getTarget() instanceof TextInputControl || TagPicker.isOpen()) return; // Typed in the picker
             e.consume();
             TagPicker.open();
         });
