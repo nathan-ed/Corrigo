@@ -17,3 +17,6 @@ class").
 
 Notes taken on a copy are stored in its evaluation folder (`.pdf4teachers/notes.yml`, screenshots in
 `.pdf4teachers/notes/`). Notes taken with no copy open are kept in the app's data folder.
+
+![The notes tab](../images/en/notes.png)
+![Right-click a page: a note, or a screenshot with a note](../images/en/page-menu.png)

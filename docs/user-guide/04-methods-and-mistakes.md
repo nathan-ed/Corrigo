@@ -31,6 +31,8 @@ The dialog shows it while you type. Changing the points or the comment updates a
 not, and their grades. A grade typed by hand stays until a method or mistake with points is put on its sub-grade; when
 none is left, it gets back that value.
 
+![Points and comment of a mistake](../images/en/points-and-comment.png)
+
 ## Tagging a copy
 
 **From the card** (Methods & mistakes, in the grading panel): click a tag to add it to the copy for this exercise, click
@@ -56,6 +58,8 @@ removes the last one put. With the mouse on the copy, `1`…`9` put the n-th tag
 Right-click a tag in the card for **Points and comment…**, to show its copies, open them one by one, rename it, make it a
 method/mistake, or delete it (you are warned if copies use it; what it wrote on them is removed and their grades are
 computed again). Deleting the text it wrote on a copy removes that occurrence.
+
+![The # window, at the spot of the mistake](../images/en/tag-picker.png)
 
 ## Pills on the copy
 
@@ -86,6 +90,8 @@ Under the tags, the card shows how many copies have a method for this exercise, 
 
 Click a row to see its copies.
 
+![The class overview of an exercise](../images/en/class-overview.png)
+
 ## Previews of the copies of a tag
 
 Clicking a tag's number, a row of the overview, or **Show the copies** opens previews of all the copies with the tag,
@@ -100,6 +106,10 @@ sliders (or `Ctrl` + scroll, `Ctrl +/-`) to compare many copies at once.
 
   The preview is then dimmed with a note ("→ Chain rule", "Removed"); right-click it again to undo.
 - **Open these copies one by one** starts a review of these copies (below).
+
+![Every copy with the mistake, side by side, the spot circled](../images/en/previews.png)
+![Right-click a preview: remove, change, or take a note, without opening the copy](../images/en/previews-menu.png)
+![Copies without a method: give them one from the preview](../images/en/without-method-menu.png)
 
 ## Reviewing copies one by one
 
@@ -116,6 +126,8 @@ go through these copies, each one opened at the tag's spot. A message says when 
 
 Typical uses: check that all the "Sign error" copies lost the same points, classify the copies without method, or
 re-read all the copies with an unexpected method.
+
+![Reviewing the copies of a mistake one by one](../images/en/review.png)
 
 ## Where tags are stored
 

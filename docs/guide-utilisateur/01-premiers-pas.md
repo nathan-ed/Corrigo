@@ -45,6 +45,11 @@ partir du scan de toutes les copies, en un seul PDF :
 Les copies sont ensuite listées dans l'onglet Fichiers, et la première s'ouvre dans le panneau de correction au
 premier exercice.
 
+![Étape 1 : le PDF scanné et le dossier de l'évaluation](../images/fr/new-evaluation-1-scan.png)
+![Étape 2 : les élèves, dans l'ordre du scan](../images/fr/new-evaluation-2-students.png)
+![Étape 3 : le haut de la première page de chaque copie, avec son nom de fichier](../images/fr/new-evaluation-3-pages.png)
+![Étape 4 : comment définir le barème](../images/fr/new-evaluation-4-scale.png)
+
 ## Ouvrir les copies
 
 - **Fichier → Ouvrir un ou plusieurs fichiers** (`Ctrl+O`) ajoute des PDF à l'onglet Fichiers ; **Fichier → Ouvrir un

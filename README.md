@@ -11,6 +11,29 @@ whole class, and give the copies back as PDFs or through Moodle. Annotations nev
 - [User guide (English)](docs/user-guide/README.md)
 - [Guide d'utilisation (français)](docs/guide-utilisateur/README.md)
 
+## See it
+
+**1. A new evaluation from the scan of the class**: the students in the order of the scan, one PDF per student, the
+grade scale with its exercises, pages and criteria.
+
+[![New evaluation](docs/videos/new-evaluation-en.webp)](docs/videos/new-evaluation-en.mp4)
+
+**2. Grading an exercise on every copy**: point at a mistake and press `#`, its points count; a comment for the
+student; the method of the next copy; comments already written are suggested.
+
+[![Grading](docs/videos/grading-en.webp)](docs/videos/grading-en.mp4)
+
+**3. The class**: methods and mistakes with the average points, every copy with a mistake side by side, a personal
+note with a screenshot, reviewing copies one by one, tagging copies without opening them.
+
+[![The class](docs/videos/class-en.webp)](docs/videos/class-en.mp4)
+
+Click an animation for the full video. In French:
+[nouvelle évaluation](docs/videos/new-evaluation-fr.mp4) ·
+[correction](docs/videos/grading-fr.mp4) · [la classe](docs/videos/class-fr.mp4).
+
+The copies of the videos and screenshots are fictional (students named after mathematicians).
+
 ## Based on PDF4Teachers
 
 Corrigo is a modified version of [PDF4Teachers](https://github.com/ClementGre/PDF4Teachers), by Clément Grennerat and

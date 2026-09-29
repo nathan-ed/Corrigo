@@ -13,6 +13,8 @@ The grade of each exercise is placed at the top right of its page, its sub-grade
 knows the page of each exercise. Drag the grades next to the questions if you like, then copy their positions to the
 other copies (link icon of the /20 tab). Change the scale later in the /20 tab.
 
+![The grade scale assistant: Ex 1 with two criteria, Ex 2 with sub-questions a and b](../images/en/scale-assistant.png)
+
 ## The grade scale (/20 tab)
 
 The grade scale is a tree: the total, the exercises, and their sub-questions, each with its points. The exercises are
@@ -50,6 +52,8 @@ exercises…**, or drag the grades onto the pages of their exercises.
 
 The panel shows the exercise being graded, its sub-grades, and everything to grade it quickly. `Ctrl+Shift+G` focuses
 it from anywhere.
+
+![Grading exercise 1: the mistake with its points, a comment next to the grade](../images/en/grading.png)
 
 **Header**: the exercise and its points, `‹ ›` for the previous/next exercise, the copy (e.g. "07_DUPONT.pdf · copy
 7/24") and a button per exercise to jump to its page (✓ when graded on this copy). The panel follows the page you are
@@ -114,6 +118,8 @@ When a comment field gets the focus, or while you type, the comments of the eval
 
 Typing filters them (every word, accents and case ignored). `↓` selects one, `Enter` or a click writes it on the copy.
 The suggestions come from the comments written on the copies of the folder, whether from the panel or as free texts.
+
+![Comments already written, suggested while typing](../images/en/comment-suggestions.png)
 
 ## Points of the methods and mistakes
 

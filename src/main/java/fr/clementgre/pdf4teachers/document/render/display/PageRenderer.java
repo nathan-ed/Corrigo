@@ -633,6 +633,7 @@ public class PageRenderer extends Pane {
     // The methods and mistakes of the exercise being graded, to add one where the page was clicked
     private Menu getTagsMenu(double pageX, double pageY){
         Menu tagsMenu = new Menu(TR.tr("tags.pageMenu"));
+        tagsMenu.setStyle("-fx-padding: 4 0 4 12;"); // Aligned with the other items of the menu
         String copy = corrigo.panel.sidebar.grades.tags.ExerciseTags.getOpenCopy();
         var exercise = corrigo.panel.sidebar.grades.tags.ExerciseTags.getExercise();
         if(copy == null || exercise == null){
@@ -705,10 +706,12 @@ public class PageRenderer extends Pane {
             }
         }
         
-        NodeMenuItem vectorsMenuItem = VectorListPane.getPagesMenuItem();
+        // Figures and images: only when their tab is shown (Modified by Nathan, 2026: hidden for now)
+        boolean paintShown = !fr.clementgre.pdf4teachers.panel.sidebar.SideBar.isHidden("paint");
+        NodeMenuItem vectorsMenuItem = paintShown ? VectorListPane.getPagesMenuItem() : null;
         if(vectorsMenuItem != null) menu.getItems().add(vectorsMenuItem);
         
-        if(Main.settings.pagesFastMenuShowImages.getValue()){
+        if(paintShown && Main.settings.pagesFastMenuShowImages.getValue()){
             NodeMenuItem imagesMenuItem = ImageListPane.getPagesMenuItem();
             if(imagesMenuItem != null) menu.getItems().add(imagesMenuItem);
         }

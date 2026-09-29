@@ -13,6 +13,8 @@ La note de chaque exercice est placée en haut à droite de sa page, ses sous-no
 l'application connaît la page de chaque exercice. Glissez les notes à côté des questions si vous voulez, puis recopiez
 leurs positions sur les autres copies (icône lien de l'onglet /20). L'onglet /20 sert ensuite à modifier le barème.
 
+![L'assistant de barème : Ex 1 avec deux critères, Ex 2 avec les sous-questions a et b](../images/fr/scale-assistant.png)
+
 ## Le barème (onglet /20)
 
 Le barème est un arbre : le total, les exercices, et leurs sous-questions, chacun avec ses points. Les exercices sont
@@ -52,6 +54,8 @@ page (par exemple dans un tableau en première page), le panneau l'indique : ind
 
 Le panneau montre l'exercice à corriger, ses sous-notes, et tout ce qu'il faut pour le corriger vite. `Ctrl+Maj+G` y
 va depuis n'importe où.
+
+![Correction de l'exercice 1 : l'erreur et ses points, un commentaire à côté de la note](../images/fr/grading.png)
 
 **En-tête** : l'exercice et ses points, `‹ ›` pour l'exercice précédent/suivant, la copie (par exemple
 « 07_DUPONT.pdf · copie 7/24 ») et un bouton par exercice pour aller à sa page (✓ quand il est corrigé sur cette copie).
@@ -121,6 +125,8 @@ proposés en dessous :
 Taper les filtre (chaque mot, sans tenir compte des accents ni des majuscules). `↓` en choisit un, `Entrée` ou un clic
 l'écrit sur la copie. Les propositions viennent des commentaires écrits sur les copies du dossier, depuis le panneau
 comme en texte libre.
+
+![Les commentaires déjà écrits, proposés pendant la frappe](../images/fr/comment-suggestions.png)
 
 ## Points des méthodes et erreurs
 

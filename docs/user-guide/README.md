@@ -9,6 +9,12 @@ Corrigo is a modified version of [PDF4Teachers](https://github.com/ClementGre/PD
 (Apache 2.0). It is not made nor endorsed by the authors of PDF4Teachers. At its first start, Corrigo copies the
 settings and lists of PDF4Teachers, if it was installed; PDF4Teachers keeps its own.
 
+## Demo videos
+
+- [A new evaluation from the scan](https://github.com/nathan-ed/PDF4Teachers/blob/master/docs/videos/new-evaluation-en.mp4)
+- [Grading an exercise](https://github.com/nathan-ed/PDF4Teachers/blob/master/docs/videos/grading-en.mp4)
+- [The class, previews, review and notes](https://github.com/nathan-ed/PDF4Teachers/blob/master/docs/videos/class-en.mp4)
+
 ## Contents
 
 1. [Getting started](01-getting-started.md): opening copies, the window, saving, exporting, where data is stored

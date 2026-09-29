@@ -41,6 +41,11 @@ of them, in one PDF:
 
 The copies are then listed in the Files tab, and the first one opens in the grading panel at the first exercise.
 
+![Step 1: the scanned PDF and the folder of the evaluation](../images/en/new-evaluation-1-scan.png)
+![Step 2: the students, in the order of the scan](../images/en/new-evaluation-2-students.png)
+![Step 3: the top of the first page of each copy, with its file name](../images/en/new-evaluation-3-pages.png)
+![Step 4: how to set the grade scale](../images/en/new-evaluation-4-scale.png)
+
 ## Opening copies
 
 - **File → Open file(s)** (`Ctrl+O`) adds PDF files to the Files tab; **File → Open folder** (`Ctrl+Shift+O`) adds

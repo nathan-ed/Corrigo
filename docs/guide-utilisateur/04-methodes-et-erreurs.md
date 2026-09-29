@@ -35,6 +35,8 @@ l'autre (seulement la pastille). La fenêtre le montre pendant que vous tapez. C
 à jour toutes les copies qui l'ont, ouvertes ou non, et leurs notes. Une note tapée à la main reste jusqu'à ce qu'une
 méthode ou erreur avec des points soit mise sur sa sous-note ; quand il n'en reste plus, elle reprend cette valeur.
 
+![Points et commentaire d'une erreur](../images/fr/points-and-comment.png)
+
 ## Classer une copie
 
 **Depuis la carte** (Méthodes & erreurs, dans le panneau de correction) : un clic sur une méthode ou une erreur
@@ -62,6 +64,8 @@ Clic droit sur une méthode ou une erreur dans la carte : **Points et commentair
 une par une, renommer, en faire une méthode/une erreur, ou la supprimer (vous êtes averti si des copies l'utilisent ;
 ce qu'elle y a écrit est enlevé et leurs notes sont recalculées). Supprimer sur une copie le texte qu'elle a écrit
 enlève cette occurrence.
+
+![La fenêtre #, à l'endroit de l'erreur](../images/fr/tag-picker.png)
 
 ## Pastilles sur la copie
 
@@ -94,6 +98,8 @@ Choisissez :
 
 Cliquez sur une ligne pour voir ses copies.
 
+![Le bilan de la classe pour un exercice](../images/fr/class-overview.png)
+
 ## Aperçus des copies d'une méthode ou d'une erreur
 
 Un clic sur son nombre, sur une ligne du bilan, ou **Afficher les copies** ouvre les aperçus de toutes les copies qui
@@ -110,6 +116,10 @@ l'ont, zoomés autour de l'endroit où elle a été mise, avec les points de cha
   d'annuler.
 - **Ouvrir ces copies une par une** lance le parcours de ces copies (ci-dessous).
 
+![Toutes les copies avec l'erreur, côte à côte, l'endroit entouré](../images/fr/previews.png)
+![Clic droit sur un aperçu : enlever, changer, ou prendre une note, sans ouvrir la copie](../images/fr/previews-menu.png)
+![Copies sans méthode : la leur donner depuis l'aperçu](../images/fr/without-method-menu.png)
+
 ## Parcourir les copies une par une
 
 Un parcours passe par un ensemble choisi de copies : celles qui ont une méthode ou une erreur (dans cet exercice, ou
@@ -125,6 +135,8 @@ arrivez à la première ou à la dernière. `✕` arrête le parcours.
 
 Utilisations typiques : vérifier que toutes les copies « Erreur de signe » ont perdu les mêmes points, classer les
 copies sans méthode, ou relire toutes les copies avec une méthode inattendue.
+
+![Parcourir une par une les copies d'une erreur](../images/fr/review.png)
 
 ## Où c'est enregistré
 

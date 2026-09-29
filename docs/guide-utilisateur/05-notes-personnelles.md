@@ -22,3 +22,6 @@ voisin ? », « bon exemple à montrer en classe »).
 Les notes prises sur une copie sont enregistrées dans le dossier de son évaluation (`.pdf4teachers/notes.yml`, les
 captures dans `.pdf4teachers/notes/`). Les notes prises sans copie ouverte sont gardées dans le dossier de données de
 l'application.
+
+![L'onglet Mes notes](../images/fr/notes.png)
+![Clic droit sur une page : une note, ou une capture avec une note](../images/fr/page-menu.png)

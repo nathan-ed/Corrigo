@@ -9,6 +9,7 @@ For each language, writes in src/main/resources/translations/:
 
 Needs the Python "markdown" package, and Chromium (or Google Chrome) for the PDF.
 """
+import base64
 import html as htmllib, os, re, shutil, subprocess, sys, tempfile, unicodedata
 import markdown
 
@@ -27,6 +28,7 @@ CSS = """
           --border: #3a3d42; --code: #2c2f34; --th: #243246; }
 }
 * { box-sizing: border-box; }
+main img { display: block; max-width: 100%; height: auto; margin: 14px 0 18px; border: 1px solid var(--border); border-radius: 6px; }
 html { scroll-behavior: smooth; scroll-padding-top: 16px; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Open Sans', 'Segoe UI', 'DejaVu Sans', sans-serif;
        font-size: 15px; line-height: 1.55; }
@@ -109,13 +111,19 @@ def build(language, folder, title, contents):
 
         def link(match):
             label, target = match.group(1), match.group(2)
-            if target.startswith('http'):
+            if target.startswith('http') or target.endswith(('.png', '.webp', '.mp4')):
                 return match.group(0)
             name, _, anchor = target.partition('#')
             name = name or file
             return f'[{label}](#{chapter_id(name)}{"--" + anchor if anchor else ""})'
         text = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', link, text)
         page = markdown.markdown(text, extensions=['tables', 'fenced_code', 'sane_lists'])
+        # Screenshots embedded: the guide is opened as a single file
+        def embed(m):
+            src = os.path.normpath(os.path.join(folder, m.group(1)))
+            data = base64.b64encode(open(src, 'rb').read()).decode()
+            return f'src="data:image/png;base64,{data}"'
+        page = re.sub(r'src="([^"]+\.png)"', embed, page)
 
         # Ids of the headings, unique in the whole guide; the outline lists the chapters and their sections
         chapter = {'title': None, 'id': None, 'sections': []}
