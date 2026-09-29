@@ -77,6 +77,9 @@ public class MenuBar extends javafx.scene.control.MenuBar {
     ////////// FILE //////////
     
     private final Menu file = new Menu(TR.tr("menuBar.file"));
+    // Modified by Nathan, 2026: a new evaluation from the scan of all its copies
+    private final MenuItem file0NewEvaluation = createMenuItem(TR.tr("menuBar.file.newEvaluation"), SVGPathIcons.PLUS, null,
+            TR.tr("menuBar.file.newEvaluation.tooltip"), false, false, false);
     public final MenuItem file1Open = createMenuItem(TR.tr("menuBar.file.openFiles"), SVGPathIcons.PDF_FILE, new KeyCodeCombination(KeyCode.O, KeyCombination.SHORTCUT_DOWN),
             TR.tr("menuBar.file.openFiles.tooltip"));
     
@@ -226,9 +229,9 @@ public class MenuBar extends javafx.scene.control.MenuBar {
         ////////// FILE //////////
         
         if(PlatformUtils.isMac()){
-            file.getItems().addAll(file1Open, file2OpenDir, file3Clear, new SeparatorMenuItem(), file4Save, file5Rename, file6Delete, file7Close, new SeparatorMenuItem(), file8Export, file9ExportAll, file9bExportMoodle);
+            file.getItems().addAll(file0NewEvaluation, new SeparatorMenuItem(), file1Open, file2OpenDir, file3Clear, new SeparatorMenuItem(), file4Save, file5Rename, file6Delete, file7Close, new SeparatorMenuItem(), file8Export, file9ExportAll, file9bExportMoodle);
         }else{
-            file.getItems().addAll(file1Open, file2OpenDir, file3Clear, new SeparatorMenuItem(), file4Save, file5Rename, file6Delete, file7Close, new SeparatorMenuItem(), file8Export, file9ExportAll, file9bExportMoodle, new SeparatorMenuItem(), file10Exit);
+            file.getItems().addAll(file0NewEvaluation, new SeparatorMenuItem(), file1Open, file2OpenDir, file3Clear, new SeparatorMenuItem(), file4Save, file5Rename, file6Delete, file7Close, new SeparatorMenuItem(), file8Export, file9ExportAll, file9bExportMoodle, new SeparatorMenuItem(), file10Exit);
         }
         
         ////////// EDIT //////////
@@ -317,6 +320,7 @@ public class MenuBar extends javafx.scene.control.MenuBar {
             
         });
         file9bExportMoodle.setOnAction(e -> new MoodleExportWindow().show());
+        file0NewEvaluation.setOnAction(e -> fr.clementgre.pdf4teachers.panel.sidebar.grades.NewEvaluationWizard.show());
         file10Exit.setOnAction(e -> MainWindow.requestCloseApp());
         
         ////////// EDIT //////////

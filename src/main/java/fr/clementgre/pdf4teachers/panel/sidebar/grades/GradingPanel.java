@@ -355,7 +355,7 @@ public class GradingPanel extends VBox {
             exerciseJumps.getChildren().clear();
             exerciseJumps.setVisible(false);
             tagsCard.setExercise(null);
-            Label empty = new Label(TR.tr("gradingPanel.noGradeScale"));
+            Label empty = new Label(TR.tr(MainWindow.mainScreen.hasDocument(false) ? "gradingPanel.noGradeScale" : "gradingPanel.noDocument"));
             empty.setWrapText(true);
             empty.setStyle("-fx-text-fill: " + palette.muted() + ";");
             sectionsBox.getChildren().add(empty);
@@ -364,6 +364,11 @@ public class GradingPanel extends VBox {
                 createScale.setStyle("-fx-background-color: " + palette.accent() + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 6 12; -fx-background-radius: 4;");
                 createScale.setOnAction(e -> GradeScaleSetupDialog.show());
                 sectionsBox.getChildren().add(createScale);
+            }else{
+                Button newEvaluation = new Button(TR.tr("menuBar.file.newEvaluation"));
+                newEvaluation.setStyle("-fx-background-color: " + palette.accent() + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 6 12; -fx-background-radius: 4;");
+                newEvaluation.setOnAction(e -> NewEvaluationWizard.show());
+                sectionsBox.getChildren().add(newEvaluation);
             }
             return;
         }
