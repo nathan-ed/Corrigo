@@ -6,7 +6,8 @@
 
 package fr.clementgre.pdf4teachers.panel.sidebar.texts;
 
-import fr.clementgre.pdf4teachers.utils.MathText;
+import corrigo.panel.sidebar.texts.TextCopyToFilesDialog;
+import corrigo.utils.MathText;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.application.Platform;
 import javafx.util.Duration;
@@ -14,7 +15,7 @@ import javafx.animation.PauseTransition;
 import javafx.scene.text.Text;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.image.ImageView;
-import fr.clementgre.pdf4teachers.document.editions.elements.MixedTextRenderer;
+import corrigo.document.editions.elements.MixedTextRenderer;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.FontComboBox;
 import fr.clementgre.pdf4teachers.components.ShortcutsTextArea;

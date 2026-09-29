@@ -12,7 +12,7 @@ import fr.clementgre.pdf4teachers.document.editions.elements.GradeElement;
 import fr.clementgre.pdf4teachers.document.editions.elements.TextElement;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeRating;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.Marks;
+import corrigo.panel.sidebar.grades.Marks;
 import fr.clementgre.pdf4teachers.utils.StringUtils;
 
 import java.io.File;

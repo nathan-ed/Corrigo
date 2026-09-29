@@ -6,13 +6,13 @@
 
 package fr.clementgre.pdf4teachers.interfaces.windows;
 
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTags;
-import fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation.EvaluationComments;
-import fr.clementgre.pdf4teachers.panel.sidebar.notes.TeacherNotes;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
+import corrigo.panel.sidebar.grades.tags.ExerciseTags;
+import corrigo.panel.sidebar.texts.evaluation.EvaluationComments;
+import corrigo.panel.sidebar.notes.TeacherNotes;
+import corrigo.panel.sidebar.grades.scoredcomments.ScoredComments;
 import javafx.scene.layout.HBox;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradingPanel;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradingTab;
+import corrigo.panel.sidebar.grades.GradingPanel;
+import corrigo.panel.sidebar.grades.GradingTab;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.datasaving.UserData;
 import fr.clementgre.pdf4teachers.document.render.convert.ConvertWindow;
@@ -26,8 +26,8 @@ import fr.clementgre.pdf4teachers.panel.FooterBar;
 import fr.clementgre.pdf4teachers.panel.MainScreen.MainScreen;
 import fr.clementgre.pdf4teachers.panel.MenuBar;
 import fr.clementgre.pdf4teachers.panel.sidebar.SideBar;
-import fr.clementgre.pdf4teachers.datasaving.evaluation.EvaluationFolders;
-import fr.clementgre.pdf4teachers.panel.sidebar.notes.NotesTab;
+import corrigo.datasaving.evaluation.EvaluationFolders;
+import corrigo.panel.sidebar.notes.NotesTab;
 import fr.clementgre.pdf4teachers.panel.sidebar.files.FileTab;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTab;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.PaintTab;

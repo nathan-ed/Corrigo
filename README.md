@@ -19,7 +19,7 @@ PDF4Teachers. See [NOTICE](NOTICE): the files changed from PDF4Teachers say so i
 shows every change.
 
 The code of PDF4Teachers keeps its package, `fr.clementgre.pdf4teachers`, so that its later changes can still be
-merged.
+merged. The code written for Corrigo is in `corrigo` (same sub-packages).
 
 ## Build and run
 

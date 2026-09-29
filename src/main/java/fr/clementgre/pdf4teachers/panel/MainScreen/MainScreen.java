@@ -6,9 +6,9 @@
 
 package fr.clementgre.pdf4teachers.panel.MainScreen;
 
-import fr.clementgre.pdf4teachers.datasaving.evaluation.KnownEvaluations;
-import fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation.EvaluationComments;
-import fr.clementgre.pdf4teachers.datasaving.evaluation.EvaluationFolders;
+import corrigo.datasaving.evaluation.KnownEvaluations;
+import corrigo.panel.sidebar.texts.evaluation.EvaluationComments;
+import corrigo.datasaving.evaluation.EvaluationFolders;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.document.Document;
 import fr.clementgre.pdf4teachers.document.editions.Edition;

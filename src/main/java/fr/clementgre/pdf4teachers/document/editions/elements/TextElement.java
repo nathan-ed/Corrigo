@@ -6,8 +6,10 @@
 
 package fr.clementgre.pdf4teachers.document.editions.elements;
 
-import fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation.CommentUsagesWindow;
-import fr.clementgre.pdf4teachers.utils.MathText;
+import corrigo.document.editions.elements.MixedTextRenderer;
+import corrigo.document.editions.elements.ScoredCommentElement;
+import corrigo.panel.sidebar.texts.evaluation.CommentUsagesWindow;
+import corrigo.utils.MathText;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.ScratchText;
 import fr.clementgre.pdf4teachers.components.menus.NodeMenuItem;
@@ -21,11 +23,11 @@ import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.interfaces.windows.log.Log;
 import fr.clementgre.pdf4teachers.panel.sidebar.SideBar;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredCommentGrades;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
+import corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentGrades;
+import corrigo.panel.sidebar.grades.scoredcomments.ScoredComments;
 import fr.clementgre.pdf4teachers.panel.sidebar.texts.TextTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.texts.TextTreeView;
-import fr.clementgre.pdf4teachers.panel.sidebar.texts.TextCopyToFilesDialog;
+import corrigo.panel.sidebar.texts.TextCopyToFilesDialog;
 import fr.clementgre.pdf4teachers.panel.sidebar.texts.TreeViewSections.TextTreeSection;
 import fr.clementgre.pdf4teachers.utils.MathUtils;
 import fr.clementgre.pdf4teachers.utils.StringUtils;

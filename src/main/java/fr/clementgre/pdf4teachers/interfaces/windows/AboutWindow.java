@@ -6,7 +6,7 @@
 
 package fr.clementgre.pdf4teachers.interfaces.windows;
 
-import fr.clementgre.pdf4teachers.AppLinks;
+import corrigo.AppLinks;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.utils.StagesUtils;

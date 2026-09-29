@@ -9,7 +9,7 @@ package fr.clementgre.pdf4teachers.datasaving;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.SyncColorPicker;
 import fr.clementgre.pdf4teachers.datasaving.simpleconfigs.SimpleConfig;
-import fr.clementgre.pdf4teachers.datasaving.evaluation.EvaluationFolders;
+import corrigo.datasaving.evaluation.EvaluationFolders;
 import fr.clementgre.pdf4teachers.interfaces.autotips.AutoTipsManager;
 import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.language.LanguagesUpdater;

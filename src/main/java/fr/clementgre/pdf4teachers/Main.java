@@ -6,6 +6,7 @@
 
 package fr.clementgre.pdf4teachers;
 
+import corrigo.AppLinks;
 import fr.clementgre.pdf4teachers.datasaving.SyncUserData;
 import fr.clementgre.pdf4teachers.datasaving.settings.Settings;
 import fr.clementgre.pdf4teachers.interfaces.autotips.AutoTipsManager;

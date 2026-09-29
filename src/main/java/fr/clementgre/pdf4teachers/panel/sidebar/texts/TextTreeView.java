@@ -6,8 +6,8 @@
 
 package fr.clementgre.pdf4teachers.panel.sidebar.texts;
 
-import fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation.CommentUsagesWindow;
-import fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation.EvaluationCommentsSection;
+import corrigo.panel.sidebar.texts.evaluation.CommentUsagesWindow;
+import corrigo.panel.sidebar.texts.evaluation.EvaluationCommentsSection;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.menus.NodeMenuItem;
 import fr.clementgre.pdf4teachers.datasaving.simpleconfigs.TextElementsData;

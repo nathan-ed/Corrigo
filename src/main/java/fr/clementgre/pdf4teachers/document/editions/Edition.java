@@ -6,10 +6,11 @@
 
 package fr.clementgre.pdf4teachers.document.editions;
 
-import fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation.EvaluationComments;
+import corrigo.document.editions.elements.*;
+import corrigo.panel.sidebar.texts.evaluation.EvaluationComments;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.datasaving.Config;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredCommentGrades;
+import corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentGrades;
 import fr.clementgre.pdf4teachers.document.Document;
 import fr.clementgre.pdf4teachers.document.editions.elements.*;
 import fr.clementgre.pdf4teachers.document.render.display.PageRenderer;
@@ -19,7 +20,7 @@ import fr.clementgre.pdf4teachers.interfaces.windows.log.Log;
 import fr.clementgre.pdf4teachers.panel.MainScreen.MainScreen;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
+import corrigo.panel.sidebar.grades.scoredcomments.ScoredComments;
 import fr.clementgre.pdf4teachers.panel.sidebar.skills.data.Notation;
 import fr.clementgre.pdf4teachers.panel.sidebar.skills.data.Skill;
 import fr.clementgre.pdf4teachers.panel.sidebar.skills.data.SkillsAssessment;
@@ -119,7 +120,7 @@ public class Edition{
             ScoredComments.onEditionLoaded();
             ScoredComments.fireChanged(false);
             EvaluationComments.onEditionLoaded();
-            fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTags.onEditionLoaded();
+            corrigo.panel.sidebar.grades.tags.ExerciseTags.onEditionLoaded();
             
             return true;
         }catch(IOException e){

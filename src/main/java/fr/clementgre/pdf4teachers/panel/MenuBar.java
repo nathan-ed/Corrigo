@@ -6,7 +6,7 @@
 
 package fr.clementgre.pdf4teachers.panel;
 
-import fr.clementgre.pdf4teachers.AppLinks;
+import corrigo.AppLinks;
 
 import de.jangassen.MenuToolkit;
 import fr.clementgre.pdf4teachers.Main;
@@ -31,7 +31,7 @@ import fr.clementgre.pdf4teachers.interfaces.windows.margin.MarginWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.settings.SettingsWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.splitpdf.SplitWindow;
 import fr.clementgre.pdf4teachers.panel.MainScreen.MainScreen;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.export.MoodleExportWindow;
+import corrigo.panel.sidebar.grades.export.MoodleExportWindow;
 import fr.clementgre.pdf4teachers.panel.sidebar.SideBar;
 import fr.clementgre.pdf4teachers.utils.FilesUtils;
 import fr.clementgre.pdf4teachers.utils.PlatformUtils;
@@ -320,7 +320,7 @@ public class MenuBar extends javafx.scene.control.MenuBar {
             
         });
         file9bExportMoodle.setOnAction(e -> new MoodleExportWindow().show());
-        file0NewEvaluation.setOnAction(e -> fr.clementgre.pdf4teachers.panel.sidebar.grades.NewEvaluationWizard.show());
+        file0NewEvaluation.setOnAction(e -> corrigo.panel.sidebar.grades.NewEvaluationWizard.show());
         file10Exit.setOnAction(e -> MainWindow.requestCloseApp());
         
         ////////// EDIT //////////

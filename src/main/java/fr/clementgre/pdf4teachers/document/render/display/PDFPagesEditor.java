@@ -6,6 +6,7 @@
 
 package fr.clementgre.pdf4teachers.document.render.display;
 
+import corrigo.document.editions.elements.*;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.document.Document;
 import fr.clementgre.pdf4teachers.document.editions.Edition;

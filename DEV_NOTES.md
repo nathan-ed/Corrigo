@@ -5,6 +5,8 @@ Last update: 2026-09-29, `master` (methods & mistakes with points and comment, r
 
 ## What exists
 
+The files written for Corrigo are in the `corrigo` package, with the same sub-packages as the PDF4Teachers code they sit next to (`corrigo.panel.sidebar.grades.tags`…); upstream files stay in `fr.clementgre.pdf4teachers`.
+
 | Feature | Where to use it | Main code |
 |---|---|---|
 | Grading panel (compact per-sub-grade sections, next ungraded copy) | Grading tab (list icon) | `panel/sidebar/grades/GradingPanel.java` |
@@ -43,6 +45,10 @@ Everything about an evaluation is stored in a hidden folder next to its copies:
 - `Config(File)` **creates the file**: only use it for files that exist.
 - App-wide data (`~/.local/share/PDF4Teachers/`): notes taken with no copy open (`teachernotes.yml` + `notes/`), `scoredcomments.yml` (backup and migration source), `evaluations.yml` (evaluation folders opened, for the cross-evaluation search).
 - Migrations: app-wide notes move into their evaluation folder when it is opened (all or nothing, old screenshots kept); scored comments catalogs are copied into the folder after the edition is loaded (`ScoredComments.onEditionLoaded`).
+
+- New evaluation (`NewEvaluationWizard`, pure part `NewEvaluationPlan`): scan → students → pages per copy (top of each first page shown) → scale (`GradeScaleSetupDialog`, or ratings from a .yml / another copy's edition written with `GradeCopyGradeScaleDialog.copyToFile`). Never writes over existing copies.
+- Exercise pages: no footer controls any more; the page of an exercise is the page of its first leaf grade, unless set in the panel menu (Plus ▾ → Pages des exercices…). `FooterBar.isExerciseCorrectionMode()` = grading tab selected; `areExercisePagesUnknown()` drives the panel banner.
+- Hidden tabs: `SideBar.HIDDEN_TABS` (paint, skills), code kept.
 
 ## Key rules and design decisions
 

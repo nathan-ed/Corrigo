@@ -6,6 +6,7 @@
 
 package fr.clementgre.pdf4teachers.panel.sidebar.grades;
 
+import corrigo.panel.sidebar.grades.ExerciseCorrectionWorkflow;
 import fr.clementgre.pdf4teachers.components.HBoxSpacer;
 import fr.clementgre.pdf4teachers.components.IconButton;
 import fr.clementgre.pdf4teachers.components.IconToggleButton;
@@ -19,7 +20,7 @@ import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.panel.sidebar.SideTab;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.export.GradeExportWindow;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredCommentPanel;
+import corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentPanel;
 import fr.clementgre.pdf4teachers.utils.StringUtils;
 import fr.clementgre.pdf4teachers.utils.fonts.FontUtils;
 import fr.clementgre.pdf4teachers.utils.svg.SVGPathIcons;

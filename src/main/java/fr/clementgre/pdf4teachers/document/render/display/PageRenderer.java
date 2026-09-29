@@ -6,6 +6,7 @@
 
 package fr.clementgre.pdf4teachers.document.render.display;
 
+import corrigo.document.editions.elements.*;
 import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.ScratchText;
@@ -21,10 +22,10 @@ import fr.clementgre.pdf4teachers.panel.MainScreen.MainScreen;
 import fr.clementgre.pdf4teachers.panel.sidebar.SideBar;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.PNFAnnotationManager;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComment;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredCommentGrades;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
+import corrigo.panel.sidebar.grades.PNFAnnotationManager;
+import corrigo.panel.sidebar.grades.scoredcomments.ScoredComment;
+import corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentGrades;
+import corrigo.panel.sidebar.grades.scoredcomments.ScoredComments;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.PaintTab;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.gridviewfactory.ImageGridElement;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.gridviewfactory.VectorGridElement;
@@ -632,21 +633,21 @@ public class PageRenderer extends Pane {
     // The methods and mistakes of the exercise being graded, to add one where the page was clicked
     private Menu getTagsMenu(double pageX, double pageY){
         Menu tagsMenu = new Menu(TR.tr("tags.pageMenu"));
-        String copy = fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTags.getOpenCopy();
-        var exercise = fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTags.getExercise();
+        String copy = corrigo.panel.sidebar.grades.tags.ExerciseTags.getOpenCopy();
+        var exercise = corrigo.panel.sidebar.grades.tags.ExerciseTags.getExercise();
         if(copy == null || exercise == null){
             tagsMenu.setDisable(true);
             return tagsMenu;
         }
         String exerciseName = exercise.getCore().getName();
-        var placement = new fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.EvaluationTags.Placement(getPage(), toGridX(pageX), toGridY(pageY));
-        var tags = fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.ExerciseTagsCard.getOrderedTags(exerciseName);
+        var placement = new corrigo.panel.sidebar.grades.tags.EvaluationTags.Placement(getPage(), toGridX(pageX), toGridY(pageY));
+        var tags = corrigo.panel.sidebar.grades.tags.ExerciseTagsCard.getOrderedTags(exerciseName);
         for(int i = 0; i < Math.min(tags.size(), 30); i++){
             var tag = tags.get(i);
             String label = tag.getPointsLabel(exerciseName, MainWindow.gradesDigFormat);
             String points = label.isEmpty() ? "" : "  " + label;
             MenuItem item = new MenuItem((i < 9 ? (i + 1) + "  " : "") + tag.getName() + points);
-            item.setOnAction(e -> fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagPicker.applyAt(copy, exerciseName, tag, placement));
+            item.setOnAction(e -> corrigo.panel.sidebar.grades.tags.TagPicker.applyAt(copy, exerciseName, tag, placement));
             tagsMenu.getItems().add(item);
         }
         if(tags.isEmpty()) tagsMenu.setDisable(true);
@@ -660,9 +661,9 @@ public class PageRenderer extends Pane {
         menu.getItems().add(getTagsMenu(pageX, pageY));
         // Personal notes (never on the copy): about this page, or with a screenshot of a part of it
         NodeMenuItem noteItem = new NodeMenuItem(TR.tr("notes.pageMenu.note"), false);
-        noteItem.setOnAction(e -> fr.clementgre.pdf4teachers.panel.sidebar.notes.TeacherNotes.captureTextNote(this));
+        noteItem.setOnAction(e -> corrigo.panel.sidebar.notes.TeacherNotes.captureTextNote(this));
         NodeMenuItem screenshotItem = new NodeMenuItem(TR.tr("notes.pageMenu.screenshot"), false);
-        screenshotItem.setOnAction(e -> fr.clementgre.pdf4teachers.panel.sidebar.notes.TeacherNotes.captureScreenshotNote());
+        screenshotItem.setOnAction(e -> corrigo.panel.sidebar.notes.TeacherNotes.captureScreenshotNote());
         menu.getItems().addAll(noteItem, screenshotItem);
         
         if(!MainWindow.gradeTab.treeView.getRoot().getChildren().isEmpty()){

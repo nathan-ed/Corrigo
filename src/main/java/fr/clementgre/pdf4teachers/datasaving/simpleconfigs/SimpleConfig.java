@@ -7,6 +7,9 @@
 package fr.clementgre.pdf4teachers.datasaving.simpleconfigs;
 
 
+import corrigo.datasaving.simpleconfigs.ExerciseCorrectionData;
+import corrigo.datasaving.simpleconfigs.ScoredCommentsData;
+import corrigo.datasaving.simpleconfigs.TeacherNotesData;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.datasaving.Config;
 import fr.clementgre.pdf4teachers.datasaving.UserData;

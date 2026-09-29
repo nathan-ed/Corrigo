@@ -7,7 +7,7 @@
 package fr.clementgre.pdf4teachers.interfaces;
 
 
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagPicker;
+import corrigo.panel.sidebar.grades.tags.TagPicker;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.KeyableHBox;
 import fr.clementgre.pdf4teachers.document.editions.elements.Element;
@@ -19,8 +19,8 @@ import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.panel.sidebar.SideBar;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
-import fr.clementgre.pdf4teachers.panel.sidebar.grades.scoredcomments.ScoredComments;
-import fr.clementgre.pdf4teachers.panel.sidebar.notes.TeacherNotes;
+import corrigo.panel.sidebar.grades.scoredcomments.ScoredComments;
+import corrigo.panel.sidebar.notes.TeacherNotes;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.gridviewfactory.ImageGridElement;
 import fr.clementgre.pdf4teachers.panel.sidebar.paint.gridviewfactory.VectorGridElement;
 import fr.clementgre.pdf4teachers.panel.sidebar.texts.TextTreeItem;
@@ -350,9 +350,9 @@ public class KeyboardShortcuts {
             Node focus = Main.window.getScene().getFocusOwner();
             if(focus instanceof TextInputControl || focus instanceof Spinner<?> || focus instanceof ComboBoxBase<?>) return;
             // Nor when typed in a popup of the window (the # picker, its points field...)
-            if(e.getTarget() instanceof TextInputControl || fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagPicker.isOpen()) return;
+            if(e.getTarget() instanceof TextInputControl || corrigo.panel.sidebar.grades.tags.TagPicker.isOpen()) return;
             // The n-th method or mistake of the exercise, where the mouse is
-            if(fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagPicker.applyAtMouse(MathUtils.parseIntFromKeyEventOrNull(e))) e.consume();
+            if(corrigo.panel.sidebar.grades.tags.TagPicker.applyAtMouse(MathUtils.parseIntFromKeyEventOrNull(e))) e.consume();
         }));
         lazyShortcuts.add(new ShortcutRecord("",
                 new KeyCodeCombination(KeyCode.ESCAPE), e -> {

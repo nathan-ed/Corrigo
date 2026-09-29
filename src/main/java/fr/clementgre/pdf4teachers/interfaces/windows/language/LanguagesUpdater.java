@@ -6,7 +6,7 @@
 
 package fr.clementgre.pdf4teachers.interfaces.windows.language;
 
-import fr.clementgre.pdf4teachers.AppLinks;
+import corrigo.AppLinks;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
