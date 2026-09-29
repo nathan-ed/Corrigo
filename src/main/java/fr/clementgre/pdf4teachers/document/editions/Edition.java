@@ -118,6 +118,7 @@ public class Edition{
             ScoredComments.onEditionLoaded();
             ScoredComments.fireChanged(false);
             EvaluationComments.onEditionLoaded();
+            fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagMarkers.update();
             
             return true;
         }catch(IOException e){

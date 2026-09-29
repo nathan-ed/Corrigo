@@ -62,7 +62,52 @@ public class CommentUsagesWindow extends AlternativeWindow<VBox> {
     public interface Source {
         void load(Consumer<List<CommentUsages.Usage>> onFolder, Runnable onDone);
     }
+    /**
+     * Actions on a copy without opening it: the right-click menu of its preview (null: none), and buttons next to OK.
+     * An action done on a card marks it as done (dimmed, with a note) and may be undone from the same menu.
+     */
+    public record Actions(java.util.function.BiFunction<CommentUsages.Usage, Card, List<javafx.scene.control.MenuItem>> cardMenu, List<Button> buttons) {}
+    public static final class Card {
+        private final VBox node;
+        private final StackPane preview;
+        private final Label note = new Label();
+        private Runnable undo;
+        // holder: first child of the card, holding the preview (the note is shown over it)
+        Card(VBox node, StackPane holder, StackPane preview){
+            this.node = node;
+            this.preview = preview;
+            note.setWrapText(true);
+            note.setStyle("-fx-font-weight: bold; -fx-font-size: 15; -fx-text-fill: white; -fx-background-color: rgba(30,30,30,.85); -fx-background-radius: 6; -fx-padding: 6 12;");
+            note.setVisible(false);
+            StackPane.setAlignment(note, Pos.TOP_CENTER);
+            StackPane.setMargin(note, new Insets(40, 10, 0, 10));
+            holder.getChildren().add(note);
+        }
+        // The action is done on this copy: undo restores it
+        public void setDone(String text, Runnable undo){
+            this.undo = undo;
+            note.setText(text + "   ·   " + TR.tr("textTab.usages.undoHint"));
+            note.setVisible(true);
+            preview.setOpacity(.35);
+        }
+        // Window of the card, to own the dialogs opened from its menu
+        public javafx.stage.Window getWindow(){
+            return node.getScene() == null ? null : node.getScene().getWindow();
+        }
+        public boolean isDone(){
+            return undo != null;
+        }
+        public void undo(){
+            if(undo == null) return;
+            Runnable action = undo;
+            undo = null;
+            action.run();
+            note.setVisible(false);
+            preview.setOpacity(1);
+        }
+    }
     private final Source source;
+    private final Actions actions;
     private final String emptyText;
     private final Label status = new Label(TR.tr("textTab.usages.searching"));
     private final VBox results = new VBox(18);
@@ -80,10 +125,14 @@ public class CommentUsagesWindow extends AlternativeWindow<VBox> {
         this(TR.tr("textTab.usages.title"), shorten(text), (onFolder, onDone) -> CommentUsages.search(text, onFolder, onDone), TR.tr("textTab.usages.none"));
     }
     public CommentUsagesWindow(String header, String subHeader, Source source, String emptyText){
+        this(header, subHeader, source, emptyText, null);
+    }
+    public CommentUsagesWindow(String header, String subHeader, Source source, String emptyText, Actions actions){
         // Tall from the start: the previews arrive after the window is shown
         super(new VBox(10), StageWidth.ULTRA_LARGE, getInitialHeight(), header, header, subHeader);
         this.source = source;
         this.emptyText = emptyText;
+        this.actions = actions;
         setOnHidden(e -> renderer.shutdownNow());
     }
 
@@ -122,7 +171,11 @@ public class CommentUsagesWindow extends AlternativeWindow<VBox> {
 
         Button close = new Button(TR.tr("actions.ok"));
         close.setOnAction(e -> close());
-        setButtons(close);
+        if(actions != null && !actions.buttons().isEmpty()){
+            ArrayList<Button> buttons = new ArrayList<>(actions.buttons());
+            buttons.add(close);
+            setButtons(buttons.toArray(Button[]::new));
+        }else setButtons(close);
 
         source.load(this::addFolder, () -> status.setText(copies == 0 ? emptyText
                 : TR.tr("textTab.usages.count", String.valueOf(copies), String.valueOf(evaluations))));
@@ -184,16 +237,32 @@ public class CommentUsagesWindow extends AlternativeWindow<VBox> {
         label.maxWidthProperty().bind(cardWidth);
         label.setStyle("-fx-font-size: 12;");
 
-        VBox card = new VBox(4, preview, label);
+        StackPane holder = new StackPane(preview);
+        VBox card = new VBox(4, holder, label);
         card.setAlignment(Pos.TOP_CENTER);
         card.setPadding(new Insets(5));
         card.setCursor(Cursor.HAND);
         card.setStyle("-fx-border-color: rgba(128,128,128,.45); -fx-border-radius: 5; -fx-background-radius: 5;");
-        Tooltip.install(card, new Tooltip(TR.tr("textTab.usages.open")));
+        Tooltip.install(card, new Tooltip(TR.tr(actions != null && actions.cardMenu() != null ? "textTab.usages.openOrMenu" : "textTab.usages.open")));
         card.setOnMouseClicked(e -> {
+            if(e.getButton() != javafx.scene.input.MouseButton.PRIMARY) return;
             close();
             EvaluationComments.openCopyAt(usage.copy(), usage.page());
         });
+        if(actions != null && actions.cardMenu() != null){
+            Card handle = new Card(card, holder, preview);
+            card.setOnContextMenuRequested(e -> {
+                List<javafx.scene.control.MenuItem> items;
+                if(handle.isDone()){
+                    javafx.scene.control.MenuItem undo = new javafx.scene.control.MenuItem(TR.tr("textTab.usages.undo"));
+                    undo.setOnAction(a -> handle.undo());
+                    items = List.of(undo);
+                }else items = actions.cardMenu().apply(usage, handle);
+                if(items.isEmpty()) return;
+                new javafx.scene.control.ContextMenu(items.toArray(javafx.scene.control.MenuItem[]::new)).show(card, e.getScreenX(), e.getScreenY());
+                e.consume();
+            });
+        }
         return card;
     }
 

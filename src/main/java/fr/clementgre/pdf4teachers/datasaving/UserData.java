@@ -56,6 +56,9 @@ public class UserData {
     public boolean multiPagesMode;
     @UserDataObject(path = "mainScreen.editPagesMode")
     public boolean editPagesMode;
+    // Methods and mistakes not shown on the pages of the copy (stored inverted: a missing boolean is read as false)
+    @UserDataObject(path = "grading.hideTagMarkers")
+    public boolean hideTagMarkers;
     
     // FILES (FilesTab)
     @UserDataObject(path = "files.lastFile")

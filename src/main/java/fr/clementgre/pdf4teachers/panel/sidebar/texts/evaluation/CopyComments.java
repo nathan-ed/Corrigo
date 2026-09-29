@@ -35,7 +35,7 @@ public final class CopyComments {
                 String gradeComment = text.get(KEY_GRADE_COMMENT) instanceof String path ? path : null;
                 double y = number(text.get("y"));
                 String exercise = ExerciseLocator.locate(pageIndex, y, gradeComment, grades, exercisePages, exerciseOrder);
-                occurrences.add(new CommentBank.Occurrence(String.valueOf(text.get("text")), pageIndex, number(text.get("x")), y, exercise, readStyle(text)));
+                occurrences.add(new CommentBank.Occurrence(String.valueOf(text.get("text")), pageIndex, number(text.get("x")), y, exercise, readStyle(text), gradeComment));
             }
         }
         return occurrences;

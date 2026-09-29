@@ -22,6 +22,61 @@ class CommentBankTest {
         return bank.getEntries().stream().filter(e -> e.getText().equals(text) && Objects.equals(e.getFoundExercise(), exercise)).findFirst().orElse(null);
     }
 
+    private static CommentBank.Occurrence field(String text, String exercise, String field){
+        return new CommentBank.Occurrence(text, 0, 0, 0, exercise, RED, field);
+    }
+    private static List<String> texts(List<CommentBank.Entry> entries){
+        return entries.stream().map(CommentBank.Entry::getText).toList();
+    }
+
+    @Test
+    void suggestsTheCommentsOfTheFieldThenOfTheExerciseThenTheOthers(){
+        CommentBank bank = new CommentBank();
+        bank.updateCopy("1_A.pdf", List.of(field("Justifier le calcul", "Q1", "Total\\Q1\\a"), field("Unités !", "Q2", "Total\\Q2"),
+                occ("Soigner la présentation", null)), 1);
+        bank.updateCopy("2_B.pdf", List.of(field("Unités !", "Q2", "Total\\Q2"), field("Erreur de signe", "Q1", "Total\\Q1\\b")), 2);
+        bank.updateCopy("3_C.pdf", List.of(field("Unités !", "Q2", "Total\\Q2"), field("Bien", "Q1", "Total\\Q1\\a")), 3);
+        // Field Q1 a: its comments (the most used first... then the newest), then Q1, then the others (the most used first)
+        assertEquals(List.of("Bien", "Justifier le calcul", "Erreur de signe", "Unités !", "Soigner la présentation"),
+                texts(bank.suggest("Total\\Q1\\a", "Q1", "", 10)));
+        assertEquals(List.of("Unités !", "Bien", "Erreur de signe"), texts(bank.suggest("Total\\Q2", "Q2", "", 3)));
+        // Every typed word, case and accents ignored; not the typed comment itself
+        assertEquals(List.of("Soigner la présentation"), texts(bank.suggest("Total\\Q1\\a", "Q1", "PRESENT soig", 10)));
+        assertEquals(List.of(), texts(bank.suggest("Total\\Q1\\a", "Q1", "bien", 10)));
+    }
+
+    @Test
+    void aSameTextIsSuggestedOnce(){
+        CommentBank bank = new CommentBank();
+        bank.updateCopy("1_A.pdf", List.of(field("Justifier", "Q1", "Total\\Q1"), field("Justifier", "Q2", "Total\\Q2")), 1);
+        List<CommentBank.Entry> suggested = bank.suggest("Total\\Q2", "Q2", "", 10);
+        assertEquals(1, suggested.size());
+        assertEquals("Q2", suggested.getFirst().getExercise());
+    }
+
+    @Test
+    void theTextsTypedBeforeTheFinalCommentAreForgotten(){
+        CommentBank bank = new CommentBank();
+        bank.updateCopy("2_B.pdf", List.of(field("Just", "Q1", "Total\\Q1")), 1); // Also used elsewhere: kept
+        bank.updateCopy("1_A.pdf", List.of(field("Just", "Q1", "Total\\Q1")), 1);
+        bank.updateCopy("1_A.pdf", List.of(field("Justifi", "Q1", "Total\\Q1")), 2);
+        bank.updateCopy("1_A.pdf", List.of(field("Justifier", "Q1", "Total\\Q1")), 3);
+        assertEquals(List.of("Just", "Justifier"), bank.getEntries().stream().map(CommentBank.Entry::getText).toList());
+        // A comment removed from the copy (not replaced) is kept
+        bank.updateCopy("1_A.pdf", List.of(), 4);
+        assertNotNull(find(bank, "Justifier", "Q1"));
+    }
+
+    @Test
+    void theFieldsAreSavedAndReadBack(){
+        CommentBank bank = new CommentBank();
+        bank.updateCopy("1_A.pdf", List.of(field("Justifier", "Q1", "Total\\Q1")), 1);
+        bank.updateCopy("1_A.pdf", List.of(), 2); // Not on a copy any more: still of this field
+        CommentBank read = CommentBank.fromYAML(bank.toYAML());
+        assertEquals(1, find(read, "Justifier", "Q1").getUsesInField("Total\\Q1"));
+        assertEquals(0, find(read, "Justifier", "Q1").getUsesInField("Total\\Q2"));
+    }
+
     @Test
     void countsTheCopiesUsingEachComment(){
         CommentBank bank = new CommentBank();

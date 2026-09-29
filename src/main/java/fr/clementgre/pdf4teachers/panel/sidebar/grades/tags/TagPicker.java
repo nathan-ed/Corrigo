@@ -35,7 +35,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Popup opened with # at the mouse: search the methods and mistakes of the exercise being graded, or type a new one.
+ * Popup opened with # at the mouse: search the methods and mistakes (those of the exercise being graded first, then
+ * the others), or type a new one.
  * Enter adds it to the copy (where the mouse is) or removes it; Tab switches between method and mistake for a new one.
  */
 public final class TagPicker {
@@ -105,6 +106,7 @@ public final class TagPicker {
 
         ListView<Object> list = new ListView<>();
         list.setFocusTraversable(false);
+        list.setFixedCellSize(30);
         list.setCellFactory(view -> new ListCell<>() {
             { // The selected row is on the accent color: the colored texts become white
                 selectedProperty().addListener((o, oldValue, newValue) -> updateItem(getItem(), isEmpty()));
@@ -129,9 +131,10 @@ public final class TagPicker {
                 Label name = new Label(tag.getName());
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
-                Label count = new Label(String.valueOf(data.getCopies(tag).size()));
+                int copies = data.getCopies(exerciseName, tag).size(); // In this exercise
+                Label count = new Label(copies == 0 ? "" : String.valueOf(copies));
                 count.setStyle("-fx-font-size: 11; -fx-opacity: .7;");
-                Label check = new Label(data.has(copy, tag) ? "✓" : "");
+                Label check = new Label(data.has(copy, exerciseName, tag) ? "✓" : "");
                 check.setMinWidth(14);
                 check.setStyle("-fx-font-weight: bold;");
                 HBox row = new HBox(8, dot, name, spacer, count, check);
@@ -146,7 +149,7 @@ public final class TagPicker {
             for(Tag tag : data.getTags(exerciseName)){
                 if(query.isEmpty() || tag.getName().toLowerCase(Locale.ROOT).contains(query)) items.add(tag);
             }
-            if(!query.isEmpty() && data.find(exerciseName, field.getText()).isEmpty()) items.add(new Create(field.getText().strip()));
+            if(!query.isEmpty() && data.find(field.getText()).isEmpty()) items.add(new Create(field.getText().strip()));
             list.getItems().setAll(items);
             list.getSelectionModel().selectFirst();
             // As high as its rows, up to 7 rows
@@ -182,7 +185,15 @@ public final class TagPicker {
             else if(item instanceof Create create) tag = data.create(exerciseName, create.name(), method.isSelected() ? Kind.METHOD : Kind.MISTAKE);
             else return;
             popup.hide();
-            boolean has = ExerciseTags.toggleOnOpenCopy(tag, placement);
+            // Already on the copy, pointed elsewhere: moved here; pointed at it (or not on a page): removed
+            Placement current = data.getPlacement(copy, exerciseName, tag);
+            if(current != null && !ExerciseTags.isExerciseSpot(placement) && !ExerciseTags.isNear(current, placement)){
+                data.add(copy, exerciseName, tag, placement);
+                ExerciseTags.fireChanged(true);
+                MainWindow.footerBar.showToast(Color.web(getColor(tag.getKind())), Color.WHITE, TR.tr("tags.picker.moved", tag.getName()));
+                return;
+            }
+            boolean has = ExerciseTags.toggleOnOpenCopy(exerciseName, tag, placement);
             MainWindow.footerBar.showToast(Color.web(getColor(tag.getKind())), Color.WHITE,
                     TR.tr(has ? "tags.picker.added" : "tags.picker.removed", tag.getName()));
         };

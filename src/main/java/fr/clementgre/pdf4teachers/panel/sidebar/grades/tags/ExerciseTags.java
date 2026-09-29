@@ -29,6 +29,7 @@ public final class ExerciseTags {
 
     // Grid size of a page (Element.GRID_WIDTH / GRID_HEIGHT)
     private static final double GRID_WIDTH = 165400, GRID_HEIGHT = 233900;
+    private static final double EXERCISE_SPOT_X = GRID_WIDTH * 0.1, EXERCISE_SPOT_Y = GRID_HEIGHT * 0.12;
 
     private static EvaluationTags data = new EvaluationTags();
     private static final SimpleLongProperty revision = new SimpleLongProperty();
@@ -40,11 +41,13 @@ public final class ExerciseTags {
         @Override public void load(File folder, Config config){
             data = EvaluationTags.fromYAML(config.base);
             fireChanged(false);
+            TagMarkers.update();
         }
         @Override public void unload(File folder){
             data = new EvaluationTags();
             TagReview.stop();
             fireChanged(false);
+            TagMarkers.update();
         }
         @Override public void write(File folder, Config config){
             config.base.putAll(data.toYAML());
@@ -66,6 +69,7 @@ public final class ExerciseTags {
     public static void fireChanged(boolean save){
         if(save) EvaluationFolders.requestSave(FOLDER_PART);
         revision.set(revision.get() + 1);
+        if(save) TagMarkers.update();
     }
 
     // CONTEXT
@@ -104,18 +108,36 @@ public final class ExerciseTags {
     public static Placement getExercisePlacement(){
         int index = MainWindow.footerBar == null ? -1 : MainWindow.footerBar.getSelectedExerciseIndex();
         OptionalInt page = index < 0 ? OptionalInt.empty() : MainWindow.footerBar.getExercisePage(index);
-        return new Placement(page.orElse(0), GRID_WIDTH * 0.1, GRID_HEIGHT * 0.12);
+        return new Placement(page.orElse(0), EXERCISE_SPOT_X, EXERCISE_SPOT_Y);
+    }
+    // Same page, and close (2 % of the width, 1.5 % of the height)
+    public static boolean isNear(Placement a, Placement b){
+        return a.page() == b.page() && Math.abs(a.x() - b.x()) < GRID_WIDTH * .02 && Math.abs(a.y() - b.y()) < GRID_HEIGHT * .015;
+    }
+    // Placement of a tag added from the panel (not at a spot of the copy)
+    public static boolean isExerciseSpot(Placement placement){
+        return placement.x() == EXERCISE_SPOT_X && placement.y() == EXERCISE_SPOT_Y;
     }
 
     // ACTIONS
 
-    // Adds the tag to the open copy, or removes it. Returns true if the copy has it now.
-    public static boolean toggleOnOpenCopy(Tag tag, Placement placement){
+    // Adds the tag to the open copy for this exercise, or removes it. Returns true if the copy has it now.
+    public static boolean toggleOnOpenCopy(String exercise, Tag tag, Placement placement){
         String copy = getOpenCopy();
         if(copy == null) return false;
-        boolean has = data.toggle(copy, tag, placement);
+        boolean has = data.toggle(copy, exercise, tag, placement);
         fireChanged(true);
         return has;
+    }
+
+    // Replaces a tag of a copy by another one, at the same spot. The copy may already have the other one: then only
+    // the first one is removed. Returns true if the other one was added.
+    public static boolean change(String copy, String exercise, Tag from, Tag to, Placement placement){
+        boolean added = !data.has(copy, exercise, to);
+        data.remove(copy, exercise, from);
+        if(added) data.add(copy, exercise, to, placement);
+        fireChanged(true);
+        return added;
     }
 
     // SCORES

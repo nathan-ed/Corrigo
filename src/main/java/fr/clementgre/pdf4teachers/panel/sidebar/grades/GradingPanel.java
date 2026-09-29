@@ -83,6 +83,7 @@ public class GradingPanel extends VBox {
     private final ScrollPane scroll = new ScrollPane(sectionsBox);
     private final VBox generalBox = new VBox(6);
     private final TextField general = new TextField();
+    private CommentSuggestions generalSuggestions;
 
     // FOOTER
     private final Button previousUngraded = new Button();
@@ -126,7 +127,10 @@ public class GradingPanel extends VBox {
                 cancelPending();
             }
         });
-        MainWindow.mainScreen.isEditPagesModeProperty().addListener((o, oldValue, newValue) -> reload());
+        MainWindow.mainScreen.isEditPagesModeProperty().addListener((o, oldValue, newValue) -> {
+            reload();
+            fr.clementgre.pdf4teachers.panel.sidebar.grades.tags.TagMarkers.update();
+        });
         MainWindow.mainScreen.statusProperty().addListener((o, oldValue, newValue) -> reload());
         // The panel follows the page being read
         followPageDelay.setOnFinished(e -> followVisiblePage());
@@ -134,9 +138,12 @@ public class GradingPanel extends VBox {
         // The panel follows the grade selected in the grade tree or on the document (a grade being entered)
         MainWindow.gradeTab.treeView.getSelectionModel().selectedItemProperty().addListener((o, oldValue, newValue) -> {
             // Later: the selection also changes while a document is loaded or closed
-            if(newValue instanceof GradeTreeItem item) Platform.runLater(() -> {
-                if(!item.isDeleted() && MainWindow.gradeTab.treeView.getSelectionModel().getSelectedItem() == item) onGradeSelected(item);
-            });
+            if(newValue instanceof GradeTreeItem item){
+                if(selectingInTree) return; // Selected by the panel: it already shows it
+                Platform.runLater(() -> {
+                    if(!item.isDeleted() && MainWindow.gradeTab.treeView.getSelectionModel().getSelectedItem() == item) onGradeSelected(item);
+                });
+            }
         });
         ScoredComments.revisionProperty().addListener((o, oldValue, newValue) -> scheduleUpdate(false));
     }
@@ -196,10 +203,12 @@ public class GradingPanel extends VBox {
         generalTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: " + palette.text() + ";");
         general.setOnMousePressed(e -> setActive(sections.size(), false));
         setupLiveComment(general, () -> exercise);
+        generalSuggestions = createSuggestions(general, () -> exercise);
         general.focusedProperty().addListener((o, oldValue, newValue) -> {
             if(!newValue) commitComment(general, exercise, false, null);
         });
         general.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            if(generalSuggestions.onKey(e)) return;
             switch(e.getCode()){
                 case ENTER -> {
                     e.consume();
@@ -207,12 +216,19 @@ public class GradingPanel extends VBox {
                     if(e.isShortcutDown()) commitComment(general, exercise, true, null);
                     else commitComment(general, exercise, false, () -> openUngradedCopy(delta));
                 }
-                case ESCAPE, TAB -> {
+                case ESCAPE -> {
                     e.consume();
                     if(pendingText != null) cancelPending();
-                    if(e.getCode() == KeyCode.ESCAPE) general.setText(getCommentText(exercise)); // Cancels the edit
-                    else commitComment(general, exercise, false, null);
+                    general.setText(getCommentText(exercise)); // Cancels the edit
                     scroll.requestFocus();
+                }
+                case TAB -> {
+                    e.consume();
+                    if(pendingText != null) cancelPending();
+                    commitComment(general, exercise, false, null);
+                    // Shift+Tab: back to the comment of the last sub-grade; Tab: done with the exercise
+                    if(e.isShiftDown()) focusField(sections.size() - 1, true);
+                    else scroll.requestFocus();
                 }
                 case UP -> {
                     e.consume();
@@ -544,6 +560,26 @@ public class GradingPanel extends VBox {
         else scroll.requestFocus();
     }
 
+    // Tab / Shift+Tab: points and comment of each sub-grade, then the general comment.
+    // index: section (sections.size() for the general comment); comment: its comment field, or else its points.
+    private void focusField(int index, boolean comment){
+        if(exercise == null || sections.isEmpty()) return;
+        index = Math.clamp(index, 0, sections.size());
+        if(index != active) setActive(index, false);
+        Section section = getActive();
+        TextField target = section == null ? general : comment ? section.comment : section.points;
+        target.requestFocus();
+        if(section == null || target != section.points) target.end();
+    }
+
+    private CommentSuggestions createSuggestions(TextField field, java.util.function.Supplier<GradeTreeItem> grade){
+        return new CommentSuggestions(field, () -> {
+            GradeTreeItem item = grade.get();
+            if(item == null || exercise == null) return null;
+            return new CommentSuggestions.Grade(item.getCore().getPath(), exercise.getCore().getName());
+        }, text -> commitComment(field, grade.get(), false, null), palette.card(), palette.border(), palette.text(), palette.muted());
+    }
+
     private void ensureVisible(Node node){
         double contentHeight = sectionsBox.getHeight();
         double viewportHeight = scroll.getViewportBounds().getHeight();
@@ -593,8 +629,9 @@ public class GradingPanel extends VBox {
             }
             case TAB -> {
                 e.consume();
-                if(section != null) section.points.requestFocus();
-                else general.requestFocus();
+                if(section == null) general.requestFocus();
+                else if(e.isShiftDown()) section.comment.requestFocus();
+                else section.points.requestFocus();
             }
             case C -> {
                 e.consume();
@@ -828,6 +865,7 @@ public class GradingPanel extends VBox {
         private final TextField newItemPoints = new TextField();
         private final TextField newItemText = new TextField();
         private final TextField comment = new TextField();
+        private final CommentSuggestions suggestions;
 
         Section(GradeTreeItem leaf){
             super(6);
@@ -862,8 +900,11 @@ public class GradingPanel extends VBox {
                     case TAB -> {
                         e.consume();
                         applyPoints();
-                        if(e.isShiftDown()) scroll.requestFocus();
-                        else comment.requestFocus();
+                        int index = sections.indexOf(this);
+                        // Shift+Tab: comment of the previous sub-grade (from the first one: the panel)
+                        if(!e.isShiftDown()) comment.requestFocus();
+                        else if(index > 0) focusField(index - 1, true);
+                        else scroll.requestFocus();
                     }
                     case ESCAPE -> {
                         e.consume();
@@ -909,19 +950,29 @@ public class GradingPanel extends VBox {
             // Comment on the copy
             comment.setPromptText(TR.tr("gradingPanel.comment"));
             setupLiveComment(comment, () -> leaf);
+            suggestions = createSuggestions(comment, () -> leaf);
             comment.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+                if(suggestions.onKey(e)) return;
                 switch(e.getCode()){
                     case ENTER -> {
                         e.consume();
                         int target = sections.indexOf(this) + (e.isShiftDown() ? -1 : 1);
                         commitComment(comment, leaf, e.isShortcutDown(), () -> GradingPanel.this.setActive(target, true));
                     }
-                    case TAB, ESCAPE -> {
+                    case ESCAPE -> {
                         e.consume();
                         if(pendingText != null) cancelPending();
-                        if(e.getCode() == KeyCode.ESCAPE) comment.setText(getCommentText(leaf)); // Cancels the edit
-                        else commitComment(comment, leaf, false, null);
+                        comment.setText(getCommentText(leaf)); // Cancels the edit
                         scroll.requestFocus();
+                    }
+                    case TAB -> {
+                        e.consume();
+                        if(pendingText != null) cancelPending();
+                        commitComment(comment, leaf, false, null);
+                        // Tab: points of the next sub-grade (after the last one: the general comment); Shift+Tab: points of this one
+                        int index = sections.indexOf(this);
+                        if(e.isShiftDown()) focusField(index, false);
+                        else focusField(index + 1, false);
                     }
                 }
             });

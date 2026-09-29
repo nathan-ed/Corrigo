@@ -104,6 +104,12 @@ public final class EvaluationComments {
         }
         if(isOpenCopyInActiveFolder()) openCopyDelay.playFromStart();
     }
+    // The comments of the open copy are read now if they were waiting to be (e.g. before suggesting comments).
+    public static void scanPendingNow(){
+        if(openCopyDelay.getStatus() != javafx.animation.Animation.Status.RUNNING) return;
+        openCopyDelay.stop();
+        scanOpenCopy();
+    }
     // The copy was closed: reads it from its edit file, which may not have saved the last changes.
     public static void onCopyClosed(File pdf){
         openCopyDelay.stop();
@@ -156,7 +162,7 @@ public final class EvaluationComments {
                 if(!(element instanceof TextElement text) || element instanceof ScoredCommentElement || text.isMark()) continue;
                 if(text.getText() == null || text.getText().isBlank()) continue;
                 String exercise = ExerciseLocator.locate(text.getPageNumber(), text.getRealY(), text.getGradeCommentPath(), grades, context.pages(), context.order());
-                occurrences.add(new CommentBank.Occurrence(text.getText(), text.getPageNumber(), text.getRealX(), text.getRealY(), exercise, getStyle(text)));
+                occurrences.add(new CommentBank.Occurrence(text.getText(), text.getPageNumber(), text.getRealX(), text.getRealY(), exercise, getStyle(text), text.getGradeCommentPath()));
             }
         }
         if(bank.updateCopy(MainWindow.mainScreen.document.getFile().getName(), occurrences, System.currentTimeMillis())) fireChanged(true);

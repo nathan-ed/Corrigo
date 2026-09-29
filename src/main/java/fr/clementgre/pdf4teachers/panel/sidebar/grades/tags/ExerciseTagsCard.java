@@ -33,9 +33,10 @@ import java.io.File;
 import java.util.*;
 
 /**
- * "Methods & mistakes" of the exercise being graded, in the grading panel: a chip per tag (a click adds it to the copy
- * or removes it, a click on its number shows the copies that have it), the tags creation, and an overview of the class:
- * copies, share and average points by tag, and the copies without method.
+ * "Methods & mistakes" of the exercise being graded, in the grading panel: a chip per tag, those of the exercise first
+ * then the others (a click adds it to the copy for this exercise or removes it, a click on its number shows the copies
+ * that have it in this exercise), the tags creation, and an overview of the class, for this exercise (copies, share
+ * and average points by tag, and the copies without method) or for the whole evaluation (copies and exercises by tag).
  */
 public class ExerciseTagsCard extends VBox {
 
@@ -47,6 +48,7 @@ public class ExerciseTagsCard extends VBox {
     private Map<String, Double> scores = Map.of();
     private String scoresExercise;
     private boolean overviewOpen;
+    private boolean overviewAll; // Overview of the whole evaluation instead of the exercise
     private final PauseTransition scoresDelay = new PauseTransition(Duration.millis(300));
 
     public ExerciseTagsCard(Colors colors){
@@ -101,7 +103,7 @@ public class ExerciseTagsCard extends VBox {
         for(Kind kind : Kind.values()){
             FlowPane chips = new FlowPane(5, 5);
             for(Tag tag : tags){
-                if(tag.getKind() == kind) chips.getChildren().add(buildChip(tag, copy != null && data.has(copy, tag), data.getCopies(tag).size(), copies));
+                if(tag.getKind() == kind) chips.getChildren().add(buildChip(tag, copy != null && data.has(copy, exerciseName, tag), data.getCopies(exerciseName, tag).size(), copies));
             }
             chips.getChildren().add(buildAdd(kind));
             Label kindLabel = new Label(TR.tr(kind == Kind.METHOD ? "tags.kind.methods" : "tags.kind.mistakes"));
@@ -112,7 +114,7 @@ public class ExerciseTagsCard extends VBox {
         // Class
         List<String> allCopies = ExerciseTags.getFolderCopies().stream().map(File::getName).toList();
         List<String> withoutMethod = data.getWithoutMethod(exerciseName, allCopies);
-        boolean hasMethods = tags.stream().anyMatch(tag -> tag.getKind() == Kind.METHOD);
+        boolean hasMethods = data.getExerciseTags(exerciseName).stream().anyMatch(tag -> tag.getKind() == Kind.METHOD);
         if(hasMethods && !allCopies.isEmpty()){
             Label summary = new Label(TR.tr("tags.card.classified", String.valueOf(allCopies.size() - withoutMethod.size()), String.valueOf(allCopies.size())));
             summary.setWrapText(true);
@@ -122,6 +124,7 @@ public class ExerciseTagsCard extends VBox {
                 Hyperlink show = link(TR.tr("tags.card.showUnclassified", String.valueOf(withoutMethod.size())));
                 show.setOnAction(e -> showWithoutMethod(withoutMethod));
                 Hyperlink review = link(TR.tr("tags.card.review"));
+                review.setTooltip(new Tooltip(TR.tr("tags.card.review.tooltip")));
                 review.setOnAction(e -> TagReview.start(new TagReview.Review(TR.tr("tags.review.unclassified", exerciseName), withoutMethod, Map.of())));
                 FlowPane links = new FlowPane(10, 2, show, review);
                 summaryBox.getChildren().add(links);
@@ -130,7 +133,7 @@ public class ExerciseTagsCard extends VBox {
         }
 
         // Overview
-        if(!tags.isEmpty()){
+        if(!data.isEmpty()){
             Hyperlink toggle = link(TR.tr(overviewOpen ? "tags.card.overview.hide" : "tags.card.overview.show"));
             toggle.setOnAction(e -> {
                 overviewOpen = !overviewOpen;
@@ -138,8 +141,20 @@ public class ExerciseTagsCard extends VBox {
                 update();
             });
             getChildren().add(toggle);
-            if(overviewOpen) getChildren().add(buildOverview(tags, allCopies.size()));
+            if(overviewOpen){
+                getChildren().add(buildScopes());
+                getChildren().add(overviewAll ? buildGlobalOverview(allCopies.size()) : buildOverview(data.getExerciseTags(exerciseName), allCopies.size()));
+            }
         }
+
+        // Pills on the pages of the copy (not printed)
+        CheckBox markers = new CheckBox(TR.tr("tags.card.markers"));
+        markers.setSelected(TagMarkers.isShown());
+        markers.setFocusTraversable(false);
+        markers.setStyle("-fx-font-size: 11; -fx-text-fill: " + colors.muted() + ";");
+        markers.setTooltip(new Tooltip(TR.tr("tags.card.markers.tooltip")));
+        markers.setOnAction(e -> TagMarkers.setShown(markers.isSelected()));
+        getChildren().add(markers);
     }
 
     private Hyperlink link(String text){
@@ -156,10 +171,10 @@ public class ExerciseTagsCard extends VBox {
         String color = getColor(tag.getKind());
         Label name = new Label(tag.getName());
         Label badge = new Label(String.valueOf(count));
-        HBox chip = new HBox(6, name, badge);
+        HBox chip = count == 0 ? new HBox(6, name) : new HBox(6, name, badge);
         chip.setAlignment(Pos.CENTER_LEFT);
         chip.setCursor(Cursor.HAND);
-        chip.setPadding(new Insets(3, 5, 3, 10));
+        chip.setPadding(new Insets(3, count == 0 ? 10 : 5, 3, 10));
         if(applied){
             chip.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 14; -fx-border-color: " + color + "; -fx-border-radius: 14;");
             name.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
@@ -175,8 +190,8 @@ public class ExerciseTagsCard extends VBox {
         Tooltip.install(name, new Tooltip(TR.tr(applied ? "tags.chip.remove" : "tags.chip.add") + "\n" + TR.tr("tags.chip.count", String.valueOf(count)) + share));
         chip.setOnMouseClicked(e -> {
             if(e.getButton() != MouseButton.PRIMARY) return;
-            if(isIn(e.getTarget(), badge)) showCopies(tag);
-            else ExerciseTags.toggleOnOpenCopy(tag, ExerciseTags.getExercisePlacement());
+            if(isIn(e.getTarget(), badge)) showCopies(tag, false);
+            else ExerciseTags.toggleOnOpenCopy(getExerciseName(), tag, ExerciseTags.getExercisePlacement());
         });
         chip.setOnContextMenuRequested(e -> {
             buildMenu(tag).show(chip, e.getScreenX(), e.getScreenY());
@@ -190,11 +205,17 @@ public class ExerciseTagsCard extends VBox {
     }
 
     private ContextMenu buildMenu(Tag tag){
+        EvaluationTags data = ExerciseTags.getData();
         MenuItem show = new MenuItem(TR.tr("tags.menu.showCopies"));
-        show.setOnAction(e -> showCopies(tag));
+        show.setOnAction(e -> showCopies(tag, false));
         MenuItem review = new MenuItem(TR.tr("tags.menu.review"));
-        review.setOnAction(e -> startReview(tag));
-        review.setDisable(ExerciseTags.getData().getCopies(tag).isEmpty());
+        review.setOnAction(e -> startReview(tag, false));
+        review.setDisable(data.getCopies(getExerciseName(), tag).isEmpty());
+        MenuItem showAll = new MenuItem(TR.tr("tags.menu.showCopiesAll"));
+        showAll.setOnAction(e -> showCopies(tag, true));
+        MenuItem reviewAll = new MenuItem(TR.tr("tags.menu.reviewAll"));
+        reviewAll.setOnAction(e -> startReview(tag, true));
+        reviewAll.setDisable(data.getCopies(tag).isEmpty());
         MenuItem rename = new MenuItem(TR.tr("tags.menu.rename"));
         rename.setOnAction(e -> rename(tag));
         MenuItem kind = new MenuItem(TR.tr(tag.getKind() == Kind.METHOD ? "tags.menu.toMistake" : "tags.menu.toMethod"));
@@ -204,7 +225,7 @@ public class ExerciseTagsCard extends VBox {
         });
         MenuItem delete = new MenuItem(TR.tr("tags.menu.delete"));
         delete.setOnAction(e -> delete(tag));
-        return new ContextMenu(show, review, new SeparatorMenuItem(), rename, kind, new SeparatorMenuItem(), delete);
+        return new ContextMenu(show, review, showAll, reviewAll, new SeparatorMenuItem(), rename, kind, new SeparatorMenuItem(), delete);
     }
 
     // "+ Method": a text field, Enter creates the tag and adds it to the copy
@@ -228,7 +249,9 @@ public class ExerciseTagsCard extends VBox {
                     }
                     Tag tag = ExerciseTags.getData().create(getExerciseName(), text, kind);
                     String copy = ExerciseTags.getOpenCopy();
-                    if(copy != null && !ExerciseTags.getData().has(copy, tag)) ExerciseTags.toggleOnOpenCopy(tag, ExerciseTags.getExercisePlacement());
+                    if(copy != null && !ExerciseTags.getData().has(copy, getExerciseName(), tag)){
+                        ExerciseTags.toggleOnOpenCopy(getExerciseName(), tag, ExerciseTags.getExercisePlacement());
+                    }
                     else ExerciseTags.fireChanged(true);
                 }else if(k.getCode() == KeyCode.ESCAPE){
                     k.consume();
@@ -279,37 +302,34 @@ public class ExerciseTagsCard extends VBox {
         });
     }
 
+    // "This exercise · Whole evaluation"
+    private Node buildScopes(){
+        HBox scopes = new HBox(10);
+        for(boolean all : new boolean[]{false, true}){
+            Hyperlink scope = link(TR.tr(all ? "tags.overview.scope.all" : "tags.overview.scope.exercise"));
+            if(all == overviewAll){
+                scope.setStyle("-fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: " + colors.text() + "; -fx-underline: false;");
+                scope.setDisable(true);
+                scope.setOpacity(1);
+            }
+            scope.setOnAction(e -> {
+                overviewAll = all;
+                update();
+            });
+            scopes.getChildren().add(scope);
+        }
+        return scopes;
+    }
+
     // A tag by row: name, copies and share of the class, then a bar and the average points of these copies
     private Node buildOverview(List<Tag> tags, int copies){
         VBox rows = new VBox(8);
         double total = exercise.getCore().getTotal();
         boolean scoresReady = Objects.equals(scoresExercise, getExerciseName());
         for(Tag tag : tags){
-            List<String> tagCopies = ExerciseTags.getData().getCopies(tag);
+            List<String> tagCopies = ExerciseTags.getData().getCopies(getExerciseName(), tag);
             double ratio = copies == 0 ? 0 : (double) tagCopies.size() / copies;
-            String color = getColor(tag.getKind());
             
-            Label name = new Label(tag.getName());
-            name.setStyle("-fx-text-fill: " + color + "; -fx-font-size: 12;");
-            name.setMinWidth(0);
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-            Label count = new Label(TR.tr("tags.overview.count", String.valueOf(tagCopies.size()), String.valueOf(Math.round(100 * ratio))));
-            count.setStyle("-fx-font-size: 11; -fx-text-fill: " + colors.text() + ";");
-            count.setMinWidth(Region.USE_PREF_SIZE);
-            HBox top = new HBox(6, name, spacer, count);
-            top.setAlignment(Pos.CENTER_LEFT);
-            
-            StackPane bar = new StackPane();
-            bar.setMinHeight(8);
-            bar.setMaxHeight(8);
-            bar.setStyle("-fx-background-color: " + colors.border() + "; -fx-background-radius: 4;");
-            HBox.setHgrow(bar, Priority.ALWAYS);
-            Region fill = new Region();
-            fill.maxWidthProperty().bind(bar.widthProperty().multiply(ratio));
-            fill.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 4;");
-            StackPane.setAlignment(fill, Pos.CENTER_LEFT);
-            bar.getChildren().add(fill);
             String average = "…";
             if(scoresReady){
                 OptionalDouble avg = tagCopies.stream().filter(scores::containsKey).mapToDouble(scores::get).average();
@@ -319,16 +339,68 @@ public class ExerciseTagsCard extends VBox {
             averageLabel.setStyle("-fx-font-size: 11; -fx-text-fill: " + colors.muted() + ";");
             averageLabel.setMinWidth(Region.USE_PREF_SIZE);
             averageLabel.setTooltip(new Tooltip(TR.tr("tags.overview.average")));
-            HBox bottom = new HBox(8, bar, averageLabel);
-            bottom.setAlignment(Pos.CENTER_LEFT);
-            
-            VBox row = new VBox(3, top, bottom);
-            row.setCursor(Cursor.HAND);
-            Tooltip.install(row, new Tooltip(TR.tr("tags.chip.showCopies")));
-            row.setOnMouseClicked(e -> showCopies(tag));
-            rows.getChildren().add(row);
+            rows.getChildren().add(buildRow(tag, tagCopies.size(), ratio, averageLabel, false));
         }
         return rows;
+    }
+
+    // Tags used in the evaluation: copies and share of the class, then a bar and the exercises they are used in
+    private Node buildGlobalOverview(int copies){
+        VBox rows = new VBox(8);
+        EvaluationTags data = ExerciseTags.getData();
+        for(Tag tag : data.getAllTags()){
+            int count = data.getCopies(tag).size();
+            if(count == 0) continue;
+            double ratio = copies == 0 ? 0 : (double) count / copies;
+            StringJoiner exercises = new StringJoiner(" · ");
+            data.countByExercise(tag).forEach((name, n) -> exercises.add(name + " ×" + n));
+            Label exercisesLabel = new Label(exercises.toString());
+            exercisesLabel.setStyle("-fx-font-size: 11; -fx-text-fill: " + colors.muted() + ";");
+            exercisesLabel.setMinWidth(0);
+            exercisesLabel.setMaxWidth(Region.USE_PREF_SIZE);
+            exercisesLabel.setTooltip(new Tooltip(TR.tr("tags.overview.exercises")));
+            rows.getChildren().add(buildRow(tag, count, ratio, exercisesLabel, true));
+        }
+        if(rows.getChildren().isEmpty()){
+            Label none = new Label(TR.tr("tags.overview.none"));
+            none.setStyle("-fx-font-size: 11; -fx-text-fill: " + colors.muted() + ";");
+            rows.getChildren().add(none);
+        }
+        return rows;
+    }
+
+    private Node buildRow(Tag tag, int count, double ratio, Label detail, boolean all){
+        String color = getColor(tag.getKind());
+        Label name = new Label(tag.getName());
+        name.setStyle("-fx-text-fill: " + color + "; -fx-font-size: 12;");
+        name.setMinWidth(0);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Label countLabel = new Label(TR.tr("tags.overview.count", String.valueOf(count), String.valueOf(Math.round(100 * ratio))));
+        countLabel.setStyle("-fx-font-size: 11; -fx-text-fill: " + colors.text() + ";");
+        countLabel.setMinWidth(Region.USE_PREF_SIZE);
+        HBox top = new HBox(6, name, spacer, countLabel);
+        top.setAlignment(Pos.CENTER_LEFT);
+
+        StackPane bar = new StackPane();
+        bar.setMinHeight(8);
+        bar.setMaxHeight(8);
+        bar.setMinWidth(30);
+        bar.setStyle("-fx-background-color: " + colors.border() + "; -fx-background-radius: 4;");
+        HBox.setHgrow(bar, Priority.ALWAYS);
+        Region fill = new Region();
+        fill.maxWidthProperty().bind(bar.widthProperty().multiply(ratio));
+        fill.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 4;");
+        StackPane.setAlignment(fill, Pos.CENTER_LEFT);
+        bar.getChildren().add(fill);
+        HBox bottom = new HBox(8, bar, detail);
+        bottom.setAlignment(Pos.CENTER_LEFT);
+
+        VBox row = new VBox(3, top, bottom);
+        row.setCursor(Cursor.HAND);
+        Tooltip.install(row, new Tooltip(TR.tr("tags.chip.showCopies")));
+        row.setOnMouseClicked(e -> showCopies(tag, all));
+        return row;
     }
     
     // PREVIEWS
@@ -339,26 +411,127 @@ public class ExerciseTagsCard extends VBox {
         return MainWindow.gradesDigFormat.format(score) + " / " + MainWindow.gradesDigFormat.format(exercise.getCore().getTotal());
     }
 
-    private void showCopies(Tag tag){
+    // Uses of the tag in this exercise, or in all the exercises
+    private List<EvaluationTags.Use> getUses(Tag tag, boolean all){
+        String exerciseName = getExerciseName();
+        return ExerciseTags.getData().getUses(tag).stream().filter(use -> all || use.exercise().equals(exerciseName)).toList();
+    }
+
+    private void showCopies(Tag tag, boolean all){
         File folder = EvaluationFolders.getActiveFolder();
         if(folder == null) return;
-        List<String> copies = ExerciseTags.getData().getCopies(tag);
-        String subHeader = getExerciseName() + "  ·  " + TR.tr(tag.getKind() == Kind.METHOD ? "tags.kind.method" : "tags.kind.mistake");
+        String exerciseName = getExerciseName();
+        List<EvaluationTags.Use> uses = getUses(tag, all);
+        String subHeader = (all ? TR.tr("tags.overview.scope.all") : exerciseName) + "  ·  " + TR.tr(tag.getKind() == Kind.METHOD ? "tags.kind.method" : "tags.kind.mistake");
         CommentBank.Style style = new CommentBank.Style("Open Sans", 13, true, false, toJavaFXColor(getColor(tag.getKind())), 60);
         ExerciseTags.loadScores(exercise, loaded -> {
             scores = loaded;
             scoresExercise = getExerciseName();
-            List<CommentUsages.Usage> usages = copies.stream().map(copy -> {
-                Placement placement = ExerciseTags.getData().getPlacement(copy, tag);
-                // No text: a marker at the spot (the name of the tag is the title of the window)
-                return new CommentUsages.Usage(folder, new File(folder, copy), placement.page(), placement.x(), placement.y(),
-                        getExerciseName(), "", style, getScoreDetail(copy));
-            }).toList();
-            new CommentUsagesWindow(tag.getName(), subHeader, (onFolder, onDone) -> {
+            // No text: a marker at the spot (the name of the tag is the title of the window). Points of this exercise only.
+            List<CommentUsages.Usage> usages = uses.stream().map(use -> new CommentUsages.Usage(folder, new File(folder, use.copy()),
+                    use.placement().page(), use.placement().x(), use.placement().y(), use.exercise(), "", style,
+                    use.exercise().equals(exerciseName) ? getScoreDetail(use.copy()) : null)).toList();
+            Button review = new Button(TR.tr(all ? "tags.menu.reviewAll" : "tags.menu.review"));
+            review.setDisable(usages.isEmpty());
+            CommentUsagesWindow[] window = new CommentUsagesWindow[1];
+            review.setOnAction(e -> {
+                window[0].close();
+                startReview(tag, all);
+            });
+            window[0] = new CommentUsagesWindow(tag.getName(), subHeader, (onFolder, onDone) -> {
                 if(!usages.isEmpty()) onFolder.accept(usages);
                 onDone.run();
-            }, TR.tr("tags.gallery.none"));
+            }, TR.tr("tags.gallery.none"), new CommentUsagesWindow.Actions((usage, card) -> buildTagCardMenu(tag, usage, card), List.of(review)));
         });
+    }
+
+    // Right-click on a copy of a tag: remove the tag from it, or change it to another tag (same spot)
+    private List<MenuItem> buildTagCardMenu(Tag tag, CommentUsages.Usage usage, CommentUsagesWindow.Card card){
+        EvaluationTags data = ExerciseTags.getData();
+        String copy = usage.copy().getName();
+        String exerciseName = usage.exercise();
+        Placement placement = data.getPlacement(copy, exerciseName, tag);
+        if(placement == null) return List.of(); // Changed meanwhile
+
+        MenuItem remove = new MenuItem(TR.tr("tags.gallery.remove", tag.getName()));
+        remove.setOnAction(e -> {
+            data.remove(copy, exerciseName, tag);
+            ExerciseTags.fireChanged(true);
+            card.setDone(TR.tr("tags.gallery.removed"), () -> {
+                data.add(copy, exerciseName, tag, placement);
+                ExerciseTags.fireChanged(true);
+            });
+        });
+        List<MenuItem> change = headed(TR.tr("tags.gallery.changeTo"), buildTagChoices(card.getWindow(), exerciseName, tag.getKind(), other -> other != tag, other -> {
+            boolean added = ExerciseTags.change(copy, exerciseName, tag, other, placement);
+            card.setDone("→ " + other.getName(), () -> {
+                if(added) data.remove(copy, exerciseName, other);
+                data.add(copy, exerciseName, tag, placement);
+                ExerciseTags.fireChanged(true);
+            });
+        }));
+        ArrayList<MenuItem> items = new ArrayList<>(List.of(remove, new SeparatorMenuItem()));
+        items.addAll(change);
+        return items;
+    }
+
+    // Right-click on a copy without method: give it a method
+    private List<MenuItem> buildUnclassifiedCardMenu(CommentUsages.Usage usage, CommentUsagesWindow.Card card){
+        EvaluationTags data = ExerciseTags.getData();
+        String copy = usage.copy().getName();
+        String exerciseName = usage.exercise();
+        Placement placement = new Placement(usage.page(), usage.x(), usage.y());
+        return headed(TR.tr("tags.gallery.addMethod"), buildTagChoices(card.getWindow(), exerciseName, Kind.METHOD, other -> other.getKind() == Kind.METHOD, method -> {
+            data.add(copy, exerciseName, method, placement);
+            ExerciseTags.fireChanged(true);
+            card.setDone("+ " + method.getName(), () -> {
+                data.remove(copy, exerciseName, method);
+                ExerciseTags.fireChanged(true);
+            });
+        }));
+    }
+
+    // A title, then the items (no sub-menu: they are shown directly)
+    static List<MenuItem> headed(String title, List<MenuItem> items){
+        MenuItem header = new MenuItem(title);
+        header.setDisable(true);
+        header.setStyle("-fx-font-weight: bold;");
+        ArrayList<MenuItem> list = new ArrayList<>();
+        list.add(header);
+        list.addAll(items);
+        return list;
+    }
+
+    // The tags to choose, those of the exercise first (the kind first), then "New…" of this kind
+    static List<MenuItem> buildTagChoices(javafx.stage.Window owner, String exerciseName, Kind kind, java.util.function.Predicate<Tag> filter, java.util.function.Consumer<Tag> onChosen){
+        EvaluationTags data = ExerciseTags.getData();
+        ArrayList<MenuItem> items = new ArrayList<>();
+        List<Tag> tags = data.getTags(exerciseName).stream().filter(filter).toList();
+        for(boolean sameKind : new boolean[]{true, false}){
+            List<Tag> group = tags.stream().filter(other -> (other.getKind() == kind) == sameKind).toList();
+            if(group.isEmpty()) continue;
+            if(!items.isEmpty()) items.add(new SeparatorMenuItem());
+            for(Tag other : group){
+                MenuItem item = new MenuItem(other.getName());
+                javafx.scene.shape.Circle dot = new javafx.scene.shape.Circle(4, javafx.scene.paint.Color.web(TagPicker.getColor(other.getKind())));
+                item.setGraphic(dot);
+                item.setOnAction(e -> onChosen.accept(other));
+                items.add(item);
+            }
+        }
+        if(!items.isEmpty()) items.add(new SeparatorMenuItem());
+        MenuItem create = new MenuItem(TR.tr(kind == Kind.METHOD ? "tags.gallery.newMethod" : "tags.gallery.newMistake"));
+        create.setOnAction(e -> {
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.initOwner(owner != null ? owner : MainWindow.mainScreen.getScene().getWindow());
+            dialog.setTitle(TR.tr(kind == Kind.METHOD ? "tags.add.method" : "tags.add.mistake"));
+            dialog.setHeaderText(null);
+            dialog.setContentText(TR.tr("tags.rename.label"));
+            dialog.showAndWait().map(String::strip).filter(name -> !name.isEmpty())
+                    .ifPresent(name -> onChosen.accept(ExerciseTags.getData().create(exerciseName, name, kind)));
+        });
+        items.add(create);
+        return items;
     }
 
     private void showWithoutMethod(List<String> copies){
@@ -370,18 +543,26 @@ public class ExerciseTagsCard extends VBox {
             scoresExercise = getExerciseName();
             List<CommentUsages.Usage> usages = copies.stream().map(copy -> new CommentUsages.Usage(folder, new File(folder, copy),
                     placement.page(), placement.x(), placement.y(), getExerciseName(), "", null, getScoreDetail(copy))).toList();
-            new CommentUsagesWindow(TR.tr("tags.gallery.unclassified"), getExerciseName(), (onFolder, onDone) -> {
+            String exerciseName = getExerciseName();
+            Button review = new Button(TR.tr("tags.menu.review"));
+            review.setDisable(usages.isEmpty());
+            CommentUsagesWindow[] window = new CommentUsagesWindow[1];
+            review.setOnAction(e -> {
+                window[0].close();
+                TagReview.start(new TagReview.Review(TR.tr("tags.review.unclassified", exerciseName), copies, Map.of()));
+            });
+            window[0] = new CommentUsagesWindow(TR.tr("tags.gallery.unclassified"), exerciseName, (onFolder, onDone) -> {
                 if(!usages.isEmpty()) onFolder.accept(usages);
                 onDone.run();
-            }, TR.tr("tags.gallery.none"));
+            }, TR.tr("tags.gallery.none"), new CommentUsagesWindow.Actions(this::buildUnclassifiedCardMenu, List.of(review)));
         });
     }
 
-    private void startReview(Tag tag){
-        List<String> copies = ExerciseTags.getData().getCopies(tag);
+    // A copy with the tag in several exercises is opened where it was put first
+    private void startReview(Tag tag, boolean all){
         LinkedHashMap<String, Placement> placements = new LinkedHashMap<>();
-        for(String copy : copies) placements.put(copy, ExerciseTags.getData().getPlacement(copy, tag));
-        TagReview.start(new TagReview.Review(tag.getName(), copies, placements));
+        for(EvaluationTags.Use use : getUses(tag, all)) placements.putIfAbsent(use.copy(), use.placement());
+        TagReview.start(new TagReview.Review(tag.getName(), new ArrayList<>(placements.keySet()), placements));
     }
 
     // "#1565c0" -> "0x1565c0ff"
