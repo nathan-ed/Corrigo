@@ -277,7 +277,9 @@ public class GradingPanel extends VBox {
         // The pages of the exercises, when they are not where their grades are
         MenuItem exercisePagesItem = new MenuItem(TR.tr("gradingPanel.exercisePages"));
         exercisePagesItem.setOnAction(e -> MainWindow.footerBar.editExercisePages());
-        MenuButton marks = new MenuButton(TR.tr("gradingPanel.moreMenu"), null, markPositionItem, computeMarksItem,
+        MenuItem markScaleItem = new MenuItem(TR.tr("markScale.menu"));
+        markScaleItem.setOnAction(e -> MarkScaleDialog.show());
+        MenuButton marks = new MenuButton(TR.tr("gradingPanel.moreMenu"), null, markPositionItem, computeMarksItem, markScaleItem,
                 new SeparatorMenuItem(), exercisePagesItem);
         marks.setFocusTraversable(false);
         marks.setMinWidth(Region.USE_PREF_SIZE);

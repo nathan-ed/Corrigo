@@ -82,7 +82,7 @@ défile jusqu'à lui s'il n'est pas visible.
 **Méthodes & erreurs** : voir [Méthodes et erreurs](04-methodes-et-erreurs.md).
 
 **Bas du panneau** : **‹** / **À corriger ›** ouvrent la copie précédente/suivante où cet exercice n'est pas
-entièrement corrigé ; **Plus ▾** : **Position de la note** / **Calculer les notes** (voir [Notes](#notes-1-à-6)), **Pages des exercices…** ;
+entièrement corrigé ; **Plus ▾** : **Position de la note** / **Calculer les notes** (voir [Notes](#notes)), **Pages des exercices…** ;
 **?** affiche les touches.
 
 ### Clavier dans le panneau
@@ -141,9 +141,24 @@ avant.
 (Les « commentaires notés » des versions précédentes sont remplacés par les méthodes et erreurs. Ceux déjà sur des
 copies continuent de compter.)
 
-## Notes (1 à 6)
+## Notes
 
-Les notes sont sur l'échelle suisse de 1 à 6 : **obtenu / total × 5 + 1, arrondi au demi le plus proche**.
+Par défaut, les notes sont sur l'échelle suisse de 1 à 6 : **obtenu / total × 5 + 1, arrondi au demi le plus
+proche**. Chaque évaluation peut avoir son **barème des notes** (Plus ▾ → **Barème des notes…**) :
+
+- **Proportionnelle aux points** (par défaut) : points / total × (max − min) + min. Indiquez le minimum et le maximum
+  (1 à 6, 0 à 20, 1 à 10…).
+- **Table des points et des notes** : une ligne par note, les points à partir desquels elle est donnée puis la note
+  (`18 6`, `16 5.5`…). En dessous de la première ligne : le minimum.
+- **Formule personnalisée** de `p` (les points) et `t` (le total) : par exemple `(p + 1) / t * 5 + 1`.
+  `+ − * / ^`, parenthèses, `round`, `floor`, `ceil`, `min(a, b)`, `max(a, b)` ; un point pour les décimales.
+
+**Arrondi à** : 1, 0,5 (au demi), 0,25, 0,1, ou pas arrondie ; la note reste toujours entre le minimum et le maximum.
+**Barèmes usuels** met le barème suisse (1 à 6, au demi), sur 20 ou sur 10 en un clic. La fenêtre montre les notes pour
+le total du barème pendant que vous le modifiez. Le barème des notes est enregistré dans le dossier de l'évaluation
+(`.pdf4teachers/marks.yml`).
+
+![Le barème des notes](../images/fr/marks-scale.png)
 
 1. **Position de la note** : cliquez dessus, puis cliquez sur la page où va la note. La position sert pour toutes les
    copies.
@@ -151,5 +166,5 @@ Les notes sont sur l'échelle suisse de 1 à 6 : **obtenu / total × 5 + 1, arro
    position n'a été indiquée, elle est demandée d'abord.
 
 La fenêtre de résultat liste les notes, les copies pas entièrement corrigées, et les copies pour lesquelles un demi-point
-ou un point de plus changerait la note (double-clic pour en ouvrir une). Les notes sont aussi disponibles en colonne
+ou un point de plus changerait la note (double-clic pour en ouvrir une). Elle indique le barème des notes utilisé, avec un lien pour le changer. Les notes sont aussi disponibles en colonne
 dans l'[export vers un tableur](06-export.md#notes-dans-un-tableur).

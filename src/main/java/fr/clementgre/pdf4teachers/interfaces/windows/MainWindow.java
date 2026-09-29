@@ -181,6 +181,7 @@ public class MainWindow extends Stage {
         EvaluationFolders.register(TeacherNotes.FOLDER_PART);
         EvaluationFolders.register(EvaluationComments.FOLDER_PART);
         EvaluationFolders.register(ExerciseTags.FOLDER_PART);
+        EvaluationFolders.register(corrigo.panel.sidebar.grades.Marks.FOLDER_PART);
         skillsTab = new SkillsTab();
         try{
             FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/fxml/PaintTab.fxml")));

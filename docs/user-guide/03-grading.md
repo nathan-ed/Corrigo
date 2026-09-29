@@ -78,7 +78,7 @@ sight.
 **Methods & mistakes**: see [Methods and mistakes](04-methods-and-mistakes.md).
 
 **Footer**: **‹** / **Next ungraded ›** open the previous/next copy where this exercise is not fully graded;
-**More ▾**: **Mark position** / **Compute marks** (see [Marks](#marks)), **Pages of the exercises…**; **?** shows the keys.
+**More ▾**: **Mark position** / **Compute marks** / **Marks scale…** (see [Marks](#marks)), **Pages of the exercises…**; **?** shows the keys.
 
 ### Keyboard in the panel
 
@@ -135,12 +135,27 @@ counting.)
 
 ## Marks
 
-Marks are on the Swiss 1–6 scale: **obtained / total × 5 + 1, rounded to the nearest half**.
+By default, marks are on the Swiss 1–6 scale: **obtained / total × 5 + 1, rounded to the nearest half**. Each
+evaluation can have its own **marks scale** (More ▾ → **Marks scale…**):
+
+- **Proportional to the points** (the default): points / total × (max − min) + min. Set the minimum and maximum (1 to
+  6, 0 to 20, 1 to 10…).
+- **Points to mark table**: one line per mark, the points from which it is given then the mark (`18 6`, `16 5.5`…).
+  Below the first line: the minimum.
+- **Custom formula** of `p` (the points) and `t` (the total): e.g. `(p + 1) / t * 5 + 1`. `+ − * / ^`, parentheses,
+  `round`, `floor`, `ceil`, `min(a, b)`, `max(a, b)`; a dot for decimals.
+
+**Rounded to**: 1, 0.5 (to the half), 0.25, 0.1, or not rounded; the mark is always kept between the minimum and the
+maximum. **Usual scales** sets Swiss (1 to 6, to the half), out of 20 or out of 10 in one click. The window shows the
+marks for the total of the grade scale while you change it. The scale is saved in the evaluation folder
+(`.pdf4teachers/marks.yml`).
+
+![The marks scale](../images/en/marks-scale.png)
 
 1. **Mark position**: click it, then click on the page where the mark goes. The position is used for every copy.
 2. **Compute marks**: writes the mark on every fully graded copy of the files list. If no position was set, it asks
    for one first.
 
 The result window lists the marks, the copies that are not fully graded, and the copies for which half a point or one
-point more would change the mark (double-click to open one). The marks are also available as a column in the
+point more would change the mark (double-click to open one). It names the marks scale used, with a link to change it. The marks are also available as a column in the
 [spreadsheet export](06-export.md#marks-to-a-spreadsheet).

@@ -26,6 +26,7 @@ import fr.clementgre.pdf4teachers.utils.dialogs.alerts.ButtonPosition;
 import fr.clementgre.pdf4teachers.utils.dialogs.alerts.CustomAlert;
 import javafx.scene.control.Alert;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -235,7 +236,17 @@ public class MarksComputation {
         Label details = new Label(TR.tr("marks.results.details"));
         details.setWrapText(true);
         details.setMaxWidth(620);
-        VBox content = new VBox(8, details, onlyClose, list);
+        // The marks scale used, and a way to change it
+        Label scaleLabel = new Label(TR.tr("markScale.used", MarkScaleDialog.describe(Marks.getScale())));
+        scaleLabel.setWrapText(true);
+        scaleLabel.setMaxWidth(620);
+        scaleLabel.setStyle("-fx-font-weight: bold;");
+        Hyperlink changeScale = new Hyperlink(TR.tr("markScale.change"));
+        changeScale.setOnAction(e -> {
+            dialog.close();
+            MarkScaleDialog.show();
+        });
+        VBox content = new VBox(8, scaleLabel, changeScale, details, onlyClose, list);
         if(!ungraded.isEmpty()){
             ListView<File> ungradedList = new ListView<>();
             ungradedList.getItems().setAll(ungraded.stream().sorted(byPath).toList());

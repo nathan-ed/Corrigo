@@ -132,7 +132,7 @@ public class GradeExportRenderer {
             }
             content.append(separator).append(rating.name).append(includeGradeScale ? " /" + decimalFormat.format(rating.total) : "");
         }
-        if(withMark) content.append(separator).append(TR.tr("gradeTab.gradeExportWindow.csv.titles.mark")).append(includeGradeScale ? " /" + decimalFormat.format(Marks.MAX) : "");
+        if(withMark) content.append(separator).append(TR.tr("gradeTab.gradeExportWindow.csv.titles.mark")).append(includeGradeScale ? " /" + decimalFormat.format(Marks.getScale().getMax()) : "");
         content.append("\n");
     }
     
@@ -146,7 +146,7 @@ public class GradeExportRenderer {
             }
             content.append(separator).append(decimalFormat.format(rating.total));
         }
-        if(withMark) content.append(separator).append(decimalFormat.format(Marks.MAX));
+        if(withMark) content.append(separator).append(decimalFormat.format(Marks.getScale().getMax()));
         content.append("\n");
         
     }

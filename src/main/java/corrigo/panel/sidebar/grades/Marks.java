@@ -13,7 +13,8 @@ import java.util.*;
 import java.util.function.Predicate;
 
 /**
- * Marks from 1 to 6 computed from the total grade: obtained / total * 5 + 1, rounded to the nearest half (5.75 → 6, 5.749 → 5.5).
+ * Marks computed from the total grade with the marks scale of the evaluation (see MarkScale). By default the Swiss
+ * scale: obtained / total * 5 + 1, rounded to the nearest half (5.75 → 6, 5.749 → 5.5).
  * Also the edit file (YAML) operations of the mark text. Does not depend on JavaFX.
  */
 public class Marks {
@@ -52,21 +53,48 @@ public class Marks {
         return Math.floor(mark * 2 + .5 + EPSILON) / 2;
     }
 
+    // The marks scale of the evaluation open (the Swiss one if none was set)
+    private static MarkScale scale = MarkScale.SWISS;
+    public static MarkScale getScale(){
+        return scale;
+    }
+    public static void setScale(MarkScale markScale){
+        scale = markScale == null ? MarkScale.SWISS : markScale;
+    }
+    // Changed by the teacher: saved in the evaluation folder
+    public static void changeScale(MarkScale markScale){
+        setScale(markScale);
+        corrigo.datasaving.evaluation.EvaluationFolders.requestSave(FOLDER_PART);
+    }
+
+    // The marks scale is kept with its evaluation (marks.yml); the Swiss scale is not written.
+    public static final corrigo.datasaving.evaluation.EvaluationFolders.Part FOLDER_PART = new corrigo.datasaving.evaluation.EvaluationFolders.Part() {
+        @Override public String getFileName(){
+            return "marks";
+        }
+        @Override public void load(java.io.File folder, fr.clementgre.pdf4teachers.datasaving.Config config){
+            setScale(config.base.get("scale") instanceof Map<?, ?> data ? MarkScale.fromYAML(data) : MarkScale.SWISS);
+        }
+        @Override public void unload(java.io.File folder){
+            setScale(MarkScale.SWISS);
+        }
+        @Override public void write(java.io.File folder, fr.clementgre.pdf4teachers.datasaving.Config config){
+            config.set("scale", scale.toYAML());
+        }
+        @Override public boolean isEmpty(){
+            return scale.equals(MarkScale.SWISS);
+        }
+    };
+
     public static double compute(double value, double total){
-        if(total <= 0) return MIN;
-        return Math.clamp(roundToHalf(value / total * (MAX - MIN) + MIN), MIN, MAX);
+        return scale.compute(value, total);
     }
 
     /**
      * The smallest raise of RAISES that changes the mark, if any. A copy can't get more points than the total.
      */
     public static OptionalDouble getChangingRaise(double value, double total){
-        double mark = compute(value, total);
-        for(double raise : RAISES){
-            if(value + raise > total + EPSILON) break;
-            if(compute(value + raise, total) > mark) return OptionalDouble.of(raise);
-        }
-        return OptionalDouble.empty();
+        return scale.getChangingRaise(value, total, RAISES);
     }
 
     // Value of a mark text: "4.5", "4,5", or older texts like "Mark: 4.5". Empty if it has no number.
