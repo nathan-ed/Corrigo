@@ -31,7 +31,15 @@ public class SideBar extends TabPane {
     public static final int MAX_WIDTH = 450;
     public static final int TAB_WIDTH = 50; // Estimated
     
-    public static final List<String> DEFAULT_LEFT_TABS = List.of("files", "text", "notes", "grading", "grades", "skills", "paint");
+    // Files, grading, notes first: the tabs used while grading
+    public static final List<String> DEFAULT_LEFT_TABS = List.of("files", "grading", "notes", "text", "grades", "skills", "paint");
+    // Tabs not shown for now (their code stays): paint (drawings, figures, images) and skills
+    public static final List<String> HIDDEN_TABS = List.of("paint", "skills");
+    public static boolean isHidden(String tabName){
+        return HIDDEN_TABS.contains(tabName);
+    }
+    // The previous default order: not chosen by the user, replaced by the new one
+    private static final List<String> PREVIOUS_DEFAULT_LEFT_TABS = List.of("files", "text", "notes", "grading", "grades", "skills", "paint");
     public static final List<String> DEFAULT_RIGHT_TABS = Collections.emptyList();
     
     private static final String STYLE = "-fx-tab-max-width: 22px;";
@@ -197,6 +205,7 @@ public class SideBar extends TabPane {
         Main.syncUserData.rightBarOrganization = MainWindow.rightBar.getTabsList();
     }
     public static void loadBarsOrganization(){
+        if(PREVIOUS_DEFAULT_LEFT_TABS.equals(Main.syncUserData.leftBarOrganization)) Main.syncUserData.leftBarOrganization = DEFAULT_LEFT_TABS;
         MainWindow.leftBar.loadTabsList(Main.syncUserData.leftBarOrganization);
         MainWindow.rightBar.loadTabsList(Main.syncUserData.rightBarOrganization);
     }
@@ -339,7 +348,7 @@ public class SideBar extends TabPane {
     public void loadTabsList(List<String> tabsName){
         for(String tabName : tabsName){
             SideTab tab = SideTab.getByName(tabName);
-            if(tab != null){
+            if(tab != null && !isHidden(tabName)){
                 if(tab.getTabPane() != null) tab.getTabPane().getTabs().remove(tab);
                 getTabs().add(tab);
             }

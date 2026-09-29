@@ -59,6 +59,14 @@ public class QuickGradePlacement {
         return new Spot(page, x, getColumnBottom(page, x, startY));
     }
 
+    // Under a grade and its comments, with some room: for the general comment of an exercise, placed under its last sub-grade.
+    public static Spot spotBelow(GradeElement anchor, int fallbackPageIndex){
+        Spot spot = nextSpot(anchor, fallbackPageIndex);
+        if(anchor == null || anchor.getPage() == null) return spot;
+        int below = anchor.getRealY() + anchor.getRealHeight() + (int) (Element.GRID_HEIGHT * .04);
+        return new Spot(spot.page(), spot.x(), getColumnBottom(spot.page(), spot.x(), Math.max(spot.y(), below)));
+    }
+    
     // Bottom of the texts stacked from startY at this x (texts that are touching each other).
     private static int getColumnBottom(PageRenderer page, int x, int startY){
         List<Element> column = page.getElements().stream()

@@ -37,6 +37,8 @@ lists can be sorted, saved and reloaded (save and list icons).
 
 ## Drawings, shapes and images (Paint tab)
 
+*The Paint tab is hidden for now: this part describes it for later.*
+
 - **Freeform drawing**: **New freeform line**, or `Ctrl+D` to start a drawing on the page. In drawing mode, `Shift`
   (or hold `L`) draws straight lines, `M` (or hold `P`) horizontal/vertical ones; `Backspace` undoes the last stroke;
   `Esc`, a right-click or a double-click leaves the mode. Long handwriting is split into several elements (settings

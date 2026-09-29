@@ -6,6 +6,7 @@
 
 package fr.clementgre.pdf4teachers.panel.sidebar.texts.evaluation;
 
+import fr.clementgre.pdf4teachers.panel.sidebar.notes.TeacherNotes;
 import java.util.function.Consumer;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.input.ScrollEvent;
@@ -246,27 +247,45 @@ public class CommentUsagesWindow extends AlternativeWindow<VBox> {
         card.setPadding(new Insets(5));
         card.setCursor(Cursor.HAND);
         card.setStyle("-fx-border-color: rgba(128,128,128,.45); -fx-border-radius: 5; -fx-background-radius: 5;");
-        Tooltip.install(card, new Tooltip(TR.tr(actions != null && actions.cardMenu() != null ? "textTab.usages.openOrMenu" : "textTab.usages.open")));
+        Tooltip.install(card, new Tooltip(TR.tr(actions != null && actions.cardMenu() != null ? "textTab.usages.openOrMenu" : "textTab.usages.openOrNote")));
         card.setOnMouseClicked(e -> {
             if(e.getButton() != javafx.scene.input.MouseButton.PRIMARY) return;
             close();
             EvaluationComments.openCopyAt(usage.copy(), usage.page());
         });
-        if(actions != null && actions.cardMenu() != null){
-            Card handle = new Card(card, holder, preview);
-            card.setOnContextMenuRequested(e -> {
-                List<javafx.scene.control.MenuItem> items;
-                if(handle.isDone()){
-                    javafx.scene.control.MenuItem undo = new javafx.scene.control.MenuItem(TR.tr("textTab.usages.undo"));
-                    undo.setOnAction(a -> handle.undo());
-                    items = List.of(undo);
-                }else items = actions.cardMenu().apply(usage, handle);
-                if(items.isEmpty()) return;
-                new javafx.scene.control.ContextMenu(items.toArray(javafx.scene.control.MenuItem[]::new)).show(card, e.getScreenX(), e.getScreenY());
-                e.consume();
-            });
-        }
+        Card handle = new Card(card, holder, preview);
+        card.setOnContextMenuRequested(e -> {
+            List<javafx.scene.control.MenuItem> items = new ArrayList<>();
+            if(handle.isDone()){
+                javafx.scene.control.MenuItem undo = new javafx.scene.control.MenuItem(TR.tr("textTab.usages.undo"));
+                undo.setOnAction(a -> handle.undo());
+                items.add(undo);
+            }else if(actions != null && actions.cardMenu() != null) items.addAll(actions.cardMenu().apply(usage, handle));
+            if(!items.isEmpty()) items.add(new javafx.scene.control.SeparatorMenuItem());
+            items.addAll(getNoteItems(usage, preview));
+            new javafx.scene.control.ContextMenu(items.toArray(javafx.scene.control.MenuItem[]::new)).show(card, e.getScreenX(), e.getScreenY());
+            e.consume();
+        });
         return card;
+    }
+
+    // Personal notes on the copy of a preview, without opening it: with its text only, or with the part of the page shown
+    private static List<javafx.scene.control.MenuItem> getNoteItems(CommentUsages.Usage usage, StackPane preview){
+        javafx.scene.control.MenuItem note = new javafx.scene.control.MenuItem(TR.tr("notes.previewMenu.note"));
+        note.setOnAction(e -> TeacherNotes.captureNoteOn(usage.copy(), usage.page(), usage.exercise(), null));
+        javafx.scene.control.MenuItem screenshot = new javafx.scene.control.MenuItem(TR.tr("notes.previewMenu.screenshot"));
+        javafx.scene.image.Image image = getShownImage(preview);
+        screenshot.setDisable(image == null);
+        screenshot.setOnAction(e -> TeacherNotes.captureNoteOn(usage.copy(), usage.page(), usage.exercise(), image));
+        return List.of(note, screenshot);
+    }
+    private static javafx.scene.image.Image getShownImage(StackPane preview){
+        if(preview.getChildren().isEmpty() || !(preview.getChildren().getFirst() instanceof ImageView view) || view.getImage() == null) return null;
+        javafx.scene.image.Image image = view.getImage();
+        Rectangle2D viewport = view.getViewport();
+        if(viewport == null) return image;
+        return new javafx.scene.image.WritableImage(image.getPixelReader(), (int) viewport.getMinX(), (int) viewport.getMinY(),
+                (int) viewport.getWidth(), (int) viewport.getHeight());
     }
 
     private void showPreview(StackPane preview, PagePreview.Preview page){

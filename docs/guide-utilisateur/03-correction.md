@@ -1,10 +1,22 @@
 # Barème et correction
 
+## Créer le barème
+
+Sur une copie sans barème, le panneau de correction propose **Créer le barème…** :
+
+1. le nombre d'exercices ;
+2. pour chaque exercice, son nom, sa page, son nombre de sous-questions (a, b, c…) et leurs points ;
+3. **Copier ce barème sur les autres copies du dossier** (coché s'il y a d'autres copies).
+
+La note de chaque exercice est placée en haut à droite de sa page, ses sous-questions en dessous : c'est ainsi que
+l'application connaît la page de chaque exercice. Glissez les notes à côté des questions si vous voulez, puis recopiez
+leurs positions sur les autres copies (icône lien de l'onglet /20). L'onglet /20 sert ensuite à modifier le barème.
+
 ## Le barème (onglet /20)
 
 Le barème est un arbre : le total, les exercices, et leurs sous-questions, chacun avec ses points. Les exercices sont
-le premier niveau sous le total (l'application les appelle *exercices* partout : mode exercice, panneau de correction,
-commentaires, méthodes et erreurs).
+le premier niveau sous le total (l'application les appelle *exercices* partout : panneau de correction, commentaires,
+méthodes et erreurs).
 
 - **Le construire** : le **+** d'une note ajoute une sous-note ; `Ctrl+G` ajoute une note au même niveau que celle
   sélectionnée. `Tab` et `Entrée` passent du nom aux points.
@@ -24,16 +36,16 @@ commentaires, méthodes et erreurs).
 
 Un barème suisse typique commence par un exercice « PNF » (présentation), puis Q1…Qn.
 
-## Mode exercice (barre du bas)
+## Les exercices et leurs pages
 
-Corrigez exercice par exercice, pas copie par copie :
+Corrigez exercice par exercice, pas copie par copie : le panneau de correction montre un exercice (`‹ ›`,
+`Alt+↑` / `Alt+↓`, ou ses boutons « Ex 1 p.2 »…), et tant qu'il est ouvert, changer de copie ouvre la copie suivante à
+la page de cet exercice. `Ctrl+Alt+Maj+←/→` ou `Alt+Page préc./suiv.` gardent la page (ou vont à la page de
+l'exercice), `Alt+1…9` va à la page de l'exercice 1…9.
 
-1. Activez **Exercice** dans la barre du bas et choisissez l'exercice (`Alt+↑` / `Alt+↓`).
-2. **Pages** : indiquez la page où se trouve chaque exercice sur les copies. Le panneau de correction et les boutons des
-   pages s'en servent.
-3. Changer de copie ouvre alors la copie suivante à la page de l'exercice choisi :
-   `Ctrl+Alt+Maj+←/→` ou `Alt+Page préc./suiv.` gardent la page (ou vont à la page de l'exercice),
-   `Alt+1…9` va à la page de l'exercice 1…9.
+La page d'un exercice est celle où sont ses notes sur la copie. Quand les notes de tous les exercices sont sur la même
+page (par exemple dans un tableau en première page), le panneau l'indique : indiquez la page de chaque exercice avec
+**Plus ▾ → Pages des exercices…**, ou glissez les notes sur les pages de leurs exercices.
 
 ## Le panneau de correction (icône liste)
 
@@ -54,12 +66,18 @@ Le panneau suit la page que vous lisez.
 Les autres sous-notes tiennent sur une ligne ; leur commentaire, s'il y en a un, s'affiche en une ligne de texte
 (cliquez dessus pour le modifier).
 
-**Commentaire général (G)** : le commentaire pour tout l'exercice.
+**Commentaire général (G)** : le commentaire pour tout l'exercice, pour les exercices qui ont des sous-notes (un
+exercice sans sous-notes n'a qu'un commentaire). Il est écrit sous la dernière sous-note, sur la page de l'exercice.
+Chaque exercice a un seul commentaire général : modifier le champ le modifie sur la copie, il n'est jamais ajouté deux
+fois.
+
+Pendant que vous modifiez un commentaire, il est sélectionné sur la copie, comme dans l'onglet Textes, et la copie
+défile jusqu'à lui s'il n'est pas visible.
 
 **Méthodes & erreurs** : voir [Méthodes et erreurs](04-methodes-et-erreurs.md).
 
 **Bas du panneau** : **‹** / **À corriger ›** ouvrent la copie précédente/suivante où cet exercice n'est pas
-entièrement corrigé ; **Notes ▾** : **Position de la note** / **Calculer les notes** (voir [Notes](#notes-1-à-6)) ;
+entièrement corrigé ; **Plus ▾** : **Position de la note** / **Calculer les notes** (voir [Notes](#notes-1-à-6)), **Pages des exercices…** ;
 **?** affiche les touches.
 
 ### Clavier dans le panneau

@@ -1,10 +1,22 @@
 # Grade scale and grading
 
+## Creating the grade scale
+
+On a copy without grade scale, the grading panel offers **Create the grade scale…**:
+
+1. the number of exercises;
+2. for each exercise, its name, its page, its number of sub-questions (a, b, c…) and their points;
+3. **Copy this grade scale to the other copies of the folder** (checked when there are other copies).
+
+The grade of each exercise is placed at the top right of its page, its sub-questions under it: that is how the app
+knows the page of each exercise. Drag the grades next to the questions if you like, then copy their positions to the
+other copies (link icon of the /20 tab). Change the scale later in the /20 tab.
+
 ## The grade scale (/20 tab)
 
 The grade scale is a tree: the total, the exercises, and their sub-questions, each with its points. The exercises are
-the first level under the total (the app calls them *exercises* everywhere: exercise mode, grading panel, comments,
-methods and mistakes).
+the first level under the total (the app calls them *exercises* everywhere: grading panel, comments, methods and
+mistakes).
 
 - **Build it**: the **+** of a grade adds a sub-grade under it; `Ctrl+G` adds a grade at the same level as the
   selected one. `Tab` and `Enter` move between the name and the points fields.
@@ -22,15 +34,16 @@ methods and mistakes).
 
 A typical Swiss scale starts with a "PNF" exercise (presentation), then Q1…Qn.
 
-## Exercise mode (footer bar)
+## Exercises and their pages
 
-Correct exercise by exercise, not copy by copy:
+Correct exercise by exercise, not copy by copy: the grading panel shows one exercise (`‹ ›`, `Alt+↑` / `Alt+↓`, or
+its buttons "Ex 1 p.2"…), and while it is open, switching copy opens the next copy at the page of that exercise.
+`Ctrl+Alt+Shift+←/→` or `Alt+Page Up/Down` keep the page (or go to the exercise page), `Alt+1…9` jumps to the page of
+exercise 1…9.
 
-1. Turn on **Exercise** in the footer bar and choose the exercise (`Alt+↑` / `Alt+↓`).
-2. **Pages**: set the page where each exercise is on the copies. The grading panel and the page buttons use it.
-3. Switching copy then opens the next copy at the page of the selected exercise:
-   `Ctrl+Alt+Shift+←/→` or `Alt+Page Up/Down` keep the page (or go to the exercise page),
-   `Alt+1…9` jumps to the page of exercise 1…9.
+The page of an exercise is where its grades are on the copy. When the grades of all the exercises are on the same page
+(e.g. in a table on the first page), the panel says so: set the page of each exercise with **More ▾ → Pages of the
+exercises…**, or drag the grades onto the pages of their exercises.
 
 ## The grading panel (list icon)
 
@@ -50,12 +63,17 @@ reading.
 
 The inactive sub-grades take one line; their comment, if any, is shown as a line of text (click it to edit it).
 
-**General comment (G)**: the comment for the whole exercise.
+**General comment (G)**: the comment for the whole exercise, for exercises with sub-grades (an exercise without
+sub-grades has one comment only). It is written under the last sub-grade, on the page of the exercise. Each exercise
+has one general comment: editing the field changes it on the copy, it is never added twice.
+
+While you edit a comment, it is selected on the copy, as in the Texts tab, and the copy scrolls to it if it is out of
+sight.
 
 **Methods & mistakes**: see [Methods and mistakes](04-methods-and-mistakes.md).
 
 **Footer**: **‹** / **Next ungraded ›** open the previous/next copy where this exercise is not fully graded;
-**Marks ▾**: **Mark position** / **Compute marks** (see [Marks](#marks)); **?** shows the keys.
+**More ▾**: **Mark position** / **Compute marks** (see [Marks](#marks)), **Pages of the exercises…**; **?** shows the keys.
 
 ### Keyboard in the panel
 

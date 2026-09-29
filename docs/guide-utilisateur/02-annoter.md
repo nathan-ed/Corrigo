@@ -42,6 +42,8 @@ sur la page). Les listes peuvent être triées, enregistrées et rechargées (ic
 
 ## Dessins, figures et images (onglet Dessin)
 
+*L'onglet Dessin est masqué pour le moment : cette partie le décrit pour plus tard.*
+
 - **Dessin à main levée** : **Nouveau dessin à main levée**, ou `Ctrl+D` pour commencer un dessin sur la page. En mode
   dessin, `Maj` (ou `L` maintenu) trace des lignes droites, `M` (ou `P` maintenu) des lignes horizontales/verticales ;
   `Retour arrière` annule le dernier trait ; `Échap`, un clic droit ou un double-clic quittent le mode. L'écriture

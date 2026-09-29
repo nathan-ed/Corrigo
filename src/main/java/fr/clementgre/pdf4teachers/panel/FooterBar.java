@@ -269,9 +269,9 @@ public class FooterBar extends StackPane {
         if(status == MainScreen.Status.OPEN){
             if(hard){
                 if(getWidth() < widthLimit){
-                    root.getChildren().setAll(zoom, getSpacerShape(), exerciseCorrection, spacer, selectedElements, getSpacerShape(), this.status);
+                    root.getChildren().setAll(zoom, spacer, selectedElements, getSpacerShape(), this.status);
                 }else{
-                    root.getChildren().setAll(zoom, getSpacerShape(), exerciseCorrection, spacer, getSpacerShape(),
+                    root.getChildren().setAll(zoom, spacer, getSpacerShape(),
                             statsElements, getSpacerShape(), statsTexts, getSpacerShape(), statsGrades, getSpacerShape(), statsGraphics, getSpacerShape(), statsTotalGrade, getSpacerShape(),
                             selectedElements, getSpacerShape(), this.status);
                 }
@@ -360,20 +360,7 @@ public class FooterBar extends StackPane {
         
         exercisePages.setTooltip(PaneUtils.genWrappedToolTip(TR.tr("footerBar.exercisePages.tooltip")));
         PaneUtils.setHBoxPosition(exercisePages, -1, 19, new Insets(-2, 0, 0, 0));
-        exercisePages.setOnAction(e -> {
-            if(!MainWindow.mainScreen.hasDocument(false)) return;
-            refreshExerciseChoices();
-            List<String> exerciseKeys = getExerciseKeys();
-            if(exerciseKeys.isEmpty()){
-                showToast(Color.web("#6a1b1b"), Color.WHITE, TR.tr("footerBar.exercisePages.noGrades"));
-                return;
-            }
-            boolean applied = new ExercisePageMappingDialog(getExercisePageMapping(), exerciseKeys, MainWindow.mainScreen.document.getPagesNumber()).show();
-            if(!applied) return;
-            ExerciseCorrectionData.requestSave();
-            MainWindow.filesTab.preloadNeighborExercisePages();
-            navigateToSelectedExercisePage();
-        });
+        exercisePages.setOnAction(e -> editExercisePages());
         
         exerciseCorrectionMode.disableProperty().bind(MainWindow.mainScreen.statusProperty().isNotEqualTo(MainScreen.Status.OPEN));
         exerciseSelector.disableProperty().bind(exerciseCorrectionMode.disableProperty());
@@ -389,6 +376,24 @@ public class FooterBar extends StackPane {
         
         exerciseCorrection.getChildren().addAll(exerciseCorrectionMode, exerciseSelector, exercisePages);
         refreshExerciseChoices();
+    }
+    
+    // The page of each exercise, set by hand (by default: the page where its sub-grades are). Returns true if changed.
+    public boolean editExercisePages(){
+        if(!MainWindow.mainScreen.hasDocument(false)) return false;
+        refreshExerciseChoices();
+        List<String> exerciseKeys = getExerciseKeys();
+        if(exerciseKeys.isEmpty()){
+            showToast(Color.web("#6a1b1b"), Color.WHITE, TR.tr("footerBar.exercisePages.noGrades"));
+            return false;
+        }
+        boolean applied = new ExercisePageMappingDialog(getExercisePageMapping(), exerciseKeys, MainWindow.mainScreen.document.getPagesNumber()).show();
+        if(!applied) return false;
+        ExerciseCorrectionData.requestSave();
+        MainWindow.filesTab.preloadNeighborExercisePages();
+        navigateToSelectedExercisePage();
+        reloadGradingPanel();
+        return true;
     }
     
     private List<String> getExerciseKeys(){
@@ -435,8 +440,10 @@ public class FooterBar extends StackPane {
         return exerciseKeys.indexOf(selectedExerciseKey);
     }
     
+    // Grading by exercise: while the grading panel is open, the other copies open at the page of its exercise
+    // (Modified by Nathan, 2026: the exercise controls moved from this bar to the grading panel)
     public boolean isExerciseCorrectionMode(){
-        return exerciseCorrectionMode.isSelected();
+        return MainWindow.gradingTab != null && MainWindow.gradingTab.isSelected();
     }
     
     // Page set for the selected exercise, or else the page of its first sub-grade in the open document.
@@ -461,6 +468,19 @@ public class FooterBar extends StackPane {
                 .mapToInt(item -> item.getCore().getPageNumber())
                 .min();
     }
+    // The pages of the exercises cannot be told: none is set, and the grades of all the exercises are on the same page
+    // (e.g. in a table on the first page) of a copy that has several pages.
+    public boolean areExercisePagesUnknown(){
+        if(!MainWindow.mainScreen.hasDocument(false) || MainWindow.mainScreen.document.getPagesNumber() < 2 || exerciseKeys.size() < 2) return false;
+        java.util.Set<Integer> pages = new java.util.HashSet<>();
+        for(int i = 0; i < exerciseKeys.size(); i++){
+            if(getExercisePageMapping().getPageIndex(exerciseKeys.get(i)).isPresent()) return false;
+            OptionalInt page = getExerciseGradesPage(getExercise(i));
+            if(page.isPresent()) pages.add(page.getAsInt());
+        }
+        return pages.size() <= 1;
+    }
+    
     public GradeTreeItem getSelectedExercise(){
         return getExercise(getSelectedExerciseIndex());
     }

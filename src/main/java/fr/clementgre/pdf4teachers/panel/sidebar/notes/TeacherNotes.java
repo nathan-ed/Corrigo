@@ -215,6 +215,15 @@ public final class TeacherNotes {
         Platform.runLater(() -> QuickNoteDialog.show(null, getContextPage()));
     }
 
+    // A note on this page of the open copy (right-click on the page)
+    public static void captureTextNote(PageRenderer page){
+        Platform.runLater(() -> QuickNoteDialog.show(null, page));
+    }
+    // A note on a copy that may not be open, with an image of it (right-click on a preview of a copy)
+    public static void captureNoteOn(File copy, int page, String exercise, Image image){
+        Platform.runLater(() -> QuickNoteDialog.show(image, copy, page, exercise));
+    }
+
     public static void captureScreenshotNote(){
         if(!MainWindow.mainScreen.hasDocument(false) || MainWindow.mainScreen.isEditPagesMode()){
             MainWindow.footerBar.showToast(Color.web("#6a1b1b"), Color.WHITE, TR.tr("notes.screenshot.noDocument"));
@@ -225,13 +234,18 @@ public final class TeacherNotes {
 
     // Creates the note, with the copy, page and exercise currently open. The image can be null.
     static void create(String text, Image image, PageRenderer page){
-        String file = null;
+        File file = null;
         String exercise = null;
         if(MainWindow.mainScreen.hasDocument(false)){
-            file = MainWindow.mainScreen.document.getFile().getAbsolutePath();
+            file = MainWindow.mainScreen.document.getFile();
             if(MainWindow.footerBar.getExerciseCount() > 0) exercise = MainWindow.footerBar.getSelectedExerciseKey();
         }
-        TeacherNote note = new TeacherNote(text, null, file, page == null ? -1 : page.getPage(), exercise);
+        create(text, image, file, page == null ? -1 : page.getPage(), exercise);
+    }
+    // Creates the note on this copy (null: no copy), page (-1: none) and exercise (can be null). The image can be null.
+    static void create(String text, Image image, File copy, int pageIndex, String exercise){
+        String file = copy == null ? null : copy.getAbsolutePath();
+        TeacherNote note = new TeacherNote(text, null, file, pageIndex, exercise);
         // With a document open, the note is stored with its evaluation.
         if(file != null) note.setFolder(EvaluationFolders.getActiveFolder());
         if(image != null) note.setImage(writeImage(note.getFolder(), note.getId(), image));

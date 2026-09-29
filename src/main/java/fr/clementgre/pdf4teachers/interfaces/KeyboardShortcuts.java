@@ -297,7 +297,7 @@ public class KeyboardShortcuts {
             if(!MainWindow.textTab.isSelected()){
                 MainWindow.textTab.select();
                 e.consume();
-            }else if(!MainWindow.paintTab.isSelected()){
+            }else if(!MainWindow.paintTab.isSelected() && MainWindow.paintTab.getTabPane() != null){ // Paint tab hidden for now
                 MainWindow.paintTab.select();
                 e.consume();
             }

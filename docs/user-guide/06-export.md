@@ -43,6 +43,8 @@ worksheet**. Then:
 
 ## Skills (competency-based assessment)
 
+*The Skills tab is hidden for now: this part describes it for later.*
+
 The **Skills** tab grades competencies instead of points: create a test, list the skills and the scoring method
 (characters, colors or icons), then give each skill a level on each copy. A skills chart can be placed on the copy.
 Results can be exported to CSV, and tests imported from and exported to **SACoche**.

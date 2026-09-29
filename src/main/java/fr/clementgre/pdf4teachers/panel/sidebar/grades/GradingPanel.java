@@ -171,6 +171,9 @@ public class GradingPanel extends VBox {
 
         HBox title = new HBox(2, previousExercise, exerciseName, nextExercise, exerciseScore);
         title.setAlignment(Pos.CENTER_LEFT);
+        // Without grade scale, no exercise to show
+        title.visibleProperty().bind(exerciseName.textProperty().isNotEmpty());
+        title.managedProperty().bind(title.visibleProperty());
         exerciseJumps.setPadding(new Insets(6, 0, 0, 4));
         exerciseJumps.managedProperty().bind(exerciseJumps.visibleProperty());
         VBox header = new VBox(2, title, copyInfo, exerciseJumps);
@@ -211,7 +214,8 @@ public class GradingPanel extends VBox {
         setupLiveComment(general, () -> exercise);
         generalSuggestions = createSuggestions(general, () -> exercise);
         general.focusedProperty().addListener((o, oldValue, newValue) -> {
-            if(!newValue) commitComment(general, exercise, false, null);
+            if(newValue) showComment(exercise);
+            else commitComment(general, exercise, false, null);
         });
         general.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             if(generalSuggestions.onKey(e)) return;
@@ -268,10 +272,14 @@ public class GradingPanel extends VBox {
         markPositionItem.setOnAction(e -> armMarkPlacement(false));
         MenuItem computeMarksItem = new MenuItem(TR.tr("marks.compute"));
         computeMarksItem.setOnAction(e -> computeMarks());
-        MenuButton marks = new MenuButton(TR.tr("marks.menu"), null, markPositionItem, computeMarksItem);
+        // The pages of the exercises, when they are not where their grades are
+        MenuItem exercisePagesItem = new MenuItem(TR.tr("gradingPanel.exercisePages"));
+        exercisePagesItem.setOnAction(e -> MainWindow.footerBar.editExercisePages());
+        MenuButton marks = new MenuButton(TR.tr("gradingPanel.moreMenu"), null, markPositionItem, computeMarksItem,
+                new SeparatorMenuItem(), exercisePagesItem);
         marks.setFocusTraversable(false);
         marks.setMinWidth(Region.USE_PREF_SIZE);
-        marks.setTooltip(new Tooltip(TR.tr("marks.position.tooltip") + "\n" + TR.tr("marks.compute.tooltip")));
+        marks.setTooltip(new Tooltip(TR.tr("marks.position.tooltip") + "\n" + TR.tr("marks.compute.tooltip") + "\n" + TR.tr("gradingPanel.exercisePages.tooltip")));
         marks.setStyle("-fx-padding: 2 2; -fx-background-radius: 4;");
 
         // The keys, on demand
@@ -351,7 +359,26 @@ public class GradingPanel extends VBox {
             empty.setWrapText(true);
             empty.setStyle("-fx-text-fill: " + palette.muted() + ";");
             sectionsBox.getChildren().add(empty);
+            if(MainWindow.mainScreen.hasDocument(false)){
+                Button createScale = new Button(TR.tr("gradingPanel.createGradeScale"));
+                createScale.setStyle("-fx-background-color: " + palette.accent() + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 6 12; -fx-background-radius: 4;");
+                createScale.setOnAction(e -> GradeScaleSetupDialog.show());
+                sectionsBox.getChildren().add(createScale);
+            }
             return;
+        }
+
+        // The pages of the exercises are not known: says it, with the way to set them
+        if(MainWindow.footerBar.areExercisePagesUnknown()){
+            Label unknown = new Label(TR.tr("gradingPanel.exercisePages.unknown"));
+            unknown.setWrapText(true);
+            unknown.setStyle("-fx-text-fill: " + palette.text() + "; -fx-font-size: 12;");
+            Button setPages = new Button(TR.tr("gradingPanel.exercisePages"));
+            setPages.setOnAction(e -> MainWindow.footerBar.editExercisePages());
+            VBox banner = new VBox(6, unknown, setPages);
+            banner.setPadding(new Insets(8));
+            banner.setStyle("-fx-background-color: rgba(255,179,0,.18); -fx-border-color: rgba(255,179,0,.7); -fx-border-radius: 4; -fx-background-radius: 4;");
+            sectionsBox.getChildren().add(banner);
         }
 
         List<GradeTreeItem> leaves = exercise.hasSubGrade()
@@ -363,8 +390,11 @@ public class GradingPanel extends VBox {
             sectionsBox.getChildren().add(section);
         }
         sectionsBox.getChildren().addAll(generalBox, tagsCard);
+        // Without sub-grades, the comment of the exercise is its general comment: one field only
+        generalBox.setVisible(hasGeneral());
+        generalBox.setManaged(hasGeneral());
         tagsCard.setExercise(exercise);
-        active = Math.clamp(active, 0, sections.size());
+        active = Math.clamp(active, 0, getLastIndex());
 
         bindValue(exercise.getCore(), this::updateHeader);
         refresh();
@@ -486,6 +516,15 @@ public class GradingPanel extends VBox {
         return (section == null ? sections.isEmpty() ? exercise : sections.getFirst().leaf : section.leaf).getCore().getPath();
     }
 
+    // The general comment is the one of the exercise: it has its own field only when the exercise has sub-grades
+    private boolean hasGeneral(){
+        return exercise != null && exercise.hasSubGrade();
+    }
+    // Index of the last field group: the general comment, or the last sub-grade
+    private int getLastIndex(){
+        return hasGeneral() ? sections.size() : Math.max(0, sections.size() - 1);
+    }
+
     private Section getActive(){
         return active < sections.size() ? sections.get(active) : null;
     }
@@ -495,7 +534,7 @@ public class GradingPanel extends VBox {
         Section old = getActive();
         if(old != null) old.applyPoints();
         cancelPending();
-        active = Math.clamp(index, 0, sections.size());
+        active = Math.clamp(index, 0, getLastIndex());
         updateActiveStyle();
 
         Node target = getActive() == null ? generalBox : getActive();
@@ -593,7 +632,11 @@ public class GradingPanel extends VBox {
     // index: section (sections.size() for the general comment); comment: its comment field, or else its points.
     private void focusField(int index, boolean comment){
         if(exercise == null || sections.isEmpty()) return;
-        index = Math.clamp(index, 0, sections.size());
+        if(index > getLastIndex()){ // Tab after the last field: done with the exercise
+            scroll.requestFocus();
+            return;
+        }
+        index = Math.clamp(index, 0, getLastIndex());
         if(index != active) setActive(index, false);
         Section section = getActive();
         TextField target = section == null ? general : comment ? section.comment : section.points;
@@ -671,8 +714,9 @@ public class GradingPanel extends VBox {
             case G -> {
                 e.consume();
                 swallowNextTyped = true;
-                setActive(sections.size(), false);
-                general.requestFocus();
+                setActive(getLastIndex(), false);
+                if(getActive() == null) general.requestFocus();
+                else getActive().comment.requestFocus();
             }
             case Z -> {
                 e.consume();
@@ -766,9 +810,49 @@ public class GradingPanel extends VBox {
             if(!comment.getText().equals(text)) comment.setText(text);
             if(then != null) MainWindow.mainScreen.setSelected(comment); // Validated with Enter: shows it
         }else{
-            QuickGradePlacement.placeText(text, QuickGradePlacement.nextSpot(grade.getCore(), getFallbackPageIndex()), path);
+            QuickGradePlacement.Spot spot = grade == exercise && hasGeneral() ? getGeneralSpot()
+                    : QuickGradePlacement.nextSpot(grade.getCore(), getFallbackPageIndex());
+            QuickGradePlacement.placeText(text, spot, path);
         }
+        if(field.isFocused()) showComment(grade); // Seen while it is typed
         if(then != null) then.run();
+    }
+    
+    // Where the general comment of the exercise goes: next to the grade of the exercise if it is on the page of its
+    // sub-grades, else under the last sub-grade (the grade of the exercise is often in a table on the first page).
+    private QuickGradePlacement.Spot getGeneralSpot(){
+        GradeElement last = sections.stream().map(section -> section.leaf.getCore())
+                .filter(grade -> grade.getPage() != null)
+                .max(java.util.Comparator.comparingInt(GradeElement::getPageNumber).thenComparingInt(GradeElement::getRealY))
+                .orElse(null);
+        GradeElement exerciseGrade = exercise.getCore();
+        if(last == null || exerciseGrade.getPage() != null && exerciseGrade.getPageNumber() == last.getPageNumber()){
+            return QuickGradePlacement.nextSpot(exerciseGrade, getFallbackPageIndex());
+        }
+        return QuickGradePlacement.spotBelow(last, getFallbackPageIndex());
+    }
+    
+    // As in the Texts tab, the comment being edited is selected on the copy, which scrolls to it if it is out of sight.
+    private void showComment(GradeTreeItem grade){
+        TextElement comment = grade == null ? null : findComment(grade.getCore().getPath());
+        if(comment == null) return;
+        if(MainWindow.mainScreen.getSelected() != comment) MainWindow.mainScreen.setSelected(comment);
+        Platform.runLater(() -> scrollToIfHidden(comment));
+    }
+    private void scrollToIfHidden(TextElement comment){
+        PageRenderer page = comment.getPage();
+        if(page == null || comment.getScene() == null) return;
+        var zoom = MainWindow.mainScreen.zoomOperator;
+        Bounds bounds = comment.localToScene(comment.getBoundsInLocal());
+        double screenTop = MainWindow.mainScreen.localToScene(0, 0).getY(); // The visible part of the document
+        if(bounds.getMinY() >= screenTop && bounds.getMaxY() <= screenTop + zoom.getMainScreenHeight()) return;
+        // Moves the document so that the comment is in the middle of the screen
+        double offset = (bounds.getMinY() + bounds.getMaxY()) / 2 - (screenTop + zoom.getMainScreenHeight() / 2);
+        double target = MainWindow.mainScreen.pane.getTranslateY() - offset;
+        target = Math.clamp(target, -zoom.getScrollableHeight() + zoom.getPaneShiftY(), zoom.getPaneShiftY());
+        ignoreFollowPageUntil = System.currentTimeMillis() + 1500; // Stays on this exercise
+        zoom.scrollByTranslateY(target, false);
+        MainWindow.mainScreen.document.updateShowsStatus();
     }
     
     // Writes the field being edited (comment or points) before the panel is rebuilt or the document closed.
@@ -981,7 +1065,11 @@ public class GradingPanel extends VBox {
                     case ENTER -> {
                         e.consume();
                         int target = sections.indexOf(this) + (e.isShiftDown() ? -1 : 1);
-                        commitComment(comment, leaf, e.isShortcutDown(), () -> GradingPanel.this.setActive(target, true));
+                        if(target > getLastIndex() && !e.isShortcutDown()){ // No general comment: next ungraded copy
+                            commitComment(comment, leaf, false, () -> openUngradedCopy(1));
+                        }else{
+                            commitComment(comment, leaf, e.isShortcutDown(), () -> GradingPanel.this.setActive(target, true));
+                        }
                     }
                     case ESCAPE -> {
                         e.consume();
@@ -1001,8 +1089,10 @@ public class GradingPanel extends VBox {
                 }
             });
             comment.focusedProperty().addListener((o, oldValue, newValue) -> {
-                if(newValue) activate(false);
-                else commitComment(comment, leaf, false, null);
+                if(newValue){
+                    activate(false);
+                    showComment(leaf);
+                }else commitComment(comment, leaf, false, null);
                 updateCompact();
             });
             comment.managedProperty().bind(comment.visibleProperty());

@@ -22,7 +22,6 @@
 | `Ctrl+Z` / `Ctrl+Maj+Z` | annuler / rétablir |
 | `Ctrl+B` | afficher / masquer les panneaux latéraux |
 | `F11` | plein écran |
-| `Tab` (document) | passer de l'onglet Textes à l'onglet Dessin |
 
 ## Annotations
 
@@ -42,7 +41,7 @@
 |---|---|
 | `Ctrl+G` | nouvelle note au même niveau (onglet Barème) |
 | `Ctrl+N` | prochaine note à saisir |
-| `Alt+↑` / `Alt+↓` | exercice précédent / suivant (mode exercice) |
+| `Alt+↑` / `Alt+↓` | exercice précédent / suivant (panneau de correction) |
 | `Alt+1`…`9` | aller à la page de l'exercice 1…9 |
 | `Ctrl+Maj+G` | aller au panneau de correction |
 | `1`…`9` | ajouter la n-ième méthode ou erreur (voir plus bas) |

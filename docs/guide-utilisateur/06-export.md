@@ -43,6 +43,8 @@ d'évaluation hors ligne**. Ensuite :
 
 ## Compétences
 
+*L'onglet Compétences est masqué pour le moment : cette partie le décrit pour plus tard.*
+
 L'onglet **Compétences** évalue des compétences plutôt que des points : créez une évaluation, listez les compétences et
 la façon de noter (caractères, couleurs ou icônes), puis donnez à chaque compétence un niveau sur chaque copie. Un
 tableau des compétences peut être placé sur la copie. Les résultats s'exportent en CSV, et les évaluations s'importent

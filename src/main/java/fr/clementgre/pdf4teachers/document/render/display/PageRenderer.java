@@ -658,6 +658,12 @@ public class PageRenderer extends Pane {
         pnfMenuItem.setOnAction(e -> PNFAnnotationManager.addPNF(this, pageX, pageY));
         menu.getItems().add(pnfMenuItem);
         menu.getItems().add(getTagsMenu(pageX, pageY));
+        // Personal notes (never on the copy): about this page, or with a screenshot of a part of it
+        NodeMenuItem noteItem = new NodeMenuItem(TR.tr("notes.pageMenu.note"), false);
+        noteItem.setOnAction(e -> fr.clementgre.pdf4teachers.panel.sidebar.notes.TeacherNotes.captureTextNote(this));
+        NodeMenuItem screenshotItem = new NodeMenuItem(TR.tr("notes.pageMenu.screenshot"), false);
+        screenshotItem.setOnAction(e -> fr.clementgre.pdf4teachers.panel.sidebar.notes.TeacherNotes.captureScreenshotNote());
+        menu.getItems().addAll(noteItem, screenshotItem);
         
         if(!MainWindow.gradeTab.treeView.getRoot().getChildren().isEmpty()){
             GradeTreeView.defineNaNLocations();

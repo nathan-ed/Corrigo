@@ -9,18 +9,20 @@
   | Icône | Onglet | Sert à |
   |---|---|---|
   | Feuille PDF | **Fichiers** | la liste des copies en cours |
-  | **T** | **Textes** | les annotations textuelles et les listes de commentaires |
-  | Livre | **Mes notes** | vos notes personnelles (jamais sur les copies) |
   | Liste | **Correction** | le panneau de correction : un exercice à la fois |
+  | Livre | **Mes notes** | vos notes personnelles (jamais sur les copies) |
+  | **T** | **Textes** | les annotations textuelles et les listes de commentaires |
   | **/20** | **Barème** | le barème et les exports des notes |
-  | Compétences | **Compétences** | l'évaluation par compétences |
-  | Pinceau | **Dessin** | dessins, figures et images |
+
+  Les onglets **Dessin** (dessins, figures, images) et **Compétences** sont masqués pour le moment.
 
   Glissez un onglet par son icône pour le mettre dans l'autre panneau. **Affichage** permet de masquer les panneaux,
   de rétablir leur largeur ou de mettre tous les onglets du même côté.
-- **Document** : la copie ouverte. `Ctrl` + molette pour zoomer ; clic droit sur une page pour les actions rapides.
-- **Barre du bas** : zoom, mode **Édition des pages**, vue en colonne/en grille, mode **Exercice** et choix de
-  l'exercice, nombre d'éléments de la copie, total, état de la sauvegarde.
+- **Document** : la copie ouverte. `Ctrl` + molette pour zoomer ; clic droit sur une page pour les actions rapides
+  (une méthode ou une erreur ici, une note personnelle, une capture avec une note, la prochaine note, les textes
+  favoris).
+- **Barre du bas** : zoom, mode **Édition des pages**, vue en colonne/en grille, nombre d'éléments de la copie, total,
+  état de la sauvegarde.
 
 ## Ouvrir les copies
 

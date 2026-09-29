@@ -22,7 +22,6 @@
 | `Ctrl+Z` / `Ctrl+Shift+Z` | undo / redo |
 | `Ctrl+B` | show / hide the sidebars |
 | `F11` | full screen |
-| `Tab` (document) | switch between the Texts and Paint tabs |
 
 ## Annotations
 
@@ -42,7 +41,7 @@
 |---|---|
 | `Ctrl+G` | new grade at the same level (Grades tab) |
 | `Ctrl+N` | next grade to enter |
-| `Alt+↑` / `Alt+↓` | previous / next exercise (exercise mode) |
+| `Alt+↑` / `Alt+↓` | previous / next exercise (grading panel) |
 | `Alt+1`…`9` | go to the page of exercise 1…9 |
 | `Ctrl+Shift+G` | focus the grading panel |
 | `1`…`9` | add the n-th method or mistake (see below) |

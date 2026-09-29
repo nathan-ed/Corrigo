@@ -30,10 +30,17 @@ final class QuickNoteDialog {
     }
 
     static void show(Image image, PageRenderer page){
+        show(image, null, page, -1, null);
+    }
+    // A note on a copy that may not be open
+    static void show(Image image, java.io.File copy, int pageIndex, String exercise){
+        show(image, copy, null, pageIndex, exercise);
+    }
+    private static void show(Image image, java.io.File copy, PageRenderer page, int pageIndex, String exercise){
         CustomAlert dialog = new CustomAlert(Alert.AlertType.CONFIRMATION, TR.tr("notes.dialog.title"), TR.tr(image == null ? "notes.dialog.header" : "notes.dialog.header.screenshot"));
 
         VBox content = new VBox(8);
-        String context = getContext(page);
+        String context = copy != null ? NotesPanel.formatContext(copy.getName(), pageIndex, exercise) : getContext(page);
         if(context != null){
             Label contextLabel = new Label(context);
             contextLabel.setStyle("-fx-opacity: .7;");
@@ -67,7 +74,8 @@ final class QuickNoteDialog {
         if(dialog.getShowAndWaitGetButtonPosition(ButtonPosition.CLOSE) != ButtonPosition.DEFAULT) return;
         String value = text.getText().strip();
         if(value.isEmpty() && image == null) return;
-        TeacherNotes.create(value, image, page);
+        if(copy != null) TeacherNotes.create(value, image, copy, pageIndex, exercise);
+        else TeacherNotes.create(value, image, page);
     }
 
     // "copy.pdf · page 2 · Ex 1", or null if no document is open.

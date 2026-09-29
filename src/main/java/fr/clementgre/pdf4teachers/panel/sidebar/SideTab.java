@@ -31,7 +31,7 @@ public class SideTab extends Tab {
         setupDragAndDrop(iconPath);
         
         Platform.runLater(() -> {
-            if(getTabPane() == null){
+            if(getTabPane() == null && !SideBar.isHidden(name)){
                 MainWindow.leftBar.getTabs().add(this);
             }
             

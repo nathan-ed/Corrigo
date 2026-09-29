@@ -47,16 +47,7 @@ public class GradeCopyGradeScaleDialog {
         ButtonPosition option = dialog.getShowAndWaitGetButtonPosition(ButtonPosition.CLOSE);
         int copiedEditions = 0;
         if(option == ButtonPosition.DEFAULT){
-            prepareCopyEditions();
-            boolean recursive = MainWindow.filesTab.getOpenedFiles().size() != 1;
-            for(File file : MainWindow.filesTab.getOpenedFiles()){
-                if(MainWindow.mainScreen.document.getFile().equals(file)) continue;
-                if(MainWindow.mainScreen.document.getFile().getParent().equals(file.getParent())){
-                    int result = copyToFile(file, recursive, copyLocations.isSelected());
-                    if(result == 0) copiedEditions++;
-                    else if(result == 2) break;
-                }
-            }
+            copiedEditions = copyToSameFolder(copyLocations.isSelected());
         }else if(option == ButtonPosition.OTHER_RIGHT){
             prepareCopyEditions();
             boolean recursive = MainWindow.filesTab.getOpenedFiles().size() != 1;
@@ -73,6 +64,22 @@ public class GradeCopyGradeScaleDialog {
         
         MainWindow.filesTab.refresh();
         
+    }
+    
+    // Copies the grade scale of the open copy to the other listed copies of its folder. Returns the number of copies changed.
+    public int copyToSameFolder(boolean copyLocations){
+        prepareCopyEditions();
+        int copiedEditions = 0;
+        boolean recursive = MainWindow.filesTab.getOpenedFiles().size() != 1;
+        for(File file : MainWindow.filesTab.getOpenedFiles()){
+            if(MainWindow.mainScreen.document.getFile().equals(file)) continue;
+            if(MainWindow.mainScreen.document.getFile().getParent().equals(file.getParent())){
+                int result = copyToFile(file, recursive, copyLocations);
+                if(result == 0) copiedEditions++;
+                else if(result == 2) break;
+            }
+        }
+        return copiedEditions;
     }
     
     public void prepareCopyEditions(){

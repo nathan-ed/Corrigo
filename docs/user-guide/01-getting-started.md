@@ -8,18 +8,19 @@
   | Icon | Tab | Used for |
   |---|---|---|
   | PDF sheet | **Files** | the list of copies you are working on |
-  | **T** | **Texts** | text annotations and comment lists |
-  | Book | **Notes** | your personal notes (never on the copies) |
   | List | **Grading** | the grading panel: grade one exercise at a time |
+  | Book | **Notes** | your personal notes (never on the copies) |
+  | **T** | **Texts** | text annotations and comment lists |
   | **/20** | **Grades** | the grade scale and the grade exports |
-  | Skills | **Skills** | skills-based assessment |
-  | Brush | **Paint** | drawings, shapes and images |
+
+  The **Paint** (drawings, shapes, images) and **Skills** tabs are hidden for now.
 
   Drag a tab by its icon to move it to the other sidebar. **View** can minimize the sidebars, restore their widths or
   move all tabs to one side.
-- **Document**: the open copy. `Ctrl` + scroll zooms; right-click a page for quick actions.
-- **Footer bar**: zoom, **Edit pages** mode, column/grid view, **Exercise** mode and the exercise selector, the number
-  of elements of the copy, the total, and the save status.
+- **Document**: the open copy. `Ctrl` + scroll zooms; right-click a page for quick actions (a method or a mistake
+  here, a personal note, a screenshot with a note, the next grade, favorite texts).
+- **Footer bar**: zoom, **Edit pages** mode, column/grid view, the number of elements of the copy, the total, and the
+  save status.
 
 ## Opening copies
 
