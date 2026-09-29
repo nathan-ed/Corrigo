@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2019-2025. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers;
@@ -47,8 +48,8 @@ public class Main extends Application {
     public static HostServices hostServices;
     
     public static String dataFolder = System.getProperty("user.home") + File.separator + ".PDF4Teachers" + File.separator;
-    public static final String APP_NAME = "PDF4Teachers";
-    public static final String APP_ID = "fr.clementgre.pdf4teachers.applicationid";
+    public static final String APP_NAME = AppLinks.APP_NAME;
+    public static final String APP_ID = "corrigo.applicationid"; // Not the one of PDF4Teachers: both can run at once
     
     /********** Version parameters **********/
     public enum Mode {DEV, SNAPSHOT, PRE_RELEASE, RELEASE}
@@ -88,7 +89,7 @@ public class Main extends Application {
         
         String javaDetails = "Java " + System.getProperty("java.version") + " on JFX " + System.getProperty("javafx.runtime.version") + " (" + System.getProperty("os.arch") + ")";
         String osDetails = System.getProperty("os.name") + " " + System.getProperty("os.version") + (PlatformUtils.isMac() ? (" (Cpu: " + PlatformUtils.getMacCpuBrand() + ")") : "");
-        Log.i("Starting PDF4Teachers " + VERSION + " | " + javaDetails + " on " + osDetails);
+        Log.i("Starting " + APP_NAME + " " + VERSION + " | " + javaDetails + " on " + osDetails);
         
         if(PlatformUtils.isMacAArch64() && !PlatformUtils.isJDKMacAArch64()){
             Log.w("You are using a build for amd64 on a AArch64 Mac. This will slow down the programm.");

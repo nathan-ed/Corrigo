@@ -14,8 +14,8 @@ import markdown
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GUIDES = {  # language file -> folder of the guide, title, label of the outline
-    'en_us': ('docs/user-guide', 'User guide', 'Contents'),
-    'fr_fr': ('docs/guide-utilisateur', "Guide d'utilisation", 'Sommaire'),
+    'en_us': ('docs/user-guide', 'Corrigo user guide', 'Contents'),
+    'fr_fr': ('docs/guide-utilisateur', "Guide d'utilisation de Corrigo", 'Sommaire'),
 }
 OUTPUT = os.path.join(ROOT, 'src/main/resources/translations')
 
@@ -32,7 +32,8 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Open 
        font-size: 15px; line-height: 1.55; }
 nav { position: fixed; top: 0; left: 0; bottom: 0; width: 290px; overflow-y: auto; background: var(--side);
       border-right: 1px solid var(--border); padding: 20px 16px 40px 20px; font-size: 14px; }
-nav .title { font-weight: 700; font-size: 17px; color: var(--title); margin-bottom: 14px; }
+nav .title { font-weight: 700; font-size: 17px; color: var(--title); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+nav .title .logo { width: 34px; height: 34px; flex: none; }
 nav ol { list-style: none; padding: 0; margin: 0; }
 nav li { margin: 0; }
 nav > ol > li { margin-top: 10px; }
@@ -138,7 +139,8 @@ def build(language, folder, title, contents):
     if missing:
         sys.exit(f'{language}: links without target: {missing}')
 
-    nav = [f'<div class="title">{htmllib.escape(title)}</div><ol>']
+    logo = re.sub(r'<svg ', '<svg class="logo" ', open(os.path.join(ROOT, 'distribution/logo.svg'), encoding='utf-8').read().strip(), count=1)
+    nav = [f'<div class="title">{logo}<span>{htmllib.escape(title)}</span></div><ol>']
     for chapter in outline:
         nav.append(f'<li><a href="#{chapter["id"]}">{chapter["title"]}</a>')
         if chapter['sections']:

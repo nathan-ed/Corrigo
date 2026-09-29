@@ -1,12 +1,13 @@
-# User guide
+# Corrigo user guide
 
 A desktop application to correct scanned tests: annotate PDF copies, grade them exercise by exercise with a
 reusable set of comments, see which methods and mistakes appear in the class, and give the copies back as PDFs or
 through Moodle. The original PDFs are never modified by annotations: everything you add is kept in a separate layer
 and written into new PDF files only when you export.
 
-The app is a fork of [PDF4Teachers](https://github.com/ClementGre/PDF4Teachers). Menus, file names and data folders
-still use that name for now.
+Corrigo is a modified version of [PDF4Teachers](https://github.com/ClementGre/PDF4Teachers), under the same license
+(Apache 2.0). It is not made nor endorsed by the authors of PDF4Teachers. At its first start, Corrigo copies the
+settings and lists of PDF4Teachers, if it was installed; PDF4Teachers keeps its own.
 
 ## Contents
 

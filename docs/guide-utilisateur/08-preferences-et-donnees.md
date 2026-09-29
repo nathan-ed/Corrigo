@@ -34,7 +34,7 @@ voir. Copiez, déplacez ou sauvegardez le dossier de l'évaluation en entier : l
 erreurs et notes personnelles suivent.
 
 **Dans le dossier de données de l'application** (**Outils → Débogue → Ouvrir le dossier de données** ; sous Linux
-`~/.local/share/PDF4Teachers`) : les préférences, la liste des fichiers, les listes de textes, les figures et images
+`~/.local/share/Corrigo`) : les préférences, la liste des fichiers, les listes de textes, les figures et images
 favorites, les annotations des copies qui ne sont pas enregistrées à côté de leur PDF, et les notes personnelles prises
 sans copie ouverte.
 

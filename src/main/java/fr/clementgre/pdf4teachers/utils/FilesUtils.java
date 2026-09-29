@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2020-2025. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.utils;
@@ -153,6 +154,26 @@ public final class FilesUtils {
         }catch(IOException e){
             Log.eNotified(e);
         }
+    }
+    
+    // Copies the data of PDF4Teachers to the data folder of this version (Modified by Nathan, 2026)
+    public static void copyDataFolder(String previousPath, String newPath){
+        Path source = Paths.get(previousPath);
+        Path destination = Paths.get(newPath);
+        Log.i("Copying data folder from " + source + " to " + destination);
+        try(var paths = Files.walk(source)){
+            for(Path path : (Iterable<Path>) paths::iterator){
+                Path target = destination.resolve(source.relativize(path).toString());
+                if(Files.isDirectory(path)) Files.createDirectories(target);
+                else Files.copy(path, target, StandardCopyOption.COPY_ATTRIBUTES);
+            }
+        }catch(IOException e){
+            Log.e("Could not copy the data folder: " + e.getMessage());
+            return;
+        }
+        PlatformUtils.runLaterOnUIThread(5000, () -> {
+            MainWindow.showNotification(AlertIconType.INFORMATION, TR.tr("copyDataFolderNotification", FilesUtils.getPathReplacingUserHome(source), FilesUtils.getPathReplacingUserHome(destination)), 20);
+        });
     }
     
     // Moves from ~/.PDF4Teachers/ to Main.dataFolder

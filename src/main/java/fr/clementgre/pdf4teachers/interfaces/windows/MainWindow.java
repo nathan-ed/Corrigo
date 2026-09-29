@@ -133,7 +133,7 @@ public class MainWindow extends Stage {
     
         Log.i("Sending Statistics...");
         LanguagesUpdater.backgroundStats(() -> {
-            Log.i("Closing PDF4Teachers");
+            Log.i("Closing " + Main.APP_NAME);
             Platform.exit();
             System.exit(0);
         });

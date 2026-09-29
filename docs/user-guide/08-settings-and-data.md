@@ -31,7 +31,7 @@
 Files starting with a dot are hidden: show hidden files in your file manager to see them. Copy, move or back up the
 evaluation folder as a whole, and the annotations, comments, tags and notes go with it.
 
-**In the app's data folder** (**Tools → Debug → Open data folder**; on Linux `~/.local/share/PDF4Teachers`): settings,
+**In the app's data folder** (**Tools → Debug → Open data folder**; on Linux `~/.local/share/Corrigo`): settings,
 the files list, text lists, favorite figures and images, the annotations of copies not stored next to their PDF, and
 notes taken with no copy open.
 

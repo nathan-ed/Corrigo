@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2026 Nathan
  * Licensed under the Apache License, Version 2.0: see the LICENSE file.
- * Part of a fork of PDF4Teachers (https://github.com/ClementGre/PDF4Teachers).
+ * Part of Corrigo, a modified version of PDF4Teachers (https://github.com/ClementGre/PDF4Teachers).
  */
 
 package fr.clementgre.pdf4teachers;
@@ -12,11 +12,12 @@ package fr.clementgre.pdf4teachers;
  */
 public final class AppLinks {
 
-    // Name of this version, and its author (the name of the application will change: it is a modified PDF4Teachers)
-    public static final String APP_NAME = "PDF4Teachers";
+    // Name of this version, and its author (a modified PDF4Teachers)
+    public static final String APP_NAME = "Corrigo";
     public static final String AUTHOR = "Nathan";
 
-    // GitHub repository of this version (owner/name): releases, issues, user guide
+    // GitHub repository of this version (owner/name): releases, issues, user guide. GitHub redirects the old name
+    // once the repository is renamed
     public static final String REPOSITORY = "nathan-ed/PDF4Teachers";
     public static final String REPOSITORY_URL = "https://github.com/" + REPOSITORY;
     public static final String ISSUES_URL = REPOSITORY_URL + "/issues";

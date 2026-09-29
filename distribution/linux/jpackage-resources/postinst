@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for pdf4teachers
+# postinst script for corrigo
 #
 # see: dh_installdeb(1)
 
@@ -22,7 +22,7 @@ package_type=deb
 
 case "$1" in
     configure)
-xdg-desktop-menu install --novendor /opt/pdf4teachers/lib/pdf4teachers-PDF4Teachers.desktop
+xdg-desktop-menu install --novendor /opt/corrigo/lib/corrigo-Corrigo.desktop
 
     ;;
 

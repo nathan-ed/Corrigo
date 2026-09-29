@@ -1,12 +1,13 @@
-# Guide d'utilisation
+# Guide d'utilisation de Corrigo
 
 Une application de bureau pour corriger des évaluations scannées : annoter les copies PDF, les corriger exercice par
 exercice avec des commentaires réutilisables, voir quelles méthodes et quelles erreurs apparaissent dans la classe, et
 rendre les copies en PDF ou par Moodle. Les annotations ne modifient jamais les PDF d'origine : tout ce que vous ajoutez
 est gardé à part, et n'est écrit dans de nouveaux fichiers PDF qu'au moment de l'export.
 
-L'application est une version modifiée de [PDF4Teachers](https://github.com/ClementGre/PDF4Teachers). Les menus, les
-noms de fichiers et les dossiers de données portent encore ce nom pour le moment.
+Corrigo est une version modifiée de [PDF4Teachers](https://github.com/ClementGre/PDF4Teachers), sous la même licence
+(Apache 2.0). Elle n'est ni faite ni approuvée par les auteurs de PDF4Teachers. À son premier lancement, Corrigo copie
+les préférences et les listes de PDF4Teachers s'il était installé ; PDF4Teachers garde les siennes.
 
 ## Sommaire
 

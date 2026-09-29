@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Corrigo
+Comment[fr_FR]=Correction de copies PDF
+Comment=Grading of PDF student copies
+Exec=/opt/corrigo/bin/Corrigo
+Icon=/opt/corrigo/lib/Corrigo.png
+Terminal=false
+Type=Application
+Categories=Education;Office
+MimeType=application/pdf

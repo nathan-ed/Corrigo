@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2020-2022. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.interfaces.windows;
@@ -85,7 +86,7 @@ public abstract class AlternativeWindow<R extends Node> extends Stage {
         setMaxHeight(width.getWidth() * 1.75);
         if(height != 0) setHeight(height);
         
-        setTitle(title + " - PDF4Teachers");
+        setTitle(title + " - " + Main.APP_NAME);
         setScene(scene);
         StyleManager.putStyle(scene, Style.DEFAULT);
         StyleManager.putStyle(borderPane, Style.DEFAULT);

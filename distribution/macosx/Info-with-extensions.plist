@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleExecutable</key>
-	<string>bin/PDF4Teachers</string>
+	<string>bin/Corrigo</string>
 	<key>CFBundleIconFile</key>
 	<string>logo.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>fr.clementgre.pdf4teachers</string>
+	<string>io.github.nathan-ed.corrigo</string>
 	<key>CFBundleName</key>
-	<string>PDF4Teachers</string>
+	<string>Corrigo</string>
 	<key>CFBundleVersion</key>
 	<string>x.x.x</string>
 	<key>CFBundleInfoDictionaryVersion</key>

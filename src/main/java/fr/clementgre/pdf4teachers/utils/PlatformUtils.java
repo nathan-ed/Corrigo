@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2020-2022. Clément Grennerat
  * All rights reserved. You must refer to the licence Apache 2.
+ * Modified by Nathan, 2026.
  */
 
 package fr.clementgre.pdf4teachers.utils;
@@ -202,25 +203,28 @@ public class PlatformUtils {
     }
     
     public static String getDataFolder(){
-        String dataFolder;
+        String dataFolder = getDataFolder(Main.APP_NAME);
         
-        if(isWindows()){
-            dataFolder = System.getenv("APPDATA") + "\\PDF4Teachers\\";
-        }else if(isMac()){
-            dataFolder = System.getProperty("user.home") + "/Library/Application Support/PDF4Teachers/";
-            // Move data folder if needed
-            if(!new File(dataFolder).exists() && new File(System.getProperty("user.home") + "/.PDF4Teachers/").exists())
-                FilesUtils.moveDataFolder(dataFolder);
-        }else{
-            if(System.getenv("XDG_DATA_HOME") != null && new File(System.getenv("XDG_DATA_HOME")).exists())
-                dataFolder = System.getenv("XDG_DATA_HOME") + "/PDF4Teachers/";
-            else dataFolder = System.getProperty("user.home") + "/.local/share/PDF4Teachers/";
-            // Move data folder if needed
-            if(!new File(dataFolder).exists() && new File(System.getProperty("user.home") + "/.PDF4Teachers/").exists())
-                FilesUtils.moveDataFolder(dataFolder);
+        // Modified by Nathan, 2026: the first start under the new name copies the data of PDF4Teachers, left as it is
+        String previousFolder = getDataFolder("PDF4Teachers");
+        if(!new File(dataFolder).exists() && new File(previousFolder).exists()){
+            FilesUtils.copyDataFolder(previousFolder, dataFolder);
+        }else if(!isWindows() && !new File(dataFolder).exists() && new File(System.getProperty("user.home") + "/.PDF4Teachers/").exists()){
+            FilesUtils.moveDataFolder(dataFolder);
         }
         
         new File(dataFolder).mkdirs();
         return dataFolder;
+    }
+    private static String getDataFolder(String appName){
+        if(isWindows()){
+            return System.getenv("APPDATA") + "\\" + appName + "\\";
+        }else if(isMac()){
+            return System.getProperty("user.home") + "/Library/Application Support/" + appName + "/";
+        }else{
+            if(System.getenv("XDG_DATA_HOME") != null && new File(System.getenv("XDG_DATA_HOME")).exists())
+                return System.getenv("XDG_DATA_HOME") + "/" + appName + "/";
+            return System.getProperty("user.home") + "/.local/share/" + appName + "/";
+        }
     }
 }

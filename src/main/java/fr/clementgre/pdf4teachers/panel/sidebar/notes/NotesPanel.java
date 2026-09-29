@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2026 Nathan
  * Licensed under the Apache License, Version 2.0: see the LICENSE file.
- * Part of a fork of PDF4Teachers (https://github.com/ClementGre/PDF4Teachers).
+ * Part of Corrigo, a modified version of PDF4Teachers (https://github.com/ClementGre/PDF4Teachers).
  */
 
 package fr.clementgre.pdf4teachers.panel.sidebar.notes;
