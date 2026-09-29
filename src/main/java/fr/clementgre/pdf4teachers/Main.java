@@ -159,7 +159,7 @@ public class Main extends Application {
     }
     public static void startMainWindowAuto(){
         window = new MainWindow();
-        window.setup(firstLaunch || settings.hasVersionChanged());
+        window.setup(false); // The user guide is not opened by itself: Help → User guide, or the guided tour
     }
     private void setup(){
         // Check double instance
@@ -190,8 +190,13 @@ public class Main extends Application {
         FontUtils.setup();
         AppFontsLoader.loadAppFonts();
         
-        // Show app
-        if(languageAsk()){
+        // Show app. First opening: the language, then the guided tour (Modified by Nathan, 2026)
+        if(firstLaunch){
+            corrigo.interfaces.WelcomeWindow.show(() -> {
+                startMainWindow(false);
+                PlatformUtils.runLaterOnUIThread(1500, corrigo.interfaces.GuidedTour::start);
+            });
+        }else if(languageAsk()){
             startMainWindowAuto();
         }
     }

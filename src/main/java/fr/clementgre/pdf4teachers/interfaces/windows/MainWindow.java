@@ -69,6 +69,7 @@ public class MainWindow extends Stage {
     
     public static AutoHideNotificationPane notificationPane;
     public static BorderPane root;
+    public static javafx.scene.layout.StackPane tourLayer;
     public static SplitPane mainPane;
     
     public static MainScreen mainScreen;
@@ -100,7 +101,9 @@ public class MainWindow extends Stage {
         root = new BorderPane();
         notificationPane = new AutoHideNotificationPane(root);
         
-        Scene scene = new Scene(notificationPane);
+        // The guided tour is drawn over the window (Modified by Nathan, 2026)
+        tourLayer = new javafx.scene.layout.StackPane(notificationPane);
+        Scene scene = new Scene(tourLayer);
         scene.setFill(Color.TRANSPARENT);
         setupDecimalFormat();
         setTitle(TR.tr("mainWindow.title.noDocument"));

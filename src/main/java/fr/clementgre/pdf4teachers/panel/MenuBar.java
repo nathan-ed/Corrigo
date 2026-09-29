@@ -207,6 +207,7 @@ public class MenuBar extends javafx.scene.control.MenuBar {
     
     private final Menu help = new Menu(TR.tr("menuBar.help"));
     private final MenuItem help1LoadDoc = createMenuItem(TR.tr("menuBar.help.loadDocumentation"), SVGPathIcons.INFO);
+    private final MenuItem help1bTour = createMenuItem(TR.tr("menuBar.help.tour"), SVGPathIcons.INFO);
     private final MenuItem help2GitHubIssue = createMenuItem(TR.tr("menuBar.help.gitHubIssue"), SVGPathIcons.GITHUB);
     private final MenuItem help4Website = createMenuItem(TR.tr("menuBar.help.website"), SVGPathIcons.GLOBE);
     
@@ -261,7 +262,7 @@ public class MenuBar extends javafx.scene.control.MenuBar {
         
         ////////// HELP //////////
         
-        help.getItems().addAll(help1LoadDoc, help2GitHubIssue, help4Website);
+        help.getItems().addAll(help1LoadDoc, help1bTour, help2GitHubIssue, help4Website);
         
         ////////// FILE //////////
         
@@ -492,6 +493,7 @@ public class MenuBar extends javafx.scene.control.MenuBar {
         ////////// ABOUT / HELP //////////
         
         help1LoadDoc.setOnAction((ActionEvent actionEvent) -> TR.openUserGuide());
+        help1bTour.setOnAction(e -> corrigo.interfaces.GuidedTour.start());
         help2GitHubIssue.setOnAction((ActionEvent actionEvent) -> Main.hostServices.showDocument(AppLinks.ISSUES_URL));
         help4Website.setOnAction((ActionEvent t) -> Main.hostServices.showDocument(AppLinks.USER_GUIDE_URL));
         
