@@ -244,6 +244,11 @@ public class TR {
     
     // Opens the user guide (one HTML page with an outline) in the browser, in the language of the application.
     public static void openUserGuide(){
+        openUserGuide(null);
+    }
+
+    // Same, at the heading with this id (e.g. "chapter-06-export--moodle-feedback-files")
+    public static void openUserGuide(String anchor){
         try{
             String language = Main.settings.language.getValue();
             if(LanguageWindow.class.getResource("/translations/" + language + ".html") == null) language = "en_us";
@@ -252,7 +257,7 @@ public class TR {
             try(InputStream res = LanguageWindow.class.getResourceAsStream("/translations/" + language + ".html")){
                 Files.copy(res, guide.toPath(), REPLACE_EXISTING); // Always the guide of this version
             }
-            Main.hostServices.showDocument(guide.toURI().toString());
+            Main.hostServices.showDocument(guide.toURI() + (anchor == null ? "" : "#" + anchor));
         }catch(IOException e){
             Log.eNotified(e);
         }

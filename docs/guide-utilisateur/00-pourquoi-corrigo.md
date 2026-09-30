@@ -23,15 +23,12 @@ réglages de PDF4Teachers ; celui-ci n'est pas modifié.
 
 ## Par rapport à la correction dans Moodle
 
-Moodle reste l'endroit où les élèves rendent leur travail et reçoivent leur note ; Corrigo ne le remplace pas, il
-prépare ce qui y est déposé.
+L'interface de correction de Moodle va copie par copie, dans le navigateur. Corrigo fonctionne autrement :
 
-- **Copies papier.** Les copies sont scannées d'un bloc et découpées : pas de dépôt élève par élève.
+- **Copies papier.** Les copies sont scannées d'un bloc et découpées en un PDF par élève.
 - **Un exercice à la fois.** On corrige la question 3 de toutes les copies à la suite, plutôt que toutes les questions
-  d'une copie. Les barèmes sont plus réguliers d'une copie à l'autre.
+  d'une copie. Le barème est appliqué plus régulièrement d'une copie à l'autre.
 - **Vue de la classe.** Quelles erreurs reviennent, combien de points elles coûtent, toutes les copies qui en ont une côte
   à côte.
 - **Hors ligne.** Les copies et les annotations restent sur votre ordinateur, sans connexion.
 - **Notes.** Le total des points et la note sont calculés par le barème, sur l'échelle de l'évaluation.
-- **Retour à Moodle.** Un zip de fichiers de feedback, un par élève, est déposé dans le devoir ; voir
-  [Rendre les copies](06-export.md#fichiers-de-feedback-moodle).

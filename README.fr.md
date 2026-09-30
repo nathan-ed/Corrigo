@@ -23,10 +23,10 @@ barème par évaluation, un panneau de correction (un exercice sur toutes les co
 et des méthodes et erreurs qui ajoutent ou retirent des points, un bilan de la classe, des notes calculées sur
 l'échelle de votre choix, des notes personnelles et l'export Moodle.
 
-**Par rapport à la correction dans Moodle.** Moodle reste l'endroit où les élèves rendent leur travail et voient leur
-note ; Corrigo prépare ce qui y est déposé. Les copies papier sont scannées d'un bloc et découpées, on corrige la
-question 3 de toutes les copies à la suite, on voit quelles erreurs reviennent dans la classe, tout reste sur votre
-ordinateur, et les copies repartent dans un zip de fichiers de feedback, un par élève.
+**Par rapport à la correction dans Moodle.** L'interface de correction de Moodle va copie par copie, dans le
+navigateur. Avec Corrigo, les copies papier sont scannées d'un bloc et découpées, on corrige la question 3 de toutes
+les copies à la suite, on voit quelles erreurs reviennent dans la classe, les notes viennent de votre barème, et tout
+reste sur votre ordinateur.
 
 [Détails dans le guide d'utilisation](docs/guide-utilisateur/00-pourquoi-corrigo.md).
 

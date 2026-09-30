@@ -86,7 +86,10 @@ public class MoodleExportWindow {
         summary.setPrefWidth(640);
         summary.setMinHeight(Region.USE_PREF_SIZE);
 
-        VBox content = new VBox(10, files, summary, preview);
+        Hyperlink guide = new Hyperlink(TR.tr("moodleExport.guide"));
+        guide.setOnAction(e -> TR.openUserGuide(TR.tr("moodleExport.guide.anchor")));
+
+        VBox content = new VBox(10, guide, files, summary, preview);
         dialog.getDialogPane().setContent(content);
         dialog.addCancelButton(ButtonPosition.CLOSE);
         ButtonType create = dialog.addButton(TR.tr("moodleExport.create"), ButtonPosition.DEFAULT);

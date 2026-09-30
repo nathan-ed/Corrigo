@@ -21,10 +21,9 @@ when grading a whole evaluation exercise by exercise: a new evaluation from the 
 evaluation, a grading panel (one exercise on every copy, then the next), comments and methods and mistakes that add or
 remove points, a class overview, marks computed on the scale you choose, notes, and the Moodle export.
 
-**Compared to grading in Moodle.** Moodle stays where students hand in and see their marks; Corrigo prepares what is
-uploaded there. The paper copies are scanned in one go and split, you grade question 3 of every copy in a row, you see
-which mistakes come back in the class, everything stays on your computer, and the copies go back as a zip of feedback
-files, one per student.
+**Compared to grading in Moodle.** Moodle's grading interface goes copy by copy, in the browser. With Corrigo the
+paper copies are scanned in one go and split, you grade question 3 of every copy in a row, you see which mistakes come
+back in the class, the marks come from your grade scale, and everything stays on your computer.
 
 [More in the user guide](docs/user-guide/00-why-corrigo.md).
 

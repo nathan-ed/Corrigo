@@ -28,10 +28,19 @@ first**. The student's name is taken from the file name.
 **File → Export for Moodle…** creates a zip of the annotated copies of the evaluation folder, to upload in a Moodle
 assignment: each student receives their own corrected copy as a feedback file.
 
-Once, in the Moodle assignment settings, enable the feedback types **Feedback files** and **Offline grading
-worksheet**. Then:
+**Once per assignment, enable offline grading** in Moodle. Without it the *Grading action* menu has no worksheet and
+no zip upload:
 
-1. In the assignment: **Grading action → Download grading worksheet**. It gives the Moodle participant id of each
+1. Open the assignment and go to its **Settings** (gear menu or *Settings* tab).
+2. Expand the **Feedback types** section.
+3. Tick **Feedback files** and **Offline grading worksheet**. (Leave **Feedback comments** as you like.)
+4. Click **Save and display**.
+
+Moodle documentation: [Assignment settings, Feedback types](https://docs.moodle.org/en/Assignment_settings#Feedback_types).
+
+Then, for each export:
+
+1. In the assignment, open **View all submissions**, then **Grading action → Download grading worksheet**. It gives the Moodle participant id of each
    student.
 2. Prepare a **students file** (CSV), one student per line: the name used in the copy file names and the email,
    e.g. `DUPONT;felix.dupont@school.ch` for `10_DUPONT.pdf`.

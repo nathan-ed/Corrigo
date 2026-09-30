@@ -23,15 +23,12 @@ PDF4Teachers; that one is left untouched.
 
 ## Compared to grading in Moodle
 
-Moodle stays where students hand in their work and receive their marks; Corrigo does not replace it, it prepares what
-is uploaded there.
+Moodle's grading interface goes copy by copy, in the browser. Corrigo works differently:
 
-- **Paper copies.** The copies are scanned in one go and split: no upload student by student.
+- **Paper copies.** The copies are scanned in one go and split into one PDF per student.
 - **One exercise at a time.** You grade question 3 of every copy in a row, rather than every question of one copy.
   The scale is applied more evenly from one copy to the next.
 - **Overview of the class.** Which mistakes come back, how many points they cost, all the copies that have one side
   by side.
 - **Offline.** The copies and the annotations stay on your computer, no connection needed.
 - **Marks.** The total of the points and the mark come from the grade scale, on the scale of the evaluation.
-- **Back to Moodle.** A zip of feedback files, one per student, is uploaded to the assignment; see
-  [Giving the copies back](06-export.md#moodle-feedback-files).

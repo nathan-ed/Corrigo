@@ -17,7 +17,7 @@ settings and lists of PDF4Teachers, if it was installed; PDF4Teachers keeps its 
 
 ## Contents
 
-0. [Why Corrigo](00-why-corrigo.md): what Corrigo adds to PDF4Teachers, and what it brings compared to Moodle
+0. [Why Corrigo](00-why-corrigo.md): what Corrigo adds to PDF4Teachers, and how it compares to grading in Moodle
 
 1. [Getting started](01-getting-started.md): opening copies, the window, saving, exporting, where data is stored
 2. [Annotating copies](02-annotating.md): texts and formulas, drawings and images, page tools, PDF tools

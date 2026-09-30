@@ -27,10 +27,19 @@ les notes écrites sur les copies**. Le nom de l'élève est tiré du nom du fic
 **Fichier → Exporter pour Moodle…** crée un zip des copies annotées du dossier de l'évaluation, à déposer dans un devoir
 Moodle : chaque élève reçoit sa propre copie corrigée comme fichier de feedback.
 
-Une fois, dans les paramètres du devoir Moodle, activez les types de feedback **Fichiers de feedback** et **Fiche
-d'évaluation hors ligne**. Ensuite :
+**Une fois par devoir, activez l'évaluation hors ligne** dans Moodle. Sans cela, le menu *Action d'évaluation* n'offre ni
+fiche d'évaluation ni dépôt de zip :
 
-1. Dans le devoir : **Action d'évaluation → Télécharger la fiche d'évaluation**. Elle donne l'identifiant Moodle de
+1. Ouvrez le devoir puis ses **Paramètres** (menu roue dentée ou onglet *Paramètres*).
+2. Déroulez la section **Types de feedback**.
+3. Cochez **Fichiers de feedback** et **Fiche d'évaluation hors ligne**. (**Commentaires de feedback** au choix.)
+4. Cliquez sur **Enregistrer et afficher**.
+
+Documentation de Moodle (en anglais) : [Assignment settings, Feedback types](https://docs.moodle.org/en/Assignment_settings#Feedback_types).
+
+Ensuite, pour chaque export :
+
+1. Dans le devoir, ouvrez **Voir toutes les remises**, puis **Action d'évaluation → Télécharger la fiche d'évaluation**. Elle donne l'identifiant Moodle de
    chaque participant.
 2. Préparez un **fichier des élèves** (CSV), un élève par ligne : le nom utilisé dans les noms des copies et le
    courriel, par exemple `DUPONT;felix.dupont@ecole.ch` pour `10_DUPONT.pdf`.
