@@ -52,11 +52,11 @@ def build(name, out_dir):
     # -ss before the first input shifts its timestamps to 0: the filter times above are relative to the cut
     if graph:
         cmd += ['-filter_complex', graph, '-map', chain]
-    cmd += ['-c:v', 'libx264', '-preset', 'slow', '-crf', '26', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', mp4]
+    cmd += ['-c:v', 'libx264', '-preset', 'slow', '-crf', '19', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', mp4]
     subprocess.run(cmd, check=True)
     webp = f'{out_dir}/{name}.webp'
-    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', mp4, '-vf', 'fps=10,scale=960:-1:flags=lanczos', '-loop', '0',
-                    '-c:v', 'libwebp_anim', '-quality', '55', '-compression_level', '6', webp], check=True)
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', mp4, '-vf', 'fps=12,scale=1280:-1:flags=lanczos', '-loop', '0',
+                    '-c:v', 'libwebp_anim', '-quality', '80', '-compression_level', '6', webp], check=True)
     for f in (mp4, webp): print(f, os.path.getsize(f) // 1024, 'kB')
 
 if __name__ == '__main__':
