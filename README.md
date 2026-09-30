@@ -79,7 +79,7 @@ Check with `java -version`: it must say 21.
 **2. Get the source** (once)
 
 ```
-git clone https://github.com/nathan-ed/PDF4Teachers.git Corrigo
+git clone https://github.com/nathan-ed/Corrigo.git Corrigo
 cd Corrigo
 ```
 
