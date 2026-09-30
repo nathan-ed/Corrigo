@@ -23,7 +23,7 @@ jobs:
         include:
           - { os: ubuntu-latest,  name: linux }
           - { os: windows-latest, name: windows }
-          - { os: macos-13,       name: macos-x64 }
+          - { os: macos-15-intel, name: macos-x64 }
           - { os: macos-latest,   name: macos-arm64 }
     runs-on: ${{ matrix.os }}
     steps:
@@ -48,8 +48,10 @@ jobs:
         if: matrix.name == 'windows'
         shell: bash
         run: |
-          ./gradlew autoPackage -PjdkPath="$JAVA_HOME" -PappVersion="$APP_VERSION"
-          mkdir out && cp build/AutoPackage/Corrigo-Windows-* out/
+          ./gradlew jpackage -PjdkPath="$JAVA_HOME" -PappVersion="$APP_VERSION"
+          mkdir out
+          cp build/jpackage/*.msi "out/Corrigo-Windows-${APP_VERSION}.msi"
+          powershell -Command "Compress-Archive -Path build/jpackage/Corrigo -DestinationPath out/Corrigo-Windows-${APP_VERSION}.zip"
 
       - name: Package (macOS)
         if: startsWith(matrix.name, 'macos')
