@@ -92,7 +92,7 @@ Sous les méthodes et erreurs, la carte indique pour combien de copies une méth
 Choisissez :
 
 - **Cet exercice** : celles de l'exercice, avec la moyenne des points de ces copies à l'exercice (par exemple : les
-  élèves qui ont développé ont-ils moins de points que ceux qui ont dérivé une fonction composée ?) ;
+  élèves qui ont développé ont-ils moins de points que ceux qui ont appliqué la formule ?) ;
 - **Toute l'évaluation** : toutes celles utilisées dans l'évaluation, les copies qui l'ont dans n'importe quel exercice,
   et dans quels exercices (par exemple « Q2 ×5 · Q4 ×3 »).
 
@@ -112,7 +112,7 @@ l'ont, zoomés autour de l'endroit où elle a été mise, avec les points de cha
   - **La changer en :** une autre (ou une nouvelle), au même endroit ;
   - dans les aperçus « sans méthode » : **Lui donner la méthode :**.
 
-  L'aperçu est alors grisé avec une note (« → Dérivation d'une composée », « Enlevée ») ; un nouveau clic droit permet
+  L'aperçu est alors grisé avec une note (« → Formule de dérivation », « Enlevée ») ; un nouveau clic droit permet
   d'annuler.
 - **Ouvrir ces copies une par une** lance le parcours de ces copies (ci-dessous).
 

@@ -13,7 +13,7 @@ T = {
  'fr': dict(caps=['Corrigez un exercice sur toutes les copies', 'Visez l’erreur, appuyez sur #',
                   'Ses points sont comptés, une pastille la montre (jamais imprimée)', 'Un commentaire pour l’élève',
                   'Copie suivante : la méthode, les points', 'Les commentaires déjà écrits sont proposés'],
-            mistake='oubli', comment='Il manque la dérivée de 2x + 1', search='compos'),
+            mistake='oubli', comment='Il manque la dérivée de 2x + 1', search='rapide'),
 }[lang]
 C = T['caps']
 P = {'en': dict(chip1=(72, 314), chip2=(213, 314)), 'fr': dict(chip1=(100, 314), chip2=(100, 347))}[lang]

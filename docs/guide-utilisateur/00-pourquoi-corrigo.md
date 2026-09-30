@@ -9,7 +9,6 @@ La différence principale est la **correction par exercice, avec une grille crit
 méthodes et ses erreurs, qui donnent ou retirent des points. On les pointe sur la copie, les points se calculent, et le
 bilan de la classe montre lesquelles reviennent. On corrige les questions une par une sur toutes les copies. Autour de cela :
 
-- une **nouvelle évaluation à partir du scan** de toute la classe : un PDF par élève, nommé d'après la liste ;
 - un **barème** par évaluation (exercices, pages, sous-questions ou critères) ;
 - des **commentaires qui ajoutent ou retirent des points**, réutilisables, proposés pendant la frappe ;
 - le **calcul des notes** (échelle proportionnelle, table de points, ou formule) ;

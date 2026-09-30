@@ -9,7 +9,6 @@ The main difference is **grading by exercise, with a criteria grid**: each exerc
 and mistakes, which give or remove points. You tick them on the copy, the points are computed, and the class overview
 shows which ones come back. You grade the questions one by one on every copy. Around that:
 
-- a **new evaluation from the scan** of the whole class: one PDF per student, named after the class list;
 - a **grade scale** for each evaluation (exercises, pages, sub-questions or criteria);
 - **comments that add or remove points**, reusable, suggested as you type;
 - the **marks computation** (proportional scale, points table or formula);

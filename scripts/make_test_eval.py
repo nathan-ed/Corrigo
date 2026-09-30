@@ -44,7 +44,7 @@ COMMENTS = {  # comment text by answer variant: placed right of the answer
     'formula_n': "u_n = u_1 + (n-1)r",
     'delta_sign': "Signe de b !",
     'listing': "Juste, mais long : utiliser la formule du terme général",
-    'expand': "Juste, mais la dérivation d'une composée est plus rapide",
+    'expand': "Juste, mais la formule de dérivation est plus rapide",
 }
 
 def header(c, page, title=None):

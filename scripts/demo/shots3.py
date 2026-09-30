@@ -27,7 +27,7 @@ rclick(1178, 880); wait(1.2); shot(f'{O}/without-method-menu.png', (460, 54, 100
 click(1429, 1000); wait(1)
 # A note with a screenshot, from the page menu
 rclick(1100, 800); wait(1.2); shot(f'{O}/page-menu.png', (900, 600, 700, 480)); key('Escape'); wait(0.5)
-NOTE = {'en': 'Ask the class about the chain rule next lesson', 'fr': 'Revoir la dérivation d\'une composée au prochain cours'}[lang]
+NOTE = {'en': 'Ask the class about the chain rule next lesson', 'fr': 'Revoir la formule de dérivation au prochain cours'}[lang]
 rclick(1100, 800); wait(1.2); click(1150, 908); wait(1.5); type_(NOTE, delay=20); key('Return'); wait(1)
 # The notes tab
 click(130, 46); wait(2.5); shot(f'{O}/notes.png', (0, 0, 380, 700))

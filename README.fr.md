@@ -19,8 +19,8 @@ modifient jamais les PDF d'origine.
 **Par rapport à PDF4Teachers.** Corrigo est construit dessus et garde ce qu'il fait (affichage, textes, formules,
 dessins, images, export). La différence principale est la correction par exercice avec une grille critériée : chaque
 exercice a ses méthodes et ses erreurs, qui donnent ou retirent des points, on corrige les questions une par une sur toutes
-les copies, et un bilan de la classe montre les erreurs qui reviennent. Corrigo part aussi du scan de la classe
-pour créer une évaluation, calcule les notes sur l'échelle de votre choix, et est plus rapide à l'usage.
+les copies, et un bilan de la classe montre les erreurs qui reviennent. Corrigo calcule aussi
+les notes à partir du barème de votre choix, et est plus rapide à l'usage.
 
 **Par rapport à la correction dans Moodle.** L'interface de correction de Moodle va copie par copie, dans le
 navigateur. Avec Corrigo, les copies papier sont scannées d'un bloc et découpées, on corrige la question 3 de toutes
