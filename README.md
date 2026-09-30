@@ -1,3 +1,5 @@
+[Présentation en français](README.fr.md)
+
 <p align="center">
   <img src="src/main/resources/logo.png" alt="Corrigo" width="120" height="120"><br>
   <b>Corrigo</b><br>
