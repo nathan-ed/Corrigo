@@ -16,10 +16,10 @@ whole class, and give the copies back as PDFs or through Moodle. Annotations nev
 ## Why Corrigo
 
 **Compared to PDF4Teachers.** Corrigo is built on it and keeps what it does (display, texts, formulas, drawings,
-images, export); PDF4Teachers remains the right choice to annotate PDFs without a grade scale. Corrigo adds what helps
-when grading a whole evaluation exercise by exercise: a new evaluation from the scan of the class, a grade scale per
-evaluation, a grading panel (one exercise on every copy, then the next), comments and methods and mistakes that add or
-remove points, a class overview, marks computed on the scale you choose, notes, and the Moodle export.
+images, export). The main difference is grading by exercise with a criteria grid: each exercise has its methods and
+mistakes, which give or remove points, you grade one exercise on every copy before the next, and a class overview shows
+which mistakes come back. Corrigo also starts a new evaluation from the scan of the class, computes marks on the scale
+you choose, and is faster to use.
 
 **Compared to grading in Moodle.** Moodle's grading interface goes copy by copy, in the browser. With Corrigo the
 paper copies are scanned in one go and split, you grade question 3 of every copy in a row, you see which mistakes come

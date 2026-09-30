@@ -2,20 +2,20 @@
 
 ## Par rapport à PDF4Teachers
 
-Corrigo est construit sur PDF4Teachers, et lui doit l'essentiel : l'affichage des PDF, les textes, formules, dessins et
-images posés sur la copie, les listes d'éléments réutilisables, l'export. Rien de cela n'a été refait. PDF4Teachers reste
-le bon choix pour annoter des PDF sans barème, et il continue d'évoluer de son côté.
+Corrigo est construit sur PDF4Teachers et lui doit l'essentiel : l'affichage des PDF, les textes, formules, dessins et
+images posés sur la copie, les listes d'éléments réutilisables, l'export. Rien de cela n'a été refait.
 
-Corrigo ajoute ce qui sert quand on corrige **une évaluation complète, exercice par exercice** :
+La différence principale est la **correction par exercice, avec une grille critériée** : chaque exercice du barème a ses
+méthodes et ses erreurs, qui donnent ou retirent des points. On les pointe sur la copie, les points se calculent, et le
+bilan de la classe montre lesquelles reviennent. On corrige un exercice sur toutes les copies avant de passer au
+suivant. Autour de cela :
 
 - une **nouvelle évaluation à partir du scan** de toute la classe : un PDF par élève, nommé d'après la liste ;
-- un **barème** par évaluation (exercices, pages, sous-questions ou critères), et un panneau de correction où l'on
-  corrige un exercice sur toutes les copies avant de passer au suivant ;
+- un **barème** par évaluation (exercices, pages, sous-questions ou critères) ;
 - des **commentaires qui ajoutent ou retirent des points**, réutilisables, proposés pendant la frappe ;
-- des **méthodes et erreurs** attachées aux copies, avec leurs points, et un bilan de la classe ;
-- le **calcul des notes** (échelle proportionnelle, table de points, ou formule), avec les copies qui changeraient de
-  note à un demi-point près ;
-- des **notes personnelles** avec capture d'écran, et l'export **Moodle** ;
+- le **calcul des notes** (échelle proportionnelle, table de points, ou formule) ;
+- des **notes personnelles** avec capture d'écran, et l'export Moodle ;
+- une utilisation **plus rapide** : la saisie d'un commentaire dans le panneau de correction ne ralentit plus ;
 - un premier lancement guidé.
 
 Corrigo a ses propres réglages et peut être lancé en même temps que PDF4Teachers. Au premier lancement, il reprend les

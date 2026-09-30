@@ -3,19 +3,18 @@
 ## Compared to PDF4Teachers
 
 Corrigo is built on PDF4Teachers and owes it most of what it does: the display of the PDFs, the texts, formulas,
-drawings and images put on the copy, the lists of reusable elements, the export. None of it was redone. PDF4Teachers
-remains the right choice to annotate PDFs without a grade scale, and it keeps evolving on its own.
+drawings and images put on the copy, the lists of reusable elements, the export. None of it was redone.
 
-Corrigo adds what helps when grading **a whole evaluation, exercise by exercise**:
+The main difference is **grading by exercise, with a criteria grid**: each exercise of the grade scale has its methods
+and mistakes, which give or remove points. You tick them on the copy, the points are computed, and the class overview
+shows which ones come back. You grade one exercise on every copy before moving to the next. Around that:
 
 - a **new evaluation from the scan** of the whole class: one PDF per student, named after the class list;
-- a **grade scale** for each evaluation (exercises, pages, sub-questions or criteria), and a grading panel to grade one
-  exercise on every copy before moving to the next;
+- a **grade scale** for each evaluation (exercises, pages, sub-questions or criteria);
 - **comments that add or remove points**, reusable, suggested as you type;
-- **methods and mistakes** attached to the copies, with their points, and an overview of the class;
-- the **marks computation** (proportional scale, points table or formula), with the copies that half a point would
-  change;
-- **personal notes** with a screenshot, and the **Moodle** export;
+- the **marks computation** (proportional scale, points table or formula);
+- **personal notes** with a screenshot, and the Moodle export;
+- **faster to use**: typing a comment in the grading panel no longer lags;
 - a guided first start.
 
 Corrigo has its own settings and can run at the same time as PDF4Teachers. At its first start it copies the settings of
