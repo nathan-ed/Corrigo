@@ -56,8 +56,8 @@ public class Main extends Application {
     public enum Mode {DEV, SNAPSHOT, PRE_RELEASE, RELEASE}
     
     public static final Mode mode = Mode.DEV;
-    public static final int VERSION_ID = VersionIds.RL_1_4_3;
-    public static final String VERSION = getVersionName("1.4.3", 1);
+    public static final int VERSION_ID = VersionIds.RL_1_5_0;
+    public static final String VERSION = "1.5.0"; // The Mode only keeps the translations in the code: no suffix on the name
     public static LogLevel logLevel = getLogLevel();
     /****************************************/
     

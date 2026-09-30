@@ -17,6 +17,8 @@ les préférences et les listes de PDF4Teachers s'il était installé ; PDF4Teac
 
 ## Sommaire
 
+0. [Pourquoi Corrigo](00-pourquoi-corrigo.md) : ce que Corrigo ajoute à PDF4Teachers, et ce qu'il apporte face à Moodle
+
 1. [Premiers pas](01-premiers-pas.md) : ouvrir les copies, la fenêtre, sauvegarder, exporter, où sont les données
 2. [Annoter les copies](02-annoter.md) : textes et formules, dessins et images, pages, outils PDF
 3. [Barème et correction](03-correction.md) : créer le barème, exercices et pages, panneau de correction, commentaires, notes
