@@ -13,7 +13,7 @@ C = {
         'Une note personnelle avec une capture, jamais sur la copie', 'Revoir ces copies une par une',
         'Copies sans méthode : indiquez-la sans les ouvrir', 'Toutes vos notes, avec leur copie'],
 }[lang]
-M = {'en': dict(mistake='Inner derivative', without='without method'), 'fr': dict(mistake='intérieure', without='sans méthode')}[lang]
+M = {'en': dict(mistake='Inner derivative', without='without method'), 'fr': dict(mistake='facteur', without='sans méthode')}[lang]
 P = {'en': dict(overview=(83, 583), bar1=660, bar2=750, whole=(152, 613), hide=(82, 616), badge=(239, 436), without=(88, 553)),
      'fr': dict(overview=(92, 649), bar1=720, bar2=810, whole=(155, 680), hide=(93, 648), badge=(241, 502), without=(82, 619))}[lang]
 NOTE = {'en': 'Show this mistake in class', 'fr': 'Montrer cette erreur en classe'}[lang]

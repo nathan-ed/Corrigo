@@ -7,6 +7,7 @@ package fr.clementgre.pdf4teachers.datasaving.settings;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 
 public class StringSetting extends Setting<String> {
@@ -21,9 +22,10 @@ public class StringSetting extends Setting<String> {
     
     @Override
     public HBox getDefaultEditPane(){
-        throw new RuntimeException("This is not yet implemented...");
-//        TextField field = new TextField(getValue());
-//        return new HBox(field);
+        TextField field = new TextField(getValue());
+        field.setPrefColumnCount(12);
+        field.textProperty().addListener((observable, oldValue, newValue) -> setValue(newValue));
+        return new HBox(field);
     }
     
     public StringProperty valueProperty(){

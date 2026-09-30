@@ -7,7 +7,7 @@ drawings and images put on the copy, the lists of reusable elements, the export.
 
 The main difference is **grading by exercise, with a criteria grid**: each exercise of the grade scale has its methods
 and mistakes, which give or remove points. You tick them on the copy, the points are computed, and the class overview
-shows which ones come back. You grade one exercise on every copy before moving to the next. Around that:
+shows which ones come back. You grade the questions one by one on every copy. Around that:
 
 - a **new evaluation from the scan** of the whole class: one PDF per student, named after the class list;
 - a **grade scale** for each evaluation (exercises, pages, sub-questions or criteria);
@@ -25,7 +25,7 @@ PDF4Teachers; that one is left untouched.
 Moodle's grading interface goes copy by copy, in the browser. Corrigo works differently:
 
 - **Paper copies.** The copies are scanned in one go and split into one PDF per student.
-- **One exercise at a time.** You grade question 3 of every copy in a row, rather than every question of one copy.
+- **One question at a time.** You grade question 3 of every copy in a row, rather than every question of one copy.
   The scale is applied more evenly from one copy to the next.
 - **Overview of the class.** Which mistakes come back, how many points they cost, all the copies that have one side
   by side.

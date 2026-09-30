@@ -35,7 +35,9 @@ mistakes).
   **Copy marks position** checked so that the grades are at the same place on every copy.
 - **Export / import a grade scale** as a file: **Tools → Export/Import edits or marking scales**.
 
-A typical Swiss scale starts with a "PNF" exercise (presentation), then Q1…Qn.
+A typical Swiss scale starts with a "PNF" exercise (presentation), then Q1…Qn. Creating it is up to you.
+The right-click menu of a page offers **Add PNF** (a red mark on the copy, and a tally for each exercise on the first
+page). You can turn this off, and rename it ("Presentation"…), in **Settings → Grading**.
 
 ## Exercises and their pages
 

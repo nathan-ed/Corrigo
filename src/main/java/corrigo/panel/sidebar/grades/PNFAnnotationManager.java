@@ -6,6 +6,7 @@
 
 package corrigo.panel.sidebar.grades;
 
+import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
 import fr.clementgre.pdf4teachers.document.editions.Edition;
@@ -29,7 +30,7 @@ public class PNFAnnotationManager {
     private static final Color PNF_COLOR = Color.web("#b31a1a");
     private static final Font PNF_FONT = FontUtils.getFont("Open Sans", false, false, 24);
     private static final Font PNF_TABLE_FONT = FontUtils.getFont("Open Sans", false, false, 18);
-    private static final String PNF_TEXT = "PNF";
+    private static final String DEFAULT_LABEL = "PNF";
     private static final String PNF_MARK = "I";
     static final int MAX_MARKS_PER_EXERCISE = 4;
     static final int TABLE_X = 3199;
@@ -39,6 +40,12 @@ public class PNFAnnotationManager {
     private PNFAnnotationManager(){
     }
     
+    // The name of the marks, chosen in the settings ("PNF", "Présentation"...)
+    public static String label(){
+        String name = Main.settings == null ? null : Main.settings.presentationName.getValue();
+        return name == null || name.isBlank() ? DEFAULT_LABEL : name.trim();
+    }
+    
     public static void addPNF(PageRenderer page, double pageX, double pageY){
         if(!MainWindow.mainScreen.hasDocument(false)) return;
         
@@ -46,7 +53,7 @@ public class PNFAnnotationManager {
         int exerciseIndex = getRowIndex(exercises, MainWindow.footerBar.getSelectedExerciseIndex());
         int rowCount = getRowCount(exercises);
         if(exerciseIndex < 0){
-            MainWindow.footerBar.showToast(Color.web("#6a1b1b"), Color.WHITE, TR.tr("pnf.noExerciseSelected"));
+            MainWindow.footerBar.showToast(Color.web("#6a1b1b"), Color.WHITE, TR.tr("pnf.noExerciseSelected", label()));
             return;
         }
         
@@ -70,7 +77,7 @@ public class PNFAnnotationManager {
     
     private static void addPNFAnnotation(PageRenderer page, double pageX, double pageY, UndoGroup undoGroup){
         TextElement element = new TextElement(page.toGridX(pageX), page.toGridY(pageY), page.getPage(),
-                true, PNF_TEXT, PNF_COLOR, PNF_FONT, 0);
+                true, label(), PNF_COLOR, PNF_FONT, 0);
         page.addElement(element, true, undoGroup.next());
         element.centerOnCoordinatesY();
     }
@@ -87,7 +94,7 @@ public class PNFAnnotationManager {
         }
         
         if(getSummaryHeader(firstPage).isEmpty()){
-            TextElement header = new TextElement(TABLE_X, TABLE_HEADER_Y, 0, true, PNF_TEXT, PNF_COLOR, PNF_TABLE_FONT, 0);
+            TextElement header = new TextElement(TABLE_X, TABLE_HEADER_Y, 0, true, label(), PNF_COLOR, PNF_TABLE_FONT, 0);
             firstPage.addElement(header, true, undoGroup.next());
         }
         for(int i = rows.size(); i < rowCount; i++){
@@ -102,7 +109,7 @@ public class PNFAnnotationManager {
                 .filter(TextElement.class::isInstance)
                 .map(TextElement.class::cast)
                 .filter(element -> element.getPageNumber() == 0)
-                .filter(element -> PNF_TEXT.equals(element.getText()))
+                .filter(element -> label().equals(element.getText()))
                 .filter(element -> Math.abs(element.getRealX() - TABLE_X) < 1000)
                 .filter(element -> Math.abs(element.getRealY() - TABLE_HEADER_Y) < 1000)
                 .findFirst();
@@ -155,7 +162,7 @@ public class PNFAnnotationManager {
     
     // The PNF grade has no row in the table: the rows are the other exercises, in the order of the grade scale.
     static boolean isPNFExercise(String name){
-        return name != null && name.trim().equalsIgnoreCase(PNF_TEXT);
+        return name != null && name.trim().equalsIgnoreCase(label());
     }
     static int getRowCount(List<String> exercises){
         return (int) exercises.stream().filter(name -> !isPNFExercise(name)).count();

@@ -174,9 +174,9 @@ def make_scan(out, lang, only=None):
 # THE GRADED EVALUATION
 
 TAGS = {  # key: (exercise, kind, name en, name fr, points, grade)
-    'chain': ('Ex 1', 'METHOD', 'Chain rule', 'Dérivée composée', None, None),
+    'chain': ('Ex 1', 'METHOD', 'Chain rule', 'Dérivation d\'une composée', None, None),
     'expand': ('Ex 1', 'METHOD', 'Expanded first', 'Développé d\'abord', None, None),
-    'chain_forgot': ('Ex 1', 'MISTAKE', 'Inner derivative forgotten', 'Dérivée intérieure oubliée', 1.0, None),
+    'chain_forgot': ('Ex 1', 'MISTAKE', 'Inner derivative forgotten', 'Facteur u′ oublié', 1.0, None),
     'formula': ('Ex 2', 'METHOD', 'General term formula', 'Formule du terme général', None, None),
     'listing': ('Ex 2', 'METHOD', 'Listed the terms', 'Liste des termes', None, None),
     'formula_n': ('Ex 2', 'MISTAKE', 'n instead of n − 1', 'n au lieu de n − 1', 1.0, 'a'),
@@ -187,7 +187,7 @@ TAGS = {  # key: (exercise, kind, name en, name fr, points, grade)
 COMMENTS = {
     'en': {'expand': 'Right, but the chain rule is faster', 'listing': 'Right, but long: use the formula',
            'formula_n': 'u_n = u_1 + (n − 1)r', 'delta_sign': 'x = (−b ± √Δ)/2a', 'good': 'Very good!'},
-    'fr': {'expand': 'Juste, mais la dérivée composée est plus rapide', 'listing': 'Juste, mais long : utiliser la formule',
+    'fr': {'expand': 'Juste, mais la dérivation d\'une composée est plus rapide', 'listing': 'Juste, mais long : utiliser la formule du terme général',
            'formula_n': 'u_n = u_1 + (n − 1)r', 'delta_sign': 'x = (−b ± √Δ)/2a', 'good': 'Très bien !'},
 }
 

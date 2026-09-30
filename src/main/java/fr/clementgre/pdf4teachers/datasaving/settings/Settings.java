@@ -143,6 +143,18 @@ public class Settings {
     
     
     @SettingObject
+    public BooleanSetting presentationMarks = new BooleanSetting(true, true, SVGPathIcons.PEN, "presentationMarks",
+            "settings.presentationMarks.title", "settings.presentationMarks.tooltip");
+    
+    @SettingObject
+    public StringSetting presentationName = new StringSetting("PNF", true, SVGPathIcons.TEXT_HEIGHT, "presentationName",
+            "settings.presentationName.title", "settings.presentationName.tooltip");
+    
+    @SettingsGroup(title = "settings.group.grading")
+    public Setting<?>[] gradingGroup = {presentationMarks, presentationName};
+    
+    
+    @SettingObject
     public BooleanSetting allowAutoTips = new BooleanSetting(true, true, SVGPathIcons.TOOLTIP, "allowAutoTips",
             "settings.allowAutoTips.title", "settings.allowAutoTips.tooltip");
     

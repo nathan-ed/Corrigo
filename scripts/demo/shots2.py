@@ -8,7 +8,7 @@ lang = sys.argv[1]; O = f'{S}/demo/shots/{lang}'
 T = {'en': dict(mistake='inner', comment='The derivative of 2x + 1 is missing', chip1=(72, 314), chip2=(213, 314), search='chain',
                 overview=(83, 583), badge=(239, 436), mname='Inner derivative', without=(88, 553)),
      'fr': dict(mistake='oubli', comment='Il manque la dérivée de 2x + 1', chip1=(100, 314), chip2=(100, 347), search='compos',
-                overview=(92, 649), badge=(241, 502), mname='intérieure', without=(82, 619))}[lang]
+                overview=(92, 649), badge=(241, 502), mname='facteur', without=(82, 619))}[lang]
 click(80, 46); wait(1.5); click(40, 140); wait(2)
 # The class overview (copy 1)
 click(*T['overview']); wait(1.5); shot(f'{O}/class-overview.png', (0, 60, 380, 800)); click(*T['overview']); wait(1)

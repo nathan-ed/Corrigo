@@ -43,8 +43,8 @@ COMMENTS = {  # comment text by answer variant: placed right of the answer
     'chain_forgot2': "Attention : dérivée de 2x+1 !",
     'formula_n': "u_n = u_1 + (n-1)r",
     'delta_sign': "Signe de b !",
-    'listing': "Juste, mais long : utiliser la formule",
-    'expand': "Juste, mais la dérivée composée est plus rapide",
+    'listing': "Juste, mais long : utiliser la formule du terme général",
+    'expand': "Juste, mais la dérivation d'une composée est plus rapide",
 }
 
 def header(c, page, title=None):

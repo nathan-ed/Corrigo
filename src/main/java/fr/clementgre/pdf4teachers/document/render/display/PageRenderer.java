@@ -656,9 +656,11 @@ public class PageRenderer extends Pane {
     }
     
     public void showContextMenu(double pageX, double pageY, double screenX, double screenY){
-        NodeMenuItem pnfMenuItem = new NodeMenuItem(TR.tr("pnf.add"), false);
-        pnfMenuItem.setOnAction(e -> PNFAnnotationManager.addPNF(this, pageX, pageY));
-        menu.getItems().add(pnfMenuItem);
+        if(Main.settings.presentationMarks.getValue()){
+            NodeMenuItem pnfMenuItem = new NodeMenuItem(TR.tr("pnf.add", PNFAnnotationManager.label()), false);
+            pnfMenuItem.setOnAction(e -> PNFAnnotationManager.addPNF(this, pageX, pageY));
+            menu.getItems().add(pnfMenuItem);
+        }
         menu.getItems().add(getTagsMenu(pageX, pageY));
         // Personal notes (never on the copy): about this page, or with a screenshot of a part of it
         NodeMenuItem noteItem = new NodeMenuItem(TR.tr("notes.pageMenu.note"), false);

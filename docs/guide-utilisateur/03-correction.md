@@ -37,7 +37,9 @@ méthodes et erreurs).
   dossier. Laissez **Copier la position des notes** coché pour que les notes soient au même endroit sur chaque copie.
 - **Exporter / importer un barème** dans un fichier : **Outils → Exporter/Importer des éditions/barèmes**.
 
-Un barème suisse typique commence par un exercice « PNF » (présentation), puis Q1…Qn.
+Un barème suisse typique commence par un exercice « PNF » (présentation), puis Q1…Qn. C'est à vous de le créer ou non.
+Le clic droit sur une page propose **Ajouter PNF** (une marque rouge sur la copie, et un décompte par exercice sur la
+première page). Cette option se désactive, et son nom se change (« Présentation »…), dans **Préférences → Correction**.
 
 ## Les exercices et leurs pages
 
