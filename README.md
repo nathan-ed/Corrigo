@@ -13,6 +13,21 @@ whole class, and give the copies back as PDFs or through Moodle. Annotations nev
 - [User guide (English)](docs/user-guide/README.md)
 - [Guide d'utilisation (français)](docs/guide-utilisateur/README.md)
 
+## Why Corrigo
+
+**Compared to PDF4Teachers.** Corrigo is built on it and keeps what it does (display, texts, formulas, drawings,
+images, export); PDF4Teachers remains the right choice to annotate PDFs without a grade scale. Corrigo adds what helps
+when grading a whole evaluation exercise by exercise: a new evaluation from the scan of the class, a grade scale per
+evaluation, a grading panel (one exercise on every copy, then the next), comments and methods and mistakes that add or
+remove points, a class overview, marks computed on the scale you choose, notes, and the Moodle export.
+
+**Compared to grading in Moodle.** Moodle stays where students hand in and see their marks; Corrigo prepares what is
+uploaded there. The paper copies are scanned in one go and split, you grade question 3 of every copy in a row, you see
+which mistakes come back in the class, everything stays on your computer, and the copies go back as a zip of feedback
+files, one per student.
+
+[More in the user guide](docs/user-guide/00-why-corrigo.md).
+
 ## See it
 
 **1. A new evaluation from the scan of the class**: the students in the order of the scan, one PDF per student, the

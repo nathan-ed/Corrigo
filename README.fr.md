@@ -14,6 +14,22 @@ modifient jamais les PDF d'origine.
 - [Guide d'utilisation](docs/guide-utilisateur/README.md)
 - [User guide (English)](docs/user-guide/README.md)
 
+## Pourquoi Corrigo
+
+**Par rapport à PDF4Teachers.** Corrigo est construit dessus et garde ce qu'il fait (affichage, textes, formules,
+dessins, images, export) ; PDF4Teachers reste le bon choix pour annoter des PDF sans barème. Corrigo ajoute ce qui sert
+pour corriger une évaluation complète exercice par exercice : une nouvelle évaluation à partir du scan de la classe, un
+barème par évaluation, un panneau de correction (un exercice sur toutes les copies, puis le suivant), des commentaires
+et des méthodes et erreurs qui ajoutent ou retirent des points, un bilan de la classe, des notes calculées sur
+l'échelle de votre choix, des notes personnelles et l'export Moodle.
+
+**Par rapport à la correction dans Moodle.** Moodle reste l'endroit où les élèves rendent leur travail et voient leur
+note ; Corrigo prépare ce qui y est déposé. Les copies papier sont scannées d'un bloc et découpées, on corrige la
+question 3 de toutes les copies à la suite, on voit quelles erreurs reviennent dans la classe, tout reste sur votre
+ordinateur, et les copies repartent dans un zip de fichiers de feedback, un par élève.
+
+[Détails dans le guide d'utilisation](docs/guide-utilisateur/00-pourquoi-corrigo.md).
+
 ## En images
 
 **1. Une nouvelle évaluation à partir du scan de la classe** : les élèves dans l'ordre du scan, un PDF par élève, le
