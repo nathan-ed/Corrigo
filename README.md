@@ -46,10 +46,23 @@ shows every change.
 The code of PDF4Teachers keeps its package, `fr.clementgre.pdf4teachers`, so that its later changes can still be
 merged. The code written for Corrigo is in `corrigo` (same sub-packages).
 
-## Run it from the source (Linux, macOS, Windows)
+## Installation
 
-There is no installer: Corrigo runs from its source code. You need **Java 21 (a JDK)** and **Git**; Gradle, JavaFX
-and the other libraries are downloaded automatically the first time (it takes a few minutes, then starts in seconds).
+Download the installer for your system from the [releases page](https://github.com/nathan-ed/Corrigo/releases). Java
+is bundled: nothing else to install.
+
+- **Windows**: `Corrigo-Windows-<version>.msi` (installer), or `Corrigo-Windows-<version>.zip` (portable, unzip and run).
+- **macOS**: `Corrigo-MacOSX-<version>.dmg` (Intel) or `Corrigo-MacOSX-AArch64-<version>.dmg` (Apple Silicon: M1 and
+  later). Drag Corrigo to *Applications*.
+- **Linux**: `Corrigo-Linux-<version>.deb` (Debian, Ubuntu and derivatives: `sudo apt install ./Corrigo-Linux-<version>.deb`).
+
+The installers are built automatically for each release. Your settings are kept when you update.
+
+## Run the latest version from the source (Linux, macOS, Windows)
+
+To try the latest changes, before they are in a release, Corrigo can also run from its source code. You need
+**Java 21 (a JDK)** and **Git**; Gradle, JavaFX and the other libraries are downloaded automatically the first time
+(it takes a few minutes, then starts in seconds).
 
 **1. Install Java 21 and Git**
 

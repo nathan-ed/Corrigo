@@ -36,15 +36,29 @@ des noms de mathématiciens).
 
 ## Installation
 
-Téléchargez l'installateur de votre système (Windows, macOS, Linux) dans les
-[versions](https://github.com/nathan-ed/Corrigo/releases), ou lancez Corrigo depuis le code source (Java 21 et Git
-requis) :
+Téléchargez l'installateur de votre système dans les [versions](https://github.com/nathan-ed/Corrigo/releases). Java
+est inclus : rien d'autre à installer.
+
+- **Windows** : `Corrigo-Windows-<version>.msi` (installateur) ou `Corrigo-Windows-<version>.zip` (portable, à
+  décompresser puis lancer).
+- **macOS** : `Corrigo-MacOSX-<version>.dmg` (Intel) ou `Corrigo-MacOSX-AArch64-<version>.dmg` (Apple Silicon : M1 et
+  suivants). Glissez Corrigo dans *Applications*.
+- **Linux** : `Corrigo-Linux-<version>.deb` (Debian, Ubuntu et dérivés : `sudo apt install ./Corrigo-Linux-<version>.deb`).
+
+Les installateurs sont construits automatiquement à chaque version. Vos réglages sont conservés lors des mises à jour.
+
+### Dernière version depuis le code source
+
+Pour essayer les derniers changements, avant qu'ils soient dans une version, Corrigo peut aussi se lancer depuis le
+code source (Java 21 et Git requis) :
 
 ```
 git clone https://github.com/nathan-ed/Corrigo.git
 cd Corrigo
 ./gradlew run        # Windows : gradlew.bat run
 ```
+
+Pour mettre à jour : `git pull` dans ce dossier, puis relancer.
 
 Vos réglages sont conservés dans `~/.local/share/Corrigo` (Linux), `~/Library/Application Support/Corrigo` (macOS) ou
 `%APPDATA%\Corrigo` (Windows) ; les annotations et données de chaque évaluation sont à côté de ses copies. Le premier
