@@ -17,6 +17,13 @@ remplace ainsi les « commentaires notés » des versions précédentes. Son nom
   une occurrence, avec sa pastille et, si elle a des points, ses points (deux erreurs de signe coûtent deux fois les
   points).
 
+## Critères du barème
+
+Les sous-notes de l'exercice sont déjà là, en tête des méthodes : **✓ a +2**, **✓ b +1**… (un exercice sans sous-note
+est son propre critère). Un clic sur un critère, puis un clic sur la copie, y écrit un **✓ vert** (sans texte) et
+donne ses points à la sous-note, comptés depuis 0. Un nouveau clic sur le critère l'enlève. Ils suivent le barème : son
+nom et ses points s'y changent, pas dans la carte. Ils ne comptent pas comme méthode dans « Méthode indiquée pour… ».
+
 ## Points et commentaire
 
 Facultatifs, pour chaque méthode ou erreur : clic droit dessus → **Points et commentaire…**, ou donnez-les en la
@@ -41,11 +48,14 @@ méthode ou erreur avec des points soit mise sur sa sous-note ; quand il n'en re
 
 **Depuis la carte** (Méthodes & erreurs, dans le panneau de correction) : un clic sur une méthode ou une erreur
 l'ajoute à la copie pour cet exercice, un nouveau clic l'enlève (toutes ses occurrences dans cet exercice).
-**Maj+clic** l'ajoute une fois de plus. Le nombre indiqué est le nombre de copies qui l'ont dans cet exercice (cliquez
+**Maj+clic** l'ajoute une fois de plus. Une **méthode ou erreur avec un commentaire** (et un critère) s'écrit là où vous cliquez
+ensuite sur la copie : la puce attend en pointillés, `Échap` ou un nouveau clic sur la puce annule. Le nombre indiqué est le nombre de copies qui l'ont dans cet exercice (cliquez
 sur le nombre pour les voir) ; « ×2 » signifie que la copie l'a deux fois.
 
-**+ Méthode** / **+ Erreur** en créent une nouvelle et l'ajoutent à la copie : tapez le nom, puis `Tab` pour ses
-points et son commentaire (facultatifs), `Entrée`.
+**+ Méthode** / **+ Erreur** en créent une nouvelle et l'ajoutent à la copie : tapez son commentaire (il passe à la
+ligne et sert aussi de nom), `Tab` pour ses points (facultatifs), `Entrée`. Décochez **Écrire sur la copie** pour que
+le texte serve seulement de nom (la pastille seule). Le nom reste modifiable (clic droit → Renommer) ; tant qu'il n'a
+pas été changé, il suit le commentaire quand celui-ci est modifié.
 
 **À un endroit de la copie** : visez l'endroit sur la page, appuyez sur `#` (ou `Ctrl+Maj+M`). Une petite fenêtre
 s'ouvre à la souris :

@@ -121,6 +121,7 @@ public class Edition{
             ScoredComments.fireChanged(false);
             EvaluationComments.onEditionLoaded();
             corrigo.panel.sidebar.grades.tags.ExerciseTags.onEditionLoaded();
+            corrigo.panel.sidebar.grades.PNFAnnotationManager.onEditionLoaded();
             
             return true;
         }catch(IOException e){

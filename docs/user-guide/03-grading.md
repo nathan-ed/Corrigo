@@ -36,8 +36,12 @@ mistakes).
 - **Export / import a grade scale** as a file: **Tools → Export/Import edits or marking scales**.
 
 A typical Swiss scale starts with a "PNF" exercise (presentation), then Q1…Qn. Creating it is up to you.
-The right-click menu of a page offers **Add PNF** (a red mark on the copy, and a tally for each exercise on the first
-page). You can turn this off, and rename it ("Presentation"…), in **Settings → Grading**.
+The **PNF** chip, always among the mistakes of the Methods & mistakes card, offers a comment (none, one used before,
+or a new one typed in the menu; ✕ removes it from the list), then a click on the copy writes "PNF : comment" in red
+there and counts it for the exercise in a table on the first page. The same choices are in the right-click menu of a
+page (**Add PNF**) and in the `#` window (type "pnf"). If the grade scale has a "PNF" exercise without sub-grades, its
+grade follows the number of marks on the copy: 0 or 1 → 2, 2 → 1.5, 3 → 1, 4 → 0.5, 5 or more → 0 (once the
+grading of the copy has started). You can turn this off, and rename it ("Presentation"…), in **Settings → Grading**.
 
 ## Exercises and their pages
 
@@ -64,7 +68,13 @@ reading.
 **One section per sub-grade**, the active one highlighted:
 
 - the points field and the maximum; on the active sub-grade, "from max" / "from 0" says whether the points of the
-  methods and mistakes count down from the maximum or up from zero (click to switch);
+  methods and mistakes count down from the maximum or up from zero. By default they start from the grade typed by
+  hand if any ("from 1.5": a mistake at −0.5 gives 1); else mistakes alone count from the maximum, and as soon as a
+  method or a criterion adds points the sub-grade starts from 0 (the points add up one by one). Click to force from
+  the maximum, then from 0, then back to automatic;
+- **Mark**: ╱ (cross out), ✓, ✗, ◯ (circle). Click the button, then click on the copy: the mark has a normal size,
+  centered on the click; drag instead to give it the dragged size. Same button or `Escape`: cancel. The click goes to
+  the page even over a text or a shape already there;
 - **Comment on the copy (C)**: the comment of this sub-grade, written next to its grade while you type.
   Emptying the field removes it.
 

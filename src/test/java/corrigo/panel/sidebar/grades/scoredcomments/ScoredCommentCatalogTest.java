@@ -32,8 +32,23 @@ class ScoredCommentCatalogTest {
         assertEquals(1, b.getPoints());
         assertEquals("#00aa00", b.getColor());
         assertNull(read.get("a").orElseThrow().getColor());
-        assertEquals(ScoredCommentCatalog.Base.ZERO, read.getBase("\\Total\\Ex 2"));
-        assertEquals(ScoredCommentCatalog.Base.FULL, read.getBase("\\Total\\Ex 1"));
+        assertEquals(ScoredCommentCatalog.Base.ZERO, read.getChosenBase("\\Total\\Ex 2"));
+        assertNull(read.getChosenBase("\\Total\\Ex 1"));
+    }
+    @Test
+    void automaticBaseStartsFromZeroWhenPointsAreAdded(){
+        ScoredCommentCatalog catalog = new ScoredCommentCatalog();
+        String path = "\\Total\\Ex 1";
+        assertEquals(ScoredCommentCatalog.Base.FULL, catalog.getBase(path, List.of(-1d)));
+        assertEquals(ScoredCommentCatalog.Base.FULL, catalog.getBase(path, List.of()));
+        assertEquals(ScoredCommentCatalog.Base.ZERO, catalog.getBase(path, List.of(1d)));
+        assertEquals(ScoredCommentCatalog.Base.ZERO, catalog.getBase(path, List.of(2d, -0.5)));
+        // Chosen by the teacher: kept, also written to the file
+        catalog.setBase(path, ScoredCommentCatalog.Base.FULL);
+        assertEquals(ScoredCommentCatalog.Base.FULL, catalog.getBase(path, List.of(1d)));
+        assertEquals(ScoredCommentCatalog.Base.FULL, ScoredCommentCatalog.fromYAML(catalog.toYAML()).getChosenBase(path));
+        catalog.setBase(path, null);
+        assertNull(catalog.getChosenBase(path));
     }
     @Test
     void ignoresMalformedEntries(){
@@ -56,7 +71,7 @@ class ScoredCommentCatalogTest {
 
         assertEquals("\\Total\\Exercise 1\\a", catalog.get("a").orElseThrow().getGradePath());
         assertEquals("\\Total\\Ex 10", catalog.get("b").orElseThrow().getGradePath());
-        assertEquals(ScoredCommentCatalog.Base.ZERO, catalog.getBase("\\Total\\Exercise 1\\a"));
+        assertEquals(ScoredCommentCatalog.Base.ZERO, catalog.getChosenBase("\\Total\\Exercise 1\\a"));
     }
 
     @Test

@@ -240,4 +240,79 @@ class EvaluationTagsTest {
         assertEquals(Map.of("\\Total\\Q3\\a", 1.0), read.getGradePoints());
         assertTrue(read.getGradePoints("Q2").isEmpty());
     }
+
+    @Test
+    void criteriaFollowTheGradeScale(){
+        EvaluationTags tags = new EvaluationTags();
+        Tag chain = tags.create("Ex 1", "Chain rule", Kind.METHOD);
+        Tag mistake = tags.create("Ex 1", "Sign error", Kind.MISTAKE);
+        List<EvaluationTags.Criterion> scale = List.of(new EvaluationTags.Criterion("\\Total\\Ex 1\\a", "a", 2),
+                new EvaluationTags.Criterion("\\Total\\Ex 1\\b", "b", 1.5));
+        assertNotNull(tags.syncCriteria("Ex 1", scale));
+        Tag a = tags.getCriterionTag("\\Total\\Ex 1\\a"), b = tags.getCriterionTag("\\Total\\Ex 1\\b");
+        assertTrue(a.isCriterion());
+        assertEquals(Kind.METHOD, a.getKind());
+        // First among the methods of their exercise, not listed in the other exercises
+        assertEquals(List.of(a, b, chain, mistake), tags.getTags("Ex 1"));
+        assertEquals(List.of(chain, mistake), tags.getTags("Ex 2"));
+        // Nothing changed: nothing to do
+        assertNull(tags.syncCriteria("Ex 1", scale));
+        // Same name in another exercise: another criterion, and a tag can be named like a criterion
+        tags.syncCriteria("Ex 2", List.of(new EvaluationTags.Criterion("\\Total\\Ex 2\\a", "a", 3)));
+        assertNotSame(a, tags.getCriterionTag("\\Total\\Ex 2\\a"));
+        assertTrue(tags.find("a").isEmpty());
+        assertFalse(tags.create("Ex 1", "a", Kind.METHOD).isCriterion());
+        // Points changed: returned (written again on the copies)
+        assertEquals(List.of(b), tags.syncCriteria("Ex 1", List.of(scale.get(0), new EvaluationTags.Criterion("\\Total\\Ex 1\\b", "b", 2))));
+        assertEquals(2, b.getPoints());
+    }
+    @Test
+    void criterionWritesATickWithThePointsOfItsSubGrade(){
+        EvaluationTags tags = new EvaluationTags();
+        tags.syncCriteria("Ex 1", List.of(new EvaluationTags.Criterion("\\Total\\Ex 1\\a", "a", 2)));
+        Tag a = tags.getCriterionTag("\\Total\\Ex 1\\a");
+        // Put near another sub-grade: still counts on its own
+        Use use = tags.add("01_A.pdf", "Ex 1", a, "\\Total\\Ex 1\\b", AT);
+        EvaluationTags.Target target = tags.getTargets(use).getFirst();
+        assertEquals("\\Total\\Ex 1\\a", target.grade());
+        assertEquals(2, target.points());
+        assertEquals(corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentGrades.CHECK, target.comment());
+        assertEquals("+2", a.getPointsLabel("Ex 1", java.text.NumberFormat.getInstance(java.util.Locale.US)));
+        // Not a method of the class overview ("without method")
+        assertEquals(List.of("01_A.pdf"), tags.getWithoutMethod("Ex 1", List.of("01_A.pdf")));
+    }
+    @Test
+    void criteriaAreKeptInTheFileAndRemovedWhenUnused(){
+        EvaluationTags tags = new EvaluationTags();
+        tags.syncCriteria("Ex 1", List.of(new EvaluationTags.Criterion("\\Total\\Ex 1\\a", "a", 2),
+                new EvaluationTags.Criterion("\\Total\\Ex 1\\b", "b", 1)));
+        tags.add("01_A.pdf", "Ex 1", tags.getCriterionTag("\\Total\\Ex 1\\a"), "", AT);
+        EvaluationTags read = EvaluationTags.fromYAML(tags.toYAML());
+        Tag a = read.getCriterionTag("\\Total\\Ex 1\\a");
+        assertNotNull(a);
+        assertEquals(1, read.count("01_A.pdf", "Ex 1", a));
+        // The sub-grades are gone from the grade scale: b is removed, a is used so it is kept
+        read.syncCriteria("Ex 1", List.of());
+        assertNotNull(read.getCriterionTag("\\Total\\Ex 1\\a"));
+        assertNull(read.getCriterionTag("\\Total\\Ex 1\\b"));
+    }
+
+    @Test
+    void nameMadeFromTheCommentFollowsIt(){
+        EvaluationTags tags = new EvaluationTags();
+        Tag tag = tags.create("Ex 1", "Units missing", Kind.MISTAKE);
+        tags.setScoring(tag, 0.5, "Units missing");
+        tags.setScoring(tag, 0.5, "Units missing in the answer");
+        assertEquals("Units missing in the answer", tag.getName());
+        // Renamed by hand: the name stays
+        tags.rename(tag, "Units");
+        tags.setScoring(tag, 0.5, "Always give the units");
+        assertEquals("Units", tag.getName());
+        // Another tag already has the new name: the name stays
+        Tag other = tags.create("Ex 1", "Sign", Kind.MISTAKE);
+        tags.setScoring(other, null, "Sign");
+        tags.create("Ex 1", "Sign error", Kind.MISTAKE);
+        tags.setScoring(other, null, "Sign error");
+        assertEquals("Sign", other.getName());
+    }
 }

@@ -79,6 +79,14 @@ public final class TagEditFiles {
         }
         return written.toString();
     }
+    // Top left corner of what is written at the spot of an occurrence: a tick on the spot, a comment under its line
+    // (not over what the student wrote)
+    public static double[] getSpotPosition(EvaluationTags.Placement placement, Target target){
+        if(ScoredCommentGrades.CHECK.equals(target.comment())){
+            return new double[]{Math.max(0, placement.x() - GRID_WIDTH * .017), Math.max(0, placement.y() - GRID_HEIGHT * .012)};
+        }
+        return new double[]{Math.max(0, placement.x() - GRID_WIDTH * .01), placement.y() + GRID_HEIGHT * .012};
+    }
     public static String getColor(Tag tag){
         return tag.getKind() == Kind.MISTAKE ? MISTAKE_COLOR : METHOD_COLOR;
     }
@@ -166,9 +174,9 @@ public final class TagEditFiles {
         int page = use.placement().page();
         double x, y;
         if(!use.placement().isExerciseSpot() && target.key().isEmpty()){
-            // Under the line of the spot: not over what the student wrote
-            x = use.placement().x() - GRID_WIDTH * .01;
-            y = use.placement().y() + GRID_HEIGHT * .012;
+            double[] spot = getSpotPosition(use.placement(), target);
+            x = spot[0];
+            y = spot[1];
         }else{
             Map<String, Object> grade = findGrade(editBase, target.grade());
             if(grade != null){

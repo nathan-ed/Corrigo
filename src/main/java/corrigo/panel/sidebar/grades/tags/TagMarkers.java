@@ -217,9 +217,11 @@ public final class TagMarkers {
             this.grade = use.grade();
             String color = TagPicker.getColor(tag.getKind());
             Circle dot = new Circle(DOT_RADIUS, Color.WHITE);
-            // Whole: the pill is as long as the name (and its points)
+            // The pill is as long as the name (and its points), up to a limit: a long name (made from its comment)
+            // ends with "…", the whole name is in the tooltip
             String pointsLabel = tag.getPointsLabel(use.exercise(), MainWindow.gradesDigFormat);
-            Label name = new Label(tag.getName() + (pointsLabel.isEmpty() ? "" : "  " + pointsLabel));
+            String shortName = tag.getName().length() > 32 ? tag.getName().substring(0, 31).strip() + "…" : tag.getName();
+            Label name = new Label(shortName + (pointsLabel.isEmpty() ? "" : "  " + pointsLabel));
             name.setMinWidth(Region.USE_PREF_SIZE);
             name.setStyle("-fx-text-fill: white; -fx-font-size: " + FONT_SIZE + "; -fx-font-weight: bold;");
             getTransforms().add(labelScale);

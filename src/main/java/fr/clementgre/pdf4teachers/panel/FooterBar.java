@@ -249,6 +249,18 @@ public class FooterBar extends StackPane {
         });
     }
 
+    // Hides the message shown now
+    public void hideToast(){
+        if(!getChildren().contains(messagePane)) return;
+        Timeline timelineHide = new Timeline(60);
+        timelineHide.getKeyFrames().addAll(
+                new KeyFrame(Duration.millis(150), new KeyValue(messagePane.translateYProperty(), 20)),
+                new KeyFrame(Duration.millis(150), new KeyValue(messagePane.opacityProperty(), 0))
+        );
+        timelineHide.play();
+        timelineHide.setOnFinished((e) -> getChildren().remove(messagePane));
+    }
+
     private Pane getSpacerShape(){
         Line shape = new Line(0, 0, 0, 14);
         shape.setStroke(Color.web("#4B4B4B"));

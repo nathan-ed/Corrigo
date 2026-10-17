@@ -234,6 +234,22 @@ public final class ExerciseTags {
         data.setKind(tag, kind);
         fireChanged(true);
     }
+    // The criteria of the exercise follow its sub-grades in the grade scale of the open copy (their points, their names).
+    public static void syncCriteria(GradeTreeItem exercise){
+        if(exercise == null || getOpenCopy() == null) return;
+        List<EvaluationTags.Criterion> criteria = new ArrayList<>();
+        List<GradeTreeItem> leaves = GradeTreeView.getGradesArray(exercise).stream().filter(g -> !g.hasSubGrade()).toList();
+        if(leaves.isEmpty()) leaves = List.of(exercise); // An exercise without sub-grades is its own criterion
+        // The presentation grade is computed from its marks: no criterion
+        if(corrigo.panel.sidebar.grades.PNFAnnotationManager.isPresentationExercise(exercise.getCore().getName())) leaves = List.of();
+        for(GradeTreeItem leaf : leaves){
+            criteria.add(new EvaluationTags.Criterion(leaf.getCore().getPath(), leaf.getCore().getName(), leaf.getCore().getTotal()));
+        }
+        List<Tag> pointsChanged = data.syncCriteria(exercise.getCore().getName(), criteria);
+        if(pointsChanged == null) return;
+        pointsChanged.forEach(tag -> dirtyCopies.addAll(data.getCopies(tag)));
+        fireChanged(true);
+    }
     public static void deleteTag(Tag tag){
         dirtyCopies.addAll(data.getCopies(tag));
         data.delete(tag);

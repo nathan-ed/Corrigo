@@ -33,6 +33,8 @@ public class ScoredCommentGrades {
     public static final String KEY_VALUE_BEFORE = "valueBeforeComments";
 
     public static final String MINUS = "−";
+    // A green tick written for a criterion of the grade scale: written alone, without its points
+    public static final String CHECK = "$\\Large\\checkmark$";
 
     // "Comment (−0.5)", "Comment (+1)" or "Comment (0)". Unsigned numbers are not points: "see question (2)".
     private static final Pattern RENDERED_WITH_COMMENT = Pattern.compile("(?s)^(.*?)\\s*\\(\\s*([+\\-−]\\s*\\d+(?:[.,]\\d+)?|0(?:[.,]0+)?)\\s*\\)\\s*$");
@@ -44,6 +46,21 @@ public class ScoredCommentGrades {
 
     // LEAF VALUE
 
+    /**
+     * Value a sub-grade starts from before adding the points of its comments: the base chosen for it, else the value
+     * typed by hand before (typed: -1 if none), else the automatic base (see ScoredCommentCatalog.getBase).
+     */
+    public static double getStart(double total, ScoredCommentCatalog catalog, String path, double typed, Collection<Double> points){
+        ScoredCommentCatalog.Base chosen = catalog == null ? null : catalog.getChosenBase(path);
+        if(chosen != null) return chosen == ScoredCommentCatalog.Base.ZERO ? 0 : total;
+        if(typed >= 0) return Math.min(typed, total);
+        return (catalog == null ? new ScoredCommentCatalog() : catalog).getBase(path, points) == ScoredCommentCatalog.Base.ZERO ? 0 : total;
+    }
+    public static double computeLeafFrom(double total, double start, Collection<Double> points){
+        double value = start;
+        for(double p : points) value += p;
+        return Math.max(0, Math.min(total, value));
+    }
     public static double computeLeaf(double total, ScoredCommentCatalog.Base base, Collection<Double> points){
         double value = base == ScoredCommentCatalog.Base.ZERO ? 0 : total;
         for(double p : points) value += p;
@@ -58,6 +75,7 @@ public class ScoredCommentGrades {
         return format.format(0);
     }
     public static String render(String comment, double points, NumberFormat format){
+        if(CHECK.equals(comment)) return CHECK;
         if(comment == null || comment.isBlank()) return formatPoints(points, format);
         return comment + " (" + formatPoints(points, format) + ")";
     }
@@ -194,8 +212,8 @@ public class ScoredCommentGrades {
                 grade.remove(KEY_VALUE_SOURCE);
                 grade.remove(KEY_VALUE_BEFORE);
             }else{
-                ScoredCommentCatalog.Base base = catalog == null ? ScoredCommentCatalog.Base.FULL : catalog.getBase(path);
-                grade.put("value", computeLeaf(getDouble(grade, "total", 0), base, points));
+                double total = getDouble(grade, "total", 0);
+                grade.put("value", computeLeafFrom(total, getStart(total, catalog, path, getDouble(grade, KEY_VALUE_BEFORE, -1), points), points));
             }
         }
 

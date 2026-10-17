@@ -567,6 +567,23 @@ public class GradeElement extends Element {
             treeItem.getPanel().gradeField.setText(value == -1 ? "" : MainWindow.gradesDigFormat.format(value));
         }
     }
+    // Sets a value computed from something else of the copy (the presentation marks): not an undo action, the marks are.
+    public void setAutomaticValue(double value){
+        settingValueFromComments = true;
+        try{
+            this.value.set(value);
+        }finally{
+            settingValueFromComments = false;
+        }
+        GradeTreeItem treeItem = getGradeTreeItem();
+        if(treeItem != null && treeItem.getPanel() != null && treeItem.getPanel().gradeField != null){
+            treeItem.getPanel().gradeField.setText(value == -1 ? "" : MainWindow.gradesDigFormat.format(value));
+        }
+    }
+    // The value typed before it was computed from comments (-1: none). While it is not computed, the value itself.
+    public double getTypedValue(){
+        return valueFromComments.get() ? valueBeforeComments : value.get();
+    }
     public boolean isValueFromComments(){
         return valueFromComments.get();
     }

@@ -38,8 +38,12 @@ méthodes et erreurs).
 - **Exporter / importer un barème** dans un fichier : **Outils → Exporter/Importer des éditions/barèmes**.
 
 Un barème suisse typique commence par un exercice « PNF » (présentation), puis Q1…Qn. C'est à vous de le créer ou non.
-Le clic droit sur une page propose **Ajouter PNF** (une marque rouge sur la copie, et un décompte par exercice sur la
-première page). Cette option se désactive, et son nom se change (« Présentation »…), dans **Préférences → Correction**.
+La puce **PNF**, toujours parmi les erreurs de la carte Méthodes & erreurs, propose un commentaire (aucun, un déjà
+utilisé, ou un nouveau tapé dans le menu ; ✕ le retire de la liste), puis un clic sur la copie y écrit
+« PNF : commentaire » en rouge et le compte pour l'exercice dans un tableau de la première page. Les mêmes choix sont
+dans le clic droit sur une page (**Ajouter PNF**) et dans la fenêtre `#` (tapez « pnf »). Si le barème a un exercice
+« PNF » sans sous-note, sa note se calcule seule d'après le nombre de marques sur la copie : 0 ou 1 → 2, 2 → 1,5,
+3 → 1, 4 → 0,5, 5 et plus → 0 (dès que la correction de la copie a commencé). Cette option se désactive, et son nom se change (« Présentation »…), dans **Préférences → Correction**.
 
 ## Les exercices et leurs pages
 
@@ -66,7 +70,13 @@ Le panneau suit la page que vous lisez.
 **Une section par sous-note**, celle en cours mise en évidence :
 
 - le champ des points et le maximum ; sur la sous-note en cours, « depuis le max » / « depuis 0 » indique si les
-  points des méthodes et erreurs comptent à partir du maximum ou de zéro (cliquez pour changer) ;
+  points des méthodes et erreurs comptent à partir du maximum ou de zéro. Par défaut, ils partent de la note tapée à la
+  main s'il y en a une (« depuis 1,5 » : une erreur à −0,5 donne 1) ; sinon des erreurs seules comptent depuis le max,
+  et dès qu'une méthode ou un critère ajoute des points, la sous-note part de 0 (les points s'ajoutent un à un).
+  Cliquez pour imposer depuis le max, puis depuis 0, puis revenir à l'automatique ;
+- **Annoter** : ╱ (barrer), ✓, ✗, ◯ (entourer). Un clic sur le bouton, puis un clic sur la copie pose la marque à une
+  taille normale, centrée sur le clic ; en glissant, elle prend la taille tirée. Même bouton ou `Échap` : annuler. Le
+  clic va à la page même sur un texte ou une forme déjà là ;
 - **Commentaire sur la copie (C)** : le commentaire de cette sous-note, écrit à côté de sa note pendant que vous
   tapez. Vider le champ l'enlève.
 

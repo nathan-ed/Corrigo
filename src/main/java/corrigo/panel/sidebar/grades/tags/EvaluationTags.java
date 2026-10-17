@@ -13,7 +13,8 @@ import java.util.*;
  * in which exercise, for which sub-grade and where on the copy. A tag is created for an exercise but can be used in
  * any exercise, and several times on a copy (each use is an occurrence: the same mistake twice costs points twice).
  * A tag may have points (a method adds them, a mistake removes them) and a comment, written on the copy for each
- * occurrence (see TagScoring). Does not depend on JavaFX.
+ * occurrence (see TagScoring). A criterion is a method made from a sub-grade of the grade scale: each occurrence gives
+ * the points of this sub-grade and writes a green tick on the copy. Does not depend on JavaFX.
  */
 public class EvaluationTags {
 
@@ -34,6 +35,8 @@ public class EvaluationTags {
         // Points by sub-grade (grade path -> positive points): an occurrence in their exercise counts on each of them,
         // instead of on the sub-grade it was put for with the points above
         private final LinkedHashMap<String, Double> gradePoints = new LinkedHashMap<>();
+        // Path of the sub-grade of the grade scale this method is made from, or null
+        private String criterion;
 
         Tag(String id, String exercise, String name, Kind kind){
             this.id = id;
@@ -55,6 +58,13 @@ public class EvaluationTags {
         }
         public Double getPoints(){
             return points;
+        }
+        // Made from a sub-grade of the grade scale (its points are those of the sub-grade, it writes a tick)
+        public boolean isCriterion(){
+            return criterion != null;
+        }
+        public String getCriterion(){
+            return criterion;
         }
         // Points added (method) or removed (mistake, negative) by each occurrence, or null.
         public Double getSignedPoints(){
@@ -80,10 +90,11 @@ public class EvaluationTags {
         }
         // Something is written on the copy for each occurrence (points or a comment).
         public boolean isWrittenOnCopy(){
-            return hasPoints() || comment != null || !gradePoints.isEmpty();
+            return isCriterion() || hasPoints() || comment != null || !gradePoints.isEmpty();
         }
         // Points of an occurrence in this exercise, as shown next to the name: "−1", "+2" (by sub-grade: their sum), or ""
         public String getPointsLabel(String exercise, java.text.NumberFormat format){
+            if(isCriterion()) return hasPoints() ? corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentGrades.formatPoints(points, format) : "";
             Map<String, Double> byGrade = getGradePoints(exercise);
             if(!byGrade.isEmpty()){
                 double total = byGrade.values().stream().mapToDouble(Double::doubleValue).sum();
@@ -166,17 +177,75 @@ public class EvaluationTags {
 
     // All the tags: those created for the exercise or already used in it first, then the others.
     // In each group, the methods then the mistakes, in their creation order.
+    // The criteria of the exercise come first, those of the other exercises are not listed.
     public List<Tag> getTags(String exercise){
         Set<String> used = usedIn(exercise);
-        ArrayList<Tag> list = new ArrayList<>();
+        ArrayList<Tag> list = new ArrayList<>(getCriteria(exercise));
         for(boolean own : new boolean[]{true, false}){
             for(Kind kind : Kind.values()){
                 for(Tag tag : tags.values()){
+                    if(tag.isCriterion()) continue;
                     if(tag.kind == kind && (tag.exercise.equals(exercise) || used.contains(tag.id)) == own) list.add(tag);
                 }
             }
         }
         return list;
+    }
+    // The criteria of the exercise, in the order of the grade scale
+    public List<Tag> getCriteria(String exercise){
+        return tags.values().stream().filter(tag -> tag.isCriterion() && tag.exercise.equals(exercise)).toList();
+    }
+    public Tag getCriterionTag(String gradePath){
+        return tags.values().stream().filter(tag -> gradePath.equals(tag.criterion)).findFirst().orElse(null);
+    }
+
+    // A sub-grade of the grade scale: path, name and points
+    public record Criterion(String path, String name, double total) {}
+    /**
+     * Makes the criteria of the exercise match these sub-grades of the grade scale: adds the missing ones, updates the
+     * name and points of the others, in this order. Those not in the grade scale any more are removed if they are
+     * not used. Returns the criteria whose points changed (what they wrote on the copies changes), or null if nothing changed.
+     */
+    public List<Tag> syncCriteria(String exercise, List<Criterion> criteria){
+        boolean changed = false;
+        ArrayList<Tag> pointsChanged = new ArrayList<>();
+        Set<String> paths = new HashSet<>();
+        for(Criterion criterion : criteria){
+            paths.add(criterion.path());
+            Tag tag = getCriterionTag(criterion.path());
+            if(tag == null){
+                tag = new Tag(UUID.randomUUID().toString(), exercise, criterion.name(), Kind.METHOD);
+                tag.criterion = criterion.path();
+                tags.put(tag.id, tag);
+                changed = true;
+            }
+            if(!tag.name.equals(criterion.name())){
+                tag.name = criterion.name();
+                changed = true;
+            }
+            Double total = criterion.total() > 0 ? criterion.total() : null;
+            if(!Objects.equals(tag.points, total)){
+                tag.points = total;
+                pointsChanged.add(tag);
+                changed = true;
+            }
+        }
+        Set<String> usedTags = new HashSet<>();
+        copies.values().forEach(uses -> uses.values().forEach(use -> usedTags.add(use.tag())));
+        changed |= tags.values().removeIf(tag -> tag.isCriterion() && tag.exercise.equals(exercise)
+                && !paths.contains(tag.criterion) && !usedTags.contains(tag.id));
+        // In the order of the grade scale (a sub-grade added later is put back at its place)
+        List<Tag> ordered = criteria.stream().map(c -> getCriterionTag(c.path())).toList();
+        List<Tag> current = getCriteria(exercise).stream().filter(tag -> paths.contains(tag.criterion)).toList();
+        if(!current.equals(ordered)){
+            LinkedHashMap<String, Tag> reordered = new LinkedHashMap<>();
+            ordered.forEach(tag -> reordered.put(tag.id, tag));
+            tags.forEach((id, tag) -> reordered.putIfAbsent(id, tag));
+            tags.clear();
+            tags.putAll(reordered);
+            changed = true;
+        }
+        return changed ? pointsChanged : null;
     }
     // Tags created for the exercise or used in it.
     public List<Tag> getExerciseTags(String exercise){
@@ -201,9 +270,10 @@ public class EvaluationTags {
     public Tag getTag(String id){
         return tags.get(id);
     }
+    // The tag with this name (not a criterion: their names are those of the sub-grades, "a" in several exercises)
     public Optional<Tag> find(String name){
         String key = normalize(name);
-        return tags.values().stream().filter(tag -> normalize(tag.name).equals(key)).findFirst();
+        return tags.values().stream().filter(tag -> !tag.isCriterion() && normalize(tag.name).equals(key)).findFirst();
     }
     // The existing tag with this name (whatever its exercise), or a new one for this exercise.
     public Tag create(String exercise, String name, Kind kind){
@@ -228,9 +298,12 @@ public class EvaluationTags {
         tag.kind = kind;
     }
     // points: positive (the sign is given by the kind), or null. comment: blank for none.
+    // A name made from the comment follows it (unless another tag has the new name).
     public void setScoring(Tag tag, Double points, String comment){
+        String oldComment = tag.comment;
         tag.points = points == null ? null : Math.abs(points);
         tag.comment = comment == null || comment.isBlank() ? null : comment.strip();
+        if(oldComment != null && tag.comment != null && !tag.isCriterion() && normalize(tag.name).equals(normalize(oldComment))) rename(tag, tag.comment);
     }
     // Points by sub-grade for an exercise (replaces those of this exercise; empty: the occurrences count on their sub-grade)
     public void setGradePoints(Tag tag, String exercise, Map<String, Double> points){
@@ -255,6 +328,8 @@ public class EvaluationTags {
     public List<Target> getTargets(Use use){
         Tag tag = tags.get(use.tag());
         if(tag == null || !tag.isWrittenOnCopy()) return List.of();
+        if(tag.isCriterion()) return List.of(new Target("", tag.criterion, tag.hasPoints() ? tag.points : null,
+                corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentGrades.CHECK));
         LinkedHashMap<String, Double> byGrade = tag.getGradePoints(use.exercise());
         if(byGrade.isEmpty()){
             if(!tag.hasPoints() && tag.comment == null) return List.of(); // Points by sub-grade for other exercises only
@@ -373,7 +448,7 @@ public class EvaluationTags {
     }
     // Copies among these that have no method for this exercise.
     public List<String> getWithoutMethod(String exercise, Collection<String> allCopies){
-        List<Tag> methods = tags.values().stream().filter(tag -> tag.kind == Kind.METHOD).toList();
+        List<Tag> methods = tags.values().stream().filter(tag -> tag.kind == Kind.METHOD && !tag.isCriterion()).toList();
         return allCopies.stream().filter(copy -> methods.stream().noneMatch(method -> has(copy, exercise, method))).toList();
     }
     // Copies that do not exist any more (renamed or deleted) are forgotten. Returns true if some were.
@@ -394,6 +469,7 @@ public class EvaluationTags {
             if(tag.points != null) data.put("points", tag.points);
             if(tag.comment != null) data.put("comment", tag.comment);
             if(!tag.gradePoints.isEmpty()) data.put("gradePoints", new LinkedHashMap<>(tag.gradePoints));
+            if(tag.criterion != null) data.put("criterion", tag.criterion);
             tagsData.add(data);
         }
         LinkedHashMap<String, Object> copiesData = new LinkedHashMap<>();
@@ -433,9 +509,11 @@ public class EvaluationTags {
                 if(!(item instanceof Map<?, ?> tag)) continue;
                 if(!(tag.get("id") instanceof String id) || !(tag.get("exercise") instanceof String exercise)
                         || !(tag.get("name") instanceof String name) || name.isBlank()) continue;
-                Tag existing = result.find(name).orElse(null);
+                String criterion = tag.get("criterion") instanceof String path && !path.isBlank() ? path : null;
+                Tag existing = criterion != null ? result.getCriterionTag(criterion) : result.find(name).orElse(null);
                 if(existing == null){
-                    existing = new Tag(id, exercise, name, Kind.fromYAML(tag.get("kind")));
+                    existing = new Tag(id, exercise, name, criterion != null ? Kind.METHOD : Kind.fromYAML(tag.get("kind")));
+                    existing.criterion = criterion;
                     result.setScoring(existing, tag.get("points") instanceof Number points ? points.doubleValue() : null,
                             tag.get("comment") instanceof String comment ? comment : null);
                     if(tag.get("gradePoints") instanceof Map<?, ?> gradePoints){

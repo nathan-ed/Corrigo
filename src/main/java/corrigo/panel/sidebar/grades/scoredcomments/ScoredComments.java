@@ -258,8 +258,36 @@ public class ScoredComments {
         }
         if(!grade.isValueFromComments() && !switchToComments) return;
 
-        double value = ScoredCommentGrades.computeLeaf(grade.getTotal(), getCatalog().getBase(gradePath), points);
+        double start = ScoredCommentGrades.getStart(grade.getTotal(), getCatalog(), gradePath, grade.getTypedValue(), points);
+        double value = ScoredCommentGrades.computeLeafFrom(grade.getTotal(), start, points);
         grade.setComputedValue(value);
+    }
+
+    // Base of the sub-grade on the open copy (automatic: from the points placed on it)
+    public static ScoredCommentCatalog.Base getBase(String gradePath){
+        List<Double> points = getPlacedComments().stream()
+                .filter(c -> gradePath.equals(c.getGradePath()) && !c.isNoPoints())
+                .map(ScoredCommentElement::getPoints)
+                .toList();
+        return getCatalog().getBase(gradePath, points);
+    }
+
+    // The value typed by hand the points of the sub-grade start from (no base chosen), or null
+    public static Double getTypedStart(String gradePath){
+        if(getCatalog().getChosenBase(gradePath) != null) return null;
+        GradeElement grade = findGrade(gradePath);
+        if(grade == null) return null;
+        double typed = grade.getTypedValue();
+        return typed >= 0 ? Math.min(typed, grade.getTotal()) : null;
+    }
+    // Next start on a click: automatic (or typed value) → from max → from 0 → automatic
+    public static void switchBase(String gradePath){
+        ScoredCommentCatalog.Base chosen = getCatalog().getChosenBase(gradePath);
+        ScoredCommentCatalog.Base next;
+        if(chosen == null) next = getTypedStart(gradePath) == null && getBase(gradePath) == ScoredCommentCatalog.Base.FULL ? ScoredCommentCatalog.Base.ZERO : ScoredCommentCatalog.Base.FULL;
+        else if(chosen == ScoredCommentCatalog.Base.FULL) next = ScoredCommentCatalog.Base.ZERO;
+        else next = null;
+        setBase(gradePath, next);
     }
 
     public static void setBase(String gradePath, ScoredCommentCatalog.Base base){

@@ -21,10 +21,10 @@ public class DefaultFavoriteVectors {
     private static final VectorData ARROW = new VectorData(20000, 7000, GraphicElement.RepeatMode.STRETCH, GraphicElement.ResizeMode.OPPOSITE_CORNERS,
             false, CYAN_TRANSPARENT, Color.DARKBLUE, 2, "M0 1 L1 0", false, false, 20, 0, 0, null);
     
-    private static final VectorData LINE = new VectorData(20000, 20000, GraphicElement.RepeatMode.STRETCH, GraphicElement.ResizeMode.OPPOSITE_CORNERS,
+    public static final VectorData LINE = new VectorData(20000, 20000, GraphicElement.RepeatMode.STRETCH, GraphicElement.ResizeMode.OPPOSITE_CORNERS,
             false, CYAN_TRANSPARENT, Color.DARKRED, 2, "M0 1 L1 0", false, false, 0, 0, 0, null);
     
-    private static final VectorData CIRCLE = new VectorData(30000, 30000, GraphicElement.RepeatMode.AUTO, GraphicElement.ResizeMode.CORNERS,
+    public static final VectorData CIRCLE = new VectorData(30000, 30000, GraphicElement.RepeatMode.AUTO, GraphicElement.ResizeMode.CORNERS,
             false, CYAN_TRANSPARENT, Color.DARKRED, 3, "M1.5,1 C1.5,2 0,2 0,1 C0,0 1.5,0 1.5,1", false, false, 0, 0, 0, null);
     
     private static final VectorData RECT = new VectorData(40000, 30000, GraphicElement.RepeatMode.STRETCH, GraphicElement.ResizeMode.CORNERS,
@@ -59,11 +59,11 @@ public class DefaultFavoriteVectors {
     private static final VectorData HIGHLIGHTER_CYAN = new VectorData(50000, 5000, GraphicElement.RepeatMode.STRETCH, GraphicElement.ResizeMode.SIDE_EDGES,
             true, CYAN_TRANSPARENT, Color.DARKRED, 0, "M0 0 L1 0 1 1 0 1 z", false, false, 0, 0, 0, null);
     
-    private static final VectorData CHECK = new VectorData(6000, 4474, GraphicElement.RepeatMode.KEEP_RATIO, GraphicElement.ResizeMode.CORNERS,
+    public static final VectorData CHECK = new VectorData(6000, 4474, GraphicElement.RepeatMode.KEEP_RATIO, GraphicElement.ResizeMode.CORNERS,
             true, Color.color(0, 163 / 255d, 0), Color.GREEN, 0, "M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z",
             false, false, 0, 0, 0, null);
     
-    private static final VectorData CROSS = new VectorData(5500, 5500, GraphicElement.RepeatMode.KEEP_RATIO, GraphicElement.ResizeMode.CORNERS,
+    public static final VectorData CROSS = new VectorData(5500, 5500, GraphicElement.RepeatMode.KEEP_RATIO, GraphicElement.ResizeMode.CORNERS,
             true, Color.color(192 / 255d, 0, 0), Color.RED, 0, "M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z",
             false, false, 0, 0, 0, null);
     

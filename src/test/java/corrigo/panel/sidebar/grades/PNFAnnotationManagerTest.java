@@ -78,4 +78,23 @@ class PNFAnnotationManagerTest {
         assertEquals(-1, PNFAnnotationManager.getRowIndex(noPNF, 2));
         assertEquals(-1, PNFAnnotationManager.getRowIndex(noPNF, -1));
     }
+
+    @Test
+    void presentationGradeFromTheNumberOfMarks(){
+        assertEquals(2, PNFAnnotationManager.score(0));
+        assertEquals(2, PNFAnnotationManager.score(1));
+        assertEquals(1.5, PNFAnnotationManager.score(2));
+        assertEquals(1, PNFAnnotationManager.score(3));
+        assertEquals(0.5, PNFAnnotationManager.score(4));
+        assertEquals(0, PNFAnnotationManager.score(5));
+        assertEquals(0, PNFAnnotationManager.score(9));
+    }
+
+    @Test
+    void recognizesMarksWithOrWithoutComment(){
+        assertTrue(PNFAnnotationManager.isMarkText("PNF", "PNF"));
+        assertTrue(PNFAnnotationManager.isMarkText("PNF : unités manquantes", "PNF"));
+        assertFalse(PNFAnnotationManager.isMarkText("PNFX", "PNF"));
+        assertFalse(PNFAnnotationManager.isMarkText("1. I  I", "PNF"));
+    }
 }

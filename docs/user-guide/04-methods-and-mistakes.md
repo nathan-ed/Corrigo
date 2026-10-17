@@ -15,6 +15,13 @@ never written on the copies.
 - A copy can have several methods and mistakes in an exercise, and **the same one several times**: each time is an
   occurrence, with its own pill and, if it has points, its own points (two sign errors cost twice the points).
 
+## Criteria of the grade scale
+
+The sub-grades of the exercise are already there, first among the methods: **✓ a +2**, **✓ b +1**… (an exercise
+without sub-grades is its own criterion). Click a criterion, then click on the copy: a **green ✓** (no text) is written
+there and the sub-grade gets its points, counted up from 0. Click the criterion again to remove it. They follow the grade
+scale: their name and points are changed there, not in the card. They don't count as a method in "Method given for…".
+
 ## Points and comment
 
 Optional, for each method or mistake: right-click it → **Points and comment…**, or give them when creating it.
@@ -36,11 +43,14 @@ none is left, it gets back that value.
 ## Tagging a copy
 
 **From the card** (Methods & mistakes, in the grading panel): click a tag to add it to the copy for this exercise, click
-it again to remove it (all its occurrences in this exercise). **Shift+click** adds it once more. The number on a tag is
+it again to remove it (all its occurrences in this exercise). **Shift+click** adds it once more. A **method or mistake with a comment** (and a criterion) is written where you click next on
+the copy: the chip waits, dashed; `Escape` or a new click on the chip cancels. The number on a tag is
 how many copies have it in this exercise (click the number to see them); "×2" means the copy has it twice.
 
-**+ Method** / **+ Mistake** create a new one and add it to the copy: type the name, then `Tab` for its points and
-its comment (both optional), `Enter`.
+**+ Method** / **+ Mistake** create a new one and add it to the copy: type its comment (it wraps, and is also its
+name), `Tab` for its points (optional), `Enter`. Uncheck **Write on the copy** for the text to be its name only (the
+pill only). The name can still be changed (right-click → Rename); until then it follows the comment when the comment is
+changed.
 
 **At a spot of the copy**: point at the place on the page, press `#` (or `Ctrl+Shift+M`). A small window opens at the
 mouse:

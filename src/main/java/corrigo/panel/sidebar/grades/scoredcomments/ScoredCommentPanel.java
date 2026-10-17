@@ -298,7 +298,7 @@ public class ScoredCommentPanel extends VBox {
             RadioMenuItem fromZero = new RadioMenuItem(TR.tr("scoredComments.menu.baseZero"));
             fromMax.setToggleGroup(group);
             fromZero.setToggleGroup(group);
-            boolean zero = ScoredComments.getCatalog().getBase(entry.getGradePath()) == ScoredCommentCatalog.Base.ZERO;
+            boolean zero = ScoredComments.getBase(entry.getGradePath()) == ScoredCommentCatalog.Base.ZERO;
             (zero ? fromZero : fromMax).setSelected(true);
             fromMax.setOnAction(e -> ScoredComments.setBase(entry.getGradePath(), ScoredCommentCatalog.Base.FULL));
             fromZero.setOnAction(e -> ScoredComments.setBase(entry.getGradePath(), ScoredCommentCatalog.Base.ZERO));

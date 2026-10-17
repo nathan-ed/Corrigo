@@ -62,6 +62,8 @@ public final class TagPicker {
 
     // A new tag to create with the typed name
     private record Create(String name) {}
+    // A presentation mark ("PNF"), with this comment or none
+    private record Presentation(String comment) {}
 
     /**
      * Pointing at an occurrence of the tag (its spot): removes it. Else adds an occurrence there (one more if the copy
@@ -163,9 +165,11 @@ public final class TagPicker {
         pointsField.setPromptText(TR.tr("tags.picker.points"));
         pointsField.setPrefColumnCount(4);
         pointsField.setTooltip(new Tooltip(TR.tr("tags.picker.points.tooltip")));
-        TextField commentField = new TextField();
-        commentField.setPromptText(TR.tr("tags.picker.comment"));
-        commentField.setTooltip(new Tooltip(TR.tr("tags.scoring.comment.prompt")));
+        // The typed text is its name, and is written on the copy unless unchecked
+        CheckBox writeBox = new CheckBox(TR.tr("tags.add.write"));
+        writeBox.setSelected(true);
+        writeBox.setFocusTraversable(false);
+        writeBox.setTooltip(new Tooltip(TR.tr("tags.add.write.tooltip")));
 
         field.setPromptText(TR.tr("tags.picker.prompt"));
 
@@ -181,6 +185,12 @@ public final class TagPicker {
                 setText(null);
                 if(empty || item == null){
                     setGraphic(null);
+                    return;
+                }
+                if(item instanceof Presentation presentation){
+                    Label label = new Label(corrigo.panel.sidebar.grades.PNFAnnotationManager.getText(presentation.comment()));
+                    label.setStyle("-fx-text-fill: " + (isSelected() ? "white" : getColor(Kind.MISTAKE)) + ";");
+                    setGraphic(label);
                     return;
                 }
                 if(item instanceof Create create){
@@ -215,8 +225,7 @@ public final class TagPicker {
         });
 
         // Points and comment of a new tag (shown when the typed name is new)
-        HBox.setHgrow(commentField, Priority.ALWAYS);
-        HBox newFields = new HBox(6, pointsField, commentField);
+        HBox newFields = new HBox(10, pointsField, writeBox);
         newFields.setAlignment(Pos.CENTER_LEFT);
         newFields.managedProperty().bind(newFields.visibleProperty());
         kinds.managedProperty().bind(kinds.visibleProperty());
@@ -228,7 +237,17 @@ public final class TagPicker {
             for(Tag tag : data.getTags(exerciseName)){
                 if(query.isEmpty() || tag.getName().toLowerCase(Locale.ROOT).contains(query)) items.add(tag);
             }
-            if(!query.isEmpty() && data.find(EvaluationTags.parseTyped(field.getText()).name()).isEmpty()) items.add(new Create(field.getText().strip()));
+            // Presentation marks: always the one without comment, those with a comment when they match
+            String label = corrigo.panel.sidebar.grades.PNFAnnotationManager.label().toLowerCase(Locale.ROOT);
+            if(fr.clementgre.pdf4teachers.Main.settings.presentationMarks.getValue()){
+                if(query.isEmpty() || label.contains(query)) items.add(new Presentation(null));
+                if(!query.isEmpty()){
+                    for(String comment : corrigo.panel.sidebar.grades.PNFAnnotationManager.getComments()){
+                        if(corrigo.panel.sidebar.grades.PNFAnnotationManager.getText(comment).toLowerCase(Locale.ROOT).contains(query)) items.add(new Presentation(comment));
+                    }
+                }
+            }
+            if(!query.isEmpty() && !query.equals(label) && data.find(EvaluationTags.parseTyped(field.getText()).name()).isEmpty()) items.add(new Create(field.getText().strip()));
             list.getItems().setAll(items);
             list.getSelectionModel().selectFirst();
             boolean creating = items.stream().anyMatch(item -> item instanceof Create);
@@ -268,15 +287,22 @@ public final class TagPicker {
                 // Points in their field (or after the name: "Sign error -1"); a signed value gives the kind
                 EvaluationTags.Typed typed = typedWith(create.name(), pointsField.getText());
                 tag = data.create(exerciseName, typed.name(), getNewKind(typed, method.isSelected()));
-                if(typed.points() != null || !commentField.getText().isBlank()) data.setScoring(tag, typed.points(), commentField.getText());
+                if(typed.points() != null || writeBox.isSelected()) data.setScoring(tag, typed.points(), writeBox.isSelected() ? typed.name() : null);
+            }
+            else if(item instanceof Presentation presentation){
+                popup.hide();
+                int pageCount = MainWindow.mainScreen.document.getPagesNumber();
+                corrigo.panel.sidebar.grades.PNFAnnotationManager.addPNFAtGrid(MainWindow.mainScreen.document.getPage(Math.clamp(placement.page(), 0, pageCount - 1)),
+                        (int) placement.x(), (int) placement.y(), presentation.comment());
+                return;
             }
             else return;
             popup.hide();
             applyAt(copy, exerciseName, tag, placement);
         };
-        // Tab: name → points → comment (a new tag), or method / mistake
-        TextField[] order = {field, pointsField, commentField};
-        for(TextField other : new TextField[]{pointsField, commentField}){
+        // Tab: name → points (a new tag), or method / mistake
+        TextField[] order = {field, pointsField};
+        for(TextField other : new TextField[]{pointsField}){
             other.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
                 switch(e.getCode()){
                     case ENTER -> {
@@ -310,7 +336,7 @@ public final class TagPicker {
                 }
                 case TAB -> {
                     e.consume();
-                    if(newFields.isVisible()) (e.isShiftDown() ? commentField : pointsField).requestFocus();
+                    if(newFields.isVisible()) pointsField.requestFocus();
                     else kindGroup.selectToggle(method.isSelected() ? mistake : method);
                 }
                 case DOWN, UP -> {

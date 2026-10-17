@@ -16,7 +16,7 @@ public class ScoredCommentCatalog {
     public enum Base { FULL, ZERO }
 
     private final ArrayList<ScoredComment> comments = new ArrayList<>();
-    // Only the sub-grades that don't use the default base (FULL) are stored.
+    // Only the bases chosen by the teacher are stored: the others are automatic (see getBase(String, Collection)).
     private final LinkedHashMap<String, Base> bases = new LinkedHashMap<>();
 
     public List<ScoredComment> getComments(){
@@ -41,11 +41,20 @@ public class ScoredCommentCatalog {
         return comments.isEmpty() && bases.isEmpty();
     }
 
-    public Base getBase(String gradePath){
-        return bases.getOrDefault(gradePath, Base.FULL);
+    // The base chosen for this sub-grade, or null: automatic.
+    public Base getChosenBase(String gradePath){
+        return bases.get(gradePath);
     }
+    // The base of the sub-grade with these points: the chosen one, or else from 0 as soon as a point is added
+    // (a method adds its points one by one, it does not give the maximum), from the maximum otherwise.
+    public Base getBase(String gradePath, Collection<Double> points){
+        Base chosen = bases.get(gradePath);
+        if(chosen != null) return chosen;
+        return points.stream().anyMatch(p -> p > 0) ? Base.ZERO : Base.FULL;
+    }
+    // base: null for automatic.
     public void setBase(String gradePath, Base base){
-        if(base == Base.FULL) bases.remove(gradePath);
+        if(base == null) bases.remove(gradePath);
         else bases.put(gradePath, base);
     }
 

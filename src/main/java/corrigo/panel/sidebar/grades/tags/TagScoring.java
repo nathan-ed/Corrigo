@@ -95,9 +95,9 @@ public final class TagScoring {
         PageRenderer page = MainWindow.mainScreen.document.getPage(Math.clamp(use.placement().page(), 0, pageCount - 1));
         int x, y;
         if(!use.placement().isExerciseSpot() && target.key().isEmpty()){
-            // Under the line of the spot: not over what the student wrote
-            x = (int) Math.max(0, use.placement().x() - GradeElementGrid.WIDTH * .01);
-            y = (int) (use.placement().y() + GradeElementGrid.HEIGHT * .012);
+            double[] spot = TagEditFiles.getSpotPosition(use.placement(), target);
+            x = (int) spot[0];
+            y = (int) spot[1];
         }else{
             GradeElement grade = ScoredComments.findGrade(target.grade());
             QuickGradePlacement.Spot spot = QuickGradePlacement.nextSpot(grade, page.getPage());

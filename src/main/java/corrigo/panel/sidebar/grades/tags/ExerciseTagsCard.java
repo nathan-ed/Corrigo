@@ -7,6 +7,7 @@
 package corrigo.panel.sidebar.grades.tags;
 
 import corrigo.datasaving.evaluation.EvaluationFolders;
+import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.language.TR;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
@@ -58,6 +59,7 @@ public class ExerciseTagsCard extends VBox {
         setPadding(new Insets(10, 10, 10, 10));
         setStyle("-fx-background-color: " + colors.card() + "; -fx-border-color: " + colors.border() + "; -fx-border-radius: 6; -fx-background-radius: 6;");
         ExerciseTags.revisionProperty().addListener((o, oldValue, newValue) -> update());
+        TagPlacing.pendingProperty().addListener((o, oldValue, newValue) -> update()); // The chip waiting for its spot
         scoresDelay.setOnFinished(e -> loadScores());
     }
 
@@ -84,6 +86,8 @@ public class ExerciseTagsCard extends VBox {
         getChildren().clear();
         String exerciseName = getExerciseName();
         if(exerciseName == null || EvaluationFolders.getActiveFolder() == null) return;
+        ExerciseTags.syncCriteria(exercise); // Calls update() again if the criteria changed
+        if(!getChildren().isEmpty()) return;
         EvaluationTags data = ExerciseTags.getData();
         String copy = ExerciseTags.getOpenCopy();
         List<Tag> tags = data.getTags(exerciseName);
@@ -104,6 +108,8 @@ public class ExerciseTagsCard extends VBox {
         List<Tag> ordered = getOrderedTags(exerciseName);
         for(Kind kind : Kind.values()){
             FlowPane chips = new FlowPane(5, 5);
+            chips.setPrefWrapLength(150); // Long names must not widen the panel: the chips wrap at its width
+            if(kind == Kind.MISTAKE && Main.settings.presentationMarks.getValue()) chips.getChildren().add(buildPresentationChip());
             for(Tag tag : ordered){
                 if(tag.getKind() != kind) continue;
                 int index = ordered.indexOf(tag);
@@ -119,7 +125,7 @@ public class ExerciseTagsCard extends VBox {
         // Class
         List<String> allCopies = ExerciseTags.getFolderCopies().stream().map(File::getName).toList();
         List<String> withoutMethod = data.getWithoutMethod(exerciseName, allCopies);
-        boolean hasMethods = data.getExerciseTags(exerciseName).stream().anyMatch(tag -> tag.getKind() == Kind.METHOD);
+        boolean hasMethods = data.getExerciseTags(exerciseName).stream().anyMatch(tag -> tag.getKind() == Kind.METHOD && !tag.isCriterion());
         if(hasMethods && !allCopies.isEmpty()){
             Label summary = new Label(TR.tr("tags.card.classified", String.valueOf(allCopies.size() - withoutMethod.size()), String.valueOf(allCopies.size())));
             summary.setWrapText(true);
@@ -180,10 +186,26 @@ public class ExerciseTagsCard extends VBox {
         return ordered;
     }
 
-    // Adds an occurrence of the tag on the open copy, for this exercise (from the panel: not at a spot of the copy)
+    // Adds an occurrence of the tag on the open copy, for this exercise (from the panel: not at a spot of the copy).
+    // What writes something at a spot (a criterion tick, a method or mistake with its comment) is put where the teacher clicks next.
     public static void addToOpenCopy(String exerciseName, Tag tag){
         String copy = ExerciseTags.getOpenCopy();
-        if(copy != null) ExerciseTags.addOccurrence(copy, exerciseName, tag, ExerciseTags.getExercisePlacement());
+        if(copy == null) return;
+        if(!isPlacedByClick(tag)){
+            ExerciseTags.addOccurrence(copy, exerciseName, tag, ExerciseTags.getExercisePlacement());
+            return;
+        }
+        TagPlacing.arm(getPlacingKey(tag), tag.getName(), tag.getKind() == Kind.METHOD ? TagPlacing.Kind.METHOD : TagPlacing.Kind.MISTAKE, (page, x, y) -> {
+            String openCopy = ExerciseTags.getOpenCopy();
+            if(openCopy == null || ExerciseTags.getData().getTag(tag.getId()) == null) return;
+            ExerciseTags.addOccurrence(openCopy, exerciseName, tag, new Placement(page.getPage(), page.toGridX(x), page.toGridY(y)));
+        });
+    }
+    public static boolean isPlacedByClick(Tag tag){
+        return tag.isCriterion() || tag.getComment() != null;
+    }
+    private static String getPlacingKey(Tag tag){
+        return "tag:" + tag.getId();
     }
     // Removes the last occurrence of the tag on the open copy for this exercise. Returns false if there is none.
     public static boolean removeLastFromOpenCopy(String exerciseName, Tag tag){
@@ -201,7 +223,9 @@ public class ExerciseTagsCard extends VBox {
         boolean applied = occurrences > 0;
         Label keyLabel = new Label(key == 0 ? "" : String.valueOf(key));
         keyLabel.setManaged(key != 0);
-        Label name = new Label(tag.getName() + (occurrences > 1 ? " ×" + occurrences : ""));
+        Label name = new Label((tag.isCriterion() ? "✓ " : "") + tag.getName() + (occurrences > 1 ? " ×" + occurrences : ""));
+        name.setMaxWidth(135); // A long name (made from its comment) ends with "…": the whole is in the tooltip
+        name.setMinWidth(0);
         Label points = new Label(tag.getPointsLabel(getExerciseName(), MainWindow.gradesDigFormat));
         points.setManaged(!points.getText().isEmpty());
         Label badge = new Label(String.valueOf(count));
@@ -216,7 +240,8 @@ public class ExerciseTagsCard extends VBox {
             name.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
             badge.setStyle("-fx-text-fill: white; -fx-background-color: rgba(255,255,255,.28); -fx-background-radius: 9; -fx-padding: 0 6; -fx-font-size: 11;");
         }else{
-            chip.setStyle("-fx-background-color: transparent; -fx-border-color: " + color + "; -fx-border-radius: 14; -fx-background-radius: 14;");
+            chip.setStyle("-fx-background-color: " + (TagPlacing.isArmed(getPlacingKey(tag)) ? color + "33" : "transparent") + "; -fx-border-color: " + color
+                    + "; -fx-border-radius: 14; -fx-background-radius: 14;" + (TagPlacing.isArmed(getPlacingKey(tag)) ? " -fx-border-style: dashed; -fx-border-width: 2;" : ""));
             name.setStyle("-fx-text-fill: " + color + ";");
             badge.setStyle("-fx-text-fill: " + color + "; -fx-background-color: " + color + "22; -fx-background-radius: 9; -fx-padding: 0 6; -fx-font-size: 11;");
         }
@@ -225,7 +250,9 @@ public class ExerciseTagsCard extends VBox {
         badge.setCursor(Cursor.HAND);
         Tooltip.install(badge, new Tooltip(TR.tr("tags.chip.showCopies")));
         String share = copies == 0 ? "" : " (" + Math.round(100.0 * count / copies) + " %)";
-        StringBuilder tooltip = new StringBuilder(TR.tr(applied ? "tags.chip.remove" : "tags.chip.add")).append("\n").append(TR.tr("tags.chip.more"));
+        StringBuilder tooltip = new StringBuilder(tag.getName()).append("\n").append(TR.tr(applied ? "tags.chip.remove" : isPlacedByClick(tag) ? "tags.chip.addByClick" : "tags.chip.add"));
+        if(tag.isCriterion()) tooltip.append("\n").append(TR.tr("tags.chip.criterion"));
+        else tooltip.append("\n").append(TR.tr("tags.chip.more"));
         if(key != 0) tooltip.append("\n").append(TR.tr("tags.chip.key", String.valueOf(key)));
         String written = TagEditFiles.describe(tag, getExerciseName(), MainWindow.gradesDigFormat);
         if(!written.isEmpty()) tooltip.append("\n").append(TR.tr("tags.chip.written", written));
@@ -236,7 +263,7 @@ public class ExerciseTagsCard extends VBox {
             String copy = ExerciseTags.getOpenCopy();
             if(isIn(e.getTarget(), badge)) showCopies(tag, false);
             else if(copy == null) return;
-            else if(e.isShiftDown() || !applied) addToOpenCopy(getExerciseName(), tag); // Shift: one more occurrence
+            else if(e.isShiftDown() && !tag.isCriterion() || !applied) addToOpenCopy(getExerciseName(), tag); // Shift: one more occurrence
             else ExerciseTags.removeAllOccurrences(copy, getExerciseName(), tag);
         });
         chip.setOnContextMenuRequested(e -> {
@@ -245,6 +272,42 @@ public class ExerciseTagsCard extends VBox {
         });
         return chip;
     }
+    // The presentation mark ("PNF"), always among the mistakes: a click, then a click on the copy where to write it
+    private Node buildPresentationChip(){
+        String color = colors.mistake();
+        String label = corrigo.panel.sidebar.grades.PNFAnnotationManager.label();
+        int marks = corrigo.panel.sidebar.grades.PNFAnnotationManager.countForSelectedExercise();
+        boolean armed = TagPlacing.isArmed(PRESENTATION_KEY);
+        Label name = new Label(label + (marks > 0 ? " ×" + marks : ""));
+        name.setStyle("-fx-text-fill: " + color + ";" + (marks > 0 ? " -fx-font-weight: bold;" : ""));
+        HBox chip = new HBox(5, name);
+        chip.setAlignment(Pos.CENTER_LEFT);
+        chip.setCursor(Cursor.HAND);
+        chip.setPadding(new Insets(3, 10, 3, 10));
+        chip.setStyle("-fx-background-color: " + (armed ? color + "33" : "transparent") + "; -fx-border-color: " + color
+                + "; -fx-border-radius: 14; -fx-background-radius: 14;" + (armed ? " -fx-border-style: dashed; -fx-border-width: 2;" : ""));
+        int copyMarks = corrigo.panel.sidebar.grades.PNFAnnotationManager.countCopyMarks();
+        Tooltip.install(name, new Tooltip(TR.tr("tags.chip.presentation", label) + "\n" + TR.tr("pnf.chip.score", String.valueOf(copyMarks),
+                MainWindow.gradesDigFormat.format(corrigo.panel.sidebar.grades.PNFAnnotationManager.score(copyMarks)))));
+        // A click: the comment to write with it, then a click on the copy. A click while it waits cancels.
+        chip.setOnMouseClicked(e -> {
+            if(e.getButton() != MouseButton.PRIMARY) return;
+            if(TagPlacing.isArmed(PRESENTATION_KEY)){
+                TagPlacing.disarm();
+                return;
+            }
+            ContextMenu menu = new ContextMenu();
+            menu.getItems().setAll(corrigo.panel.sidebar.grades.PNFAnnotationManager.buildCommentItems(comment ->
+                    TagPlacing.arm(PRESENTATION_KEY, corrigo.panel.sidebar.grades.PNFAnnotationManager.getText(comment), TagPlacing.Kind.MISTAKE, (page, x, y) -> {
+                        corrigo.panel.sidebar.grades.PNFAnnotationManager.addPNF(page, x, y, comment);
+                        update(); // Its count
+                    })));
+            menu.show(chip, javafx.geometry.Side.BOTTOM, 0, 2);
+        });
+        return chip;
+    }
+    private static final String PRESENTATION_KEY = "presentation";
+
     private static boolean isIn(Object target, Node parent){
         for(Node node = target instanceof Node n ? n : null; node != null; node = node.getParent()) if(node == parent) return true;
         return false;
@@ -270,6 +333,8 @@ public class ExerciseTagsCard extends VBox {
         kind.setOnAction(e -> ExerciseTags.setKind(tag, tag.getKind() == Kind.METHOD ? Kind.MISTAKE : Kind.METHOD));
         MenuItem delete = new MenuItem(TR.tr("tags.menu.delete"));
         delete.setOnAction(e -> delete(tag));
+        // A criterion follows its sub-grade of the grade scale: changed there
+        if(tag.isCriterion()) return new ContextMenu(show, review, showAll, reviewAll);
         return new ContextMenu(scoring, new SeparatorMenuItem(), show, review, showAll, reviewAll, new SeparatorMenuItem(), rename, kind,
                 new SeparatorMenuItem(), delete);
     }
@@ -282,22 +347,30 @@ public class ExerciseTagsCard extends VBox {
         add.setStyle("-fx-text-fill: " + colors.muted() + "; -fx-border-color: " + colors.border() + "; -fx-border-style: dashed; -fx-border-radius: 14;");
         add.setOnMouseClicked(e -> {
             if(e.getButton() != MouseButton.PRIMARY) return;
-            TextField field = new TextField();
+            // One text: its name, and its comment written on the copy (unless unchecked). It wraps: long texts stay readable.
+            TextArea field = new TextArea();
             field.setPromptText(TR.tr(kind == Kind.METHOD ? "tags.add.method.prompt" : "tags.add.mistake.prompt"));
-            field.setPrefColumnCount(11);
+            field.setWrapText(true);
+            field.setPrefRowCount(2);
+            field.setMinHeight(Region.USE_PREF_SIZE);
+            field.setMaxWidth(Double.MAX_VALUE);
             TextField pointsField = new TextField();
             pointsField.setPromptText(TR.tr(kind == Kind.METHOD ? "tags.add.points.method" : "tags.add.points.mistake"));
             pointsField.setPrefColumnCount(4);
             pointsField.setTooltip(new Tooltip(TR.tr(kind == Kind.METHOD ? "tags.scoring.points.method" : "tags.scoring.points.mistake")));
-            TextField commentField = new TextField();
-            commentField.setPromptText(TR.tr("tags.picker.comment"));
-            commentField.setTooltip(new Tooltip(TR.tr("tags.scoring.comment.prompt")));
-            HBox.setHgrow(commentField, Priority.ALWAYS);
-            field.setMaxWidth(Double.MAX_VALUE);
-            HBox second = new HBox(4, pointsField, commentField);
+            CheckBox writeBox = new CheckBox(TR.tr("tags.add.write"));
+            writeBox.setSelected(true);
+            writeBox.setFocusTraversable(false);
+            writeBox.setTooltip(new Tooltip(TR.tr("tags.add.write.tooltip")));
+            writeBox.setStyle("-fx-font-size: 11; -fx-text-fill: " + colors.muted() + ";");
+            HBox second = new HBox(8, pointsField, writeBox);
             second.setAlignment(Pos.CENTER_LEFT);
             VBox fields = new VBox(4, field, second);
-            fields.setPrefWidth(230);
+            fields.setFillWidth(true);
+            // As wide as the chips: the FlowPane gives its children their preferred width
+            fields.setMinWidth(0);
+            add.parentProperty().get().layoutBoundsProperty().addListener((o, oldValue, newValue) -> fields.setPrefWidth(newValue.getWidth()));
+            fields.setPrefWidth(((Region) add.getParent()).getWidth());
             Runnable create = () -> {
                 EvaluationTags.Typed typed = EvaluationTags.parseTyped(field.getText());
                 if(typed.name().isEmpty()){
@@ -305,22 +378,21 @@ public class ExerciseTagsCard extends VBox {
                     return;
                 }
                 Double points = parsePoints(pointsField.getText());
-                if(points == null) points = typed.points(); // "Sign error -1" in the name field
+                if(points == null) points = typed.points(); // "Sign error -1" typed in the text
                 boolean isNew = ExerciseTags.getData().find(typed.name()).isEmpty();
                 Tag tag = ExerciseTags.getData().create(getExerciseName(), typed.name(), kind);
-                if(isNew && (points != null || !commentField.getText().isBlank())) ExerciseTags.getData().setScoring(tag, points, commentField.getText());
+                if(isNew && (points != null || writeBox.isSelected())) ExerciseTags.getData().setScoring(tag, points, writeBox.isSelected() ? typed.name() : null);
                 String copy = ExerciseTags.getOpenCopy();
                 if(copy != null && !ExerciseTags.getData().has(copy, getExerciseName(), tag)) addToOpenCopy(getExerciseName(), tag);
                 else ExerciseTags.fireChanged(true);
             };
-            TextField[] order = {field, pointsField, commentField};
-            for(TextField f : order){
-                f.setOnKeyPressed(k -> {
-                    if(k.getCode() == KeyCode.TAB){ // Name → points → comment
+            javafx.scene.control.Control[] order = {field, pointsField};
+            for(javafx.scene.control.Control f : order){
+                f.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, k -> {
+                    if(k.getCode() == KeyCode.TAB){ // Text → points
                         k.consume();
-                        int index = java.util.Arrays.asList(order).indexOf(f) + (k.isShiftDown() ? -1 : 1);
-                        order[(index + order.length) % order.length].requestFocus();
-                    }else if(k.getCode() == KeyCode.ENTER){
+                        (f == field ? pointsField : field).requestFocus();
+                    }else if(k.getCode() == KeyCode.ENTER){ // The text wraps by itself: Enter creates
                         k.consume();
                         create.run();
                     }else if(k.getCode() == KeyCode.ESCAPE){
@@ -331,11 +403,13 @@ public class ExerciseTagsCard extends VBox {
                 f.focusedProperty().addListener((o, oldValue, newValue) -> {
                     // Clicked elsewhere (not in the other field): cancelled
                     if(!newValue) Platform.runLater(() -> {
-                        if(!field.isFocused() && !pointsField.isFocused() && !commentField.isFocused()) update();
+                        if(!field.isFocused() && !pointsField.isFocused()) update();
                     });
                 });
             }
-            ((Pane) add.getParent()).getChildren().set(((Pane) add.getParent()).getChildren().indexOf(add), fields);
+            // On its own line, the whole width of the card
+            Pane chips = (Pane) add.getParent();
+            chips.getChildren().set(chips.getChildren().indexOf(add), fields);
             Platform.runLater(field::requestFocus);
         });
         return add;

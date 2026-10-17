@@ -360,7 +360,7 @@ public class PageRenderer extends Pane {
                 }
                 
             }else{
-                if(MainWindow.mainScreen.hasToPlace()) setCursor(Cursor.CROSSHAIR);
+                if(MainWindow.mainScreen.hasToPlace() || corrigo.panel.sidebar.grades.tags.TagPlacing.isArmed()) setCursor(Cursor.CROSSHAIR);
                 else setCursor(Cursor.DEFAULT);
                 
                 if(pageEditPane == null) pageEditPane = new PageEditPane(this);
@@ -385,7 +385,7 @@ public class PageRenderer extends Pane {
             }
     
             if(MainWindow.mainScreen.isEditPagesMode()) setCursor(PlatformUtils.CURSOR_MOVE);
-            else if(MainWindow.mainScreen.hasToPlace()) setCursor(Cursor.CROSSHAIR);
+            else if(MainWindow.mainScreen.hasToPlace() || corrigo.panel.sidebar.grades.tags.TagPlacing.isArmed()) setCursor(Cursor.CROSSHAIR);
             else setCursor(Cursor.DEFAULT);
         });
         setOnMouseExited(e -> {
@@ -476,7 +476,8 @@ public class PageRenderer extends Pane {
                 if(placingElement.getWidth() < 10 && placingElement.getHeight() < 10
                         || (placingElement.getWidth() < 10 && placingElement.getResizeMode() == GraphicElement.ResizeMode.SIDE_EDGES)){
                     placingElement.simulateReleaseFromResize();
-                    placingElement.defineSizeAuto();
+                    // A quick mark of the grading panel clicked (not dragged): its usual size, centered on the click
+                    if(!corrigo.panel.sidebar.grades.QuickMarksBar.setClickedSize(placingElement)) placingElement.defineSizeAuto();
                 }else{
                     placingElement.simulateReleaseFromResize();
                 }
@@ -657,9 +658,11 @@ public class PageRenderer extends Pane {
     
     public void showContextMenu(double pageX, double pageY, double screenX, double screenY){
         if(Main.settings.presentationMarks.getValue()){
-            NodeMenuItem pnfMenuItem = new NodeMenuItem(TR.tr("pnf.add", PNFAnnotationManager.label()), false);
-            pnfMenuItem.setOnAction(e -> PNFAnnotationManager.addPNF(this, pageX, pageY));
-            menu.getItems().add(pnfMenuItem);
+            // With a comment chosen in its sub-menu
+            Menu pnfMenu = new Menu(TR.tr("pnf.add", PNFAnnotationManager.label()));
+            pnfMenu.setStyle("-fx-padding: 4 0 4 12;"); // Aligned with the other items of the menu
+            pnfMenu.getItems().addAll(PNFAnnotationManager.buildCommentItems(comment -> PNFAnnotationManager.addPNF(this, pageX, pageY, comment)));
+            menu.getItems().add(pnfMenu);
         }
         menu.getItems().add(getTagsMenu(pageX, pageY));
         // Personal notes (never on the copy): about this page, or with a screenshot of a part of it
@@ -1142,6 +1145,7 @@ public class PageRenderer extends Pane {
             }
             element.addedToDocument(markAsUnsave);
             MainWindow.mainScreen.registerNewAction(new CreateDeleteUndoAction(element, false, undoType));
+            if(markAsUnsave && PNFAnnotationManager.isMark(element)) PNFAnnotationManager.onMarksChanged();
         }
     }
     
@@ -1155,6 +1159,7 @@ public class PageRenderer extends Pane {
             element.removedFromDocument(markAsUnsave);
             
             MainWindow.mainScreen.registerNewAction(new CreateDeleteUndoAction(element, true, undoType));
+            if(markAsUnsave && PNFAnnotationManager.isMark(element)) PNFAnnotationManager.onMarksChanged();
         }
     }
     

@@ -35,6 +35,10 @@ class ScoredCommentGradesTest {
     }
 
     @Test
+    void rendersCheckWithoutPoints(){
+        assertEquals(ScoredCommentGrades.CHECK, ScoredCommentGrades.render(ScoredCommentGrades.CHECK, 2, FORMAT));
+    }
+    @Test
     void rendersSignedPoints(){
         assertEquals("Sign error (−0.5)", ScoredCommentGrades.render("Sign error", -0.5, FORMAT));
         assertEquals("Nice (+1)", ScoredCommentGrades.render("Nice", 1, FORMAT));
@@ -119,7 +123,9 @@ class ScoredCommentGradesTest {
                 placed("e1", "\\Total\\Ex 1\\a", "Sign", -0.5),
                 placed("e2", "\\Total\\Ex 1\\a", "Nice", 0.25)));
 
-        ScoredCommentGrades.recomputeGrades(base, new ScoredCommentCatalog(), name -> name.startsWith("Bonus"));
+        ScoredCommentCatalog catalog = new ScoredCommentCatalog();
+        catalog.setBase("\\Total\\Ex 1\\a", ScoredCommentCatalog.Base.FULL); // Chosen: a point added does not start from 0
+        ScoredCommentGrades.recomputeGrades(base, catalog, name -> name.startsWith("Bonus"));
 
         assertEquals(3.25, valueOf(base, "\\Total\\Ex 1\\a"));
         assertEquals(3.25, valueOf(base, "\\Total\\Ex 1"));
@@ -140,6 +146,38 @@ class ScoredCommentGradesTest {
         ScoredCommentGrades.recomputeGrades(base, null, name -> false);
         assertEquals(-1, valueOf(base, "\\Total\\Ex 1\\a"));
         assertEquals(0, valueOf(base, "\\Total\\Ex 1"));
+    }
+    @Test
+    void methodPointsAddUpFromZero(){
+        // Automatic base: mistakes only count from the maximum, as soon as points are added they count from 0
+        Map<String, Object> mistakes = edition(List.of(placed("e1", "\\Total\\Ex 1\\a", "Sign", -0.5)));
+        ScoredCommentGrades.recomputeGrades(mistakes, new ScoredCommentCatalog(), name -> false);
+        assertEquals(3.5, valueOf(mistakes, "\\Total\\Ex 1\\a"));
+        Map<String, Object> methods = edition(List.of(placed("e1", "\\Total\\Ex 1\\a", "Method", 1),
+                placed("e2", "\\Total\\Ex 1\\a", "Sign", -0.5)));
+        ScoredCommentGrades.recomputeGrades(methods, null, name -> false);
+        assertEquals(0.5, valueOf(methods, "\\Total\\Ex 1\\a"));
+    }
+    @Test
+    void pointsStartFromTheTypedValue(){
+        ScoredCommentCatalog catalog = new ScoredCommentCatalog();
+        String path = "\\Total\\Ex 1";
+        // Typed 1.5 / 3: a mistake removes from it, a method adds to it
+        assertEquals(1.5, ScoredCommentGrades.getStart(3, catalog, path, 1.5, List.of(-0.5)));
+        assertEquals(1, ScoredCommentGrades.computeLeafFrom(3, 1.5, List.of(-0.5)));
+        assertEquals(2.5, ScoredCommentGrades.computeLeafFrom(3, 1.5, List.of(1d)));
+        // Nothing typed: automatic
+        assertEquals(3, ScoredCommentGrades.getStart(3, catalog, path, -1, List.of(-0.5)));
+        assertEquals(0, ScoredCommentGrades.getStart(3, catalog, path, -1, List.of(1d)));
+        // Chosen: wins over the typed value
+        catalog.setBase(path, ScoredCommentCatalog.Base.FULL);
+        assertEquals(3, ScoredCommentGrades.getStart(3, catalog, path, 1.5, List.of(-0.5)));
+        // In an edit file: the value before comments
+        Map<String, Object> base = edition(List.of(placed("e1", "\\Total\\Ex 1\\a", "Sign", -0.5)));
+        ScoredCommentGrades.getGrades(base).stream().filter(g -> "a".equals(g.get("name"))).findFirst().orElseThrow()
+                .put(ScoredCommentGrades.KEY_VALUE_BEFORE, 2.5);
+        ScoredCommentGrades.recomputeGrades(base, null, name -> false);
+        assertEquals(2, valueOf(base, "\\Total\\Ex 1\\a"));
     }
     @Test
     void usesBaseOfCatalog(){

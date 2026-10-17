@@ -72,6 +72,7 @@ public class GradingPanel extends VBox {
             TagPicker.getColor(EvaluationTags.Kind.METHOD), TagPicker.getColor(EvaluationTags.Kind.MISTAKE));
     // Methods and mistakes of the exercise, after the general comment
     private final ExerciseTagsCard tagsCard = new ExerciseTagsCard(tagColors);
+    private final QuickMarksBar quickMarks = new QuickMarksBar(palette.border(), palette.text(), palette.muted(), palette.accent());
 
     // HEADER
     private final Label exerciseName = new Label();
@@ -398,7 +399,7 @@ public class GradingPanel extends VBox {
             sections.add(section);
             sectionsBox.getChildren().add(section);
         }
-        sectionsBox.getChildren().addAll(generalBox, tagsCard);
+        sectionsBox.getChildren().addAll(generalBox, quickMarks, tagsCard);
         // Without sub-grades, the comment of the exercise is its general comment: one field only
         generalBox.setVisible(hasGeneral());
         generalBox.setManaged(hasGeneral());
@@ -1024,8 +1025,7 @@ public class GradingPanel extends VBox {
             HBox.setHgrow(name, Priority.ALWAYS);
             base.setCursor(Cursor.HAND);
             base.setTooltip(new Tooltip(TR.tr("gradingPanel.base.tooltip")));
-            base.setOnMouseClicked(e -> ScoredComments.setBase(path, ScoredComments.getCatalog().getBase(path) == ScoredCommentCatalog.Base.FULL
-                    ? ScoredCommentCatalog.Base.ZERO : ScoredCommentCatalog.Base.FULL));
+            base.setOnMouseClicked(e -> ScoredComments.switchBase(path));
             points.setPrefWidth(64); // The digits and the clear button of the field
             points.setMinWidth(Region.USE_PREF_SIZE);
             points.setAlignment(Pos.CENTER); // Right-aligned, the digits would be under the clear button of the focused field
@@ -1124,8 +1124,7 @@ public class GradingPanel extends VBox {
         }
 
         void update(){
-            boolean fromFull = ScoredComments.getCatalog().getBase(path) == ScoredCommentCatalog.Base.FULL;
-            base.setText(TR.tr(fromFull ? "gradingPanel.base.full" : "gradingPanel.base.zero"));
+            updateBase();
             base.setStyle("-fx-font-size: 11; -fx-text-fill: " + palette.muted() + "; -fx-underline: true;");
             total.setText("/ " + MainWindow.gradesDigFormat.format(leaf.getCore().getTotal()));
             syncPointsIfNotFocused();
@@ -1165,7 +1164,15 @@ public class GradingPanel extends VBox {
             leaf.getPanel().gradeField.setText(text);
             syncPoints();
         }
+        // Where the points of the methods and mistakes start from: the typed value, the maximum or 0
+        private void updateBase(){
+            Double typed = ScoredComments.getTypedStart(path);
+            boolean fromFull = ScoredComments.getBase(path) == ScoredCommentCatalog.Base.FULL;
+            base.setText(typed != null ? TR.tr("gradingPanel.base.typed", MainWindow.gradesDigFormat.format(typed))
+                    : TR.tr(fromFull ? "gradingPanel.base.full" : "gradingPanel.base.zero"));
+        }
         private void syncPointsIfNotFocused(){
+            updateBase(); // A typed value changes it
             if(!points.isFocused()) syncPoints();
             updateHeader();
         }

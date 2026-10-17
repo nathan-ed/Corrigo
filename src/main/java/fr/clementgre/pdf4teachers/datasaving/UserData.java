@@ -60,6 +60,9 @@ public class UserData {
     // Methods and mistakes not shown on the pages of the copy (stored inverted: a missing boolean is read as false)
     @UserDataObject(path = "grading.hideTagMarkers")
     public boolean hideTagMarkers;
+    // Comments of the presentation marks ("PNF"), the last used first
+    @UserDataObject(path = "grading.presentationComments")
+    public List<String> presentationComments = new ArrayList<>();
     
     // FILES (FilesTab)
     @UserDataObject(path = "files.lastFile")
