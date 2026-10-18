@@ -55,6 +55,12 @@ public class GradeElement extends Element {
     private boolean settingValueFromComments;
     // Value before it was computed from comments (typed, or -1): given back when no comment counts any more
     private double valueBeforeComments = -1;
+    // Start of the points kept from a previous version (see ScoredCommentGrades.keepStoredValues), or -1
+    private double pointsStart = -1;
+    // How the points of this exercise count on this copy (see ScoredCommentGrades.KEY_MODE), or null: as for the class
+    private corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentCatalog.Base pointsMode;
+    // Mode of this exercise on this copy set by the first point placed in it (see ScoredCommentGrades.KEY_AUTO_MODE), or null
+    private corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentCatalog.Base pointsAutoMode;
     
     public int nextRealYToUse;
     
@@ -377,7 +383,10 @@ public class GradeElement extends Element {
         if(isValueFromComments()){
             data.put(ScoredCommentGrades.KEY_VALUE_SOURCE, ScoredCommentGrades.VALUE_SOURCE_COMMENTS);
             data.put(ScoredCommentGrades.KEY_VALUE_BEFORE, valueBeforeComments);
+            if(pointsStart >= 0) data.put(ScoredCommentGrades.KEY_START, pointsStart);
         }
+        if(pointsMode != null) data.put(ScoredCommentGrades.KEY_MODE, pointsMode.name());
+        if(pointsAutoMode != null) data.put(ScoredCommentGrades.KEY_AUTO_MODE, pointsAutoMode.name());
         
         return data;
     }
@@ -422,6 +431,9 @@ public class GradeElement extends Element {
         GradeElement element = new GradeElement(x, y, page, hasPage, value, total, outOfTotal, index, parentPath, name, alwaysVisible);
         element.valueFromComments.set(ScoredCommentGrades.VALUE_SOURCE_COMMENTS.equals(Config.getString(data, ScoredCommentGrades.KEY_VALUE_SOURCE)));
         element.valueBeforeComments = data.get(ScoredCommentGrades.KEY_VALUE_BEFORE) instanceof Number before ? before.doubleValue() : -1;
+        element.pointsStart = data.get(ScoredCommentGrades.KEY_START) instanceof Number start ? start.doubleValue() : -1;
+        element.pointsMode = ScoredCommentGrades.getCopyMode(data);
+        element.pointsAutoMode = ScoredCommentGrades.getAutoMode(data);
         return element;
     }
     
@@ -551,6 +563,7 @@ public class GradeElement extends Element {
     public void setComputedValue(double value){
         if(value == -1){ // No comment counts any more: the value it had before
             if(valueFromComments.get()) value = valueBeforeComments;
+            pointsStart = -1;
             valueFromComments.set(false);
         }else{
             if(!valueFromComments.get()) valueBeforeComments = this.value.get(); // Starts to be computed
@@ -583,6 +596,28 @@ public class GradeElement extends Element {
     // The value typed before it was computed from comments (-1: none). While it is not computed, the value itself.
     public double getTypedValue(){
         return valueFromComments.get() ? valueBeforeComments : value.get();
+    }
+    // Start of the points kept from a previous version, or -1
+    public double getPointsStart(){
+        return valueFromComments.get() ? pointsStart : -1;
+    }
+    public void setPointsStart(double pointsStart){
+        if(this.pointsStart != pointsStart) Edition.setUnsave("GradePointsStart");
+        this.pointsStart = pointsStart;
+    }
+    public corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentCatalog.Base getPointsMode(){
+        return pointsMode;
+    }
+    public corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentCatalog.Base getPointsAutoMode(){
+        return pointsAutoMode;
+    }
+    public void setPointsAutoMode(corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentCatalog.Base pointsAutoMode){
+        if(this.pointsAutoMode != pointsAutoMode) Edition.setUnsave("GradePointsAutoMode");
+        this.pointsAutoMode = pointsAutoMode;
+    }
+    public void setPointsMode(corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentCatalog.Base pointsMode){
+        if(this.pointsMode != pointsMode) Edition.setUnsave("GradePointsMode");
+        this.pointsMode = pointsMode;
     }
     public boolean isValueFromComments(){
         return valueFromComments.get();
@@ -706,6 +741,9 @@ public class GradeElement extends Element {
         GradeElement element = new GradeElement(getRealX(), getRealY(), pageNumber, true, value.getValue(), total.getValue(), outOfTotal.getValue(), index, parentPath, name.getValue(), alwaysVisible.get());
         element.valueFromComments.set(isValueFromComments());
         element.valueBeforeComments = valueBeforeComments;
+        element.pointsStart = pointsStart;
+        element.pointsMode = pointsMode;
+        element.pointsAutoMode = pointsAutoMode;
         return element;
     }
     /**
@@ -744,6 +782,9 @@ public class GradeElement extends Element {
         GradeElement element = new GradeElement(getRealX(), getRealY(), pageNumber, false, value.getValue(), total.getValue(), outOfTotal.getValue(), index, parentPath, name.getValue(), alwaysVisible.get());
         element.valueFromComments.set(isValueFromComments());
         element.valueBeforeComments = valueBeforeComments;
+        element.pointsStart = pointsStart;
+        element.pointsMode = pointsMode;
+        element.pointsAutoMode = pointsAutoMode;
         return element;
     }
     public int compareStructureTo(GradeElement grade){

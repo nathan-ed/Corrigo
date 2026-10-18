@@ -9,6 +9,7 @@ package corrigo.panel.sidebar.grades.tags;
 import fr.clementgre.pdf4teachers.datasaving.Config;
 import corrigo.datasaving.evaluation.EvaluationFolders;
 import fr.clementgre.pdf4teachers.document.editions.Edition;
+import fr.clementgre.pdf4teachers.document.editions.undoEngine.UType;
 import fr.clementgre.pdf4teachers.document.render.display.PageRenderer;
 import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.log.Log;
@@ -185,35 +186,95 @@ public final class ExerciseTags {
     public static Use addOccurrence(String copy, String exercise, Tag tag, Placement placement){
         String near = getGradeNear(exercise, placement);
         Use use = data.add(copy, exercise, tag, near != null ? near : getTargetGrade(exercise), placement);
-        dirtyCopies.add(copy);
-        fireChanged(true);
+        changed(copy);
+        TagUndoAction.register(UType.ELEMENT, copy, () -> {
+            data.remove(copy, use.id());
+            changed(copy);
+        }, () -> {
+            data.restore(use);
+            changed(copy);
+        });
         return use;
     }
     public static Use removeOccurrence(String copy, String useId){
         Use removed = data.remove(copy, useId);
-        dirtyCopies.add(copy);
-        fireChanged(true);
+        changed(copy);
+        if(removed != null) TagUndoAction.register(UType.ELEMENT, copy, () -> {
+            data.restore(removed);
+            changed(copy);
+        }, () -> {
+            data.remove(copy, removed.id());
+            changed(copy);
+        });
         return removed;
+    }
+    // The teacher deleted what an occurrence wrote on the open copy: the occurrence is removed. The deletion of the
+    // element is registered just after: undoing it puts the element back, then this puts the occurrence back.
+    public static void onOccurrenceElementDeleted(String copy, String useId){
+        Use removed = data.remove(copy, useId);
+        if(removed == null) return;
+        changed(copy);
+        TagUndoAction.register(UType.ELEMENT_NO_COUNT_AFTER, copy, () -> {
+            data.restore(removed);
+            dirtyCopies.add(copy);
+            EvaluationFolders.requestSave(FOLDER_PART);
+            Platform.runLater(() -> fireChanged(true));
+        }, () -> {
+            data.remove(copy, removed.id());
+            Platform.runLater(() -> fireChanged(true));
+        });
     }
     // Puts back an occurrence removed before (undo): same id, sub-grade and place.
     public static void restoreOccurrence(Use use){
         data.restore(use);
-        dirtyCopies.add(use.copy());
-        fireChanged(true);
+        changed(use.copy());
+        TagUndoAction.register(UType.ELEMENT, use.copy(), () -> {
+            data.remove(use.copy(), use.id());
+            changed(use.copy());
+        }, () -> {
+            data.restore(use);
+            changed(use.copy());
+        });
     }
     public static List<Use> removeAllOccurrences(String copy, String exercise, Tag tag){
         List<Use> removed = data.removeAll(copy, exercise, tag);
-        dirtyCopies.add(copy);
-        fireChanged(true);
+        changed(copy);
+        if(!removed.isEmpty()) TagUndoAction.register(UType.ELEMENT, copy, () -> {
+            removed.forEach(data::restore);
+            changed(copy);
+        }, () -> {
+            removed.forEach(use -> data.remove(copy, use.id()));
+            changed(copy);
+        });
         return removed;
     }
     public static void changeOccurrence(String copy, String useId, Tag tag){
+        Use before = data.getUse(copy, useId);
         data.change(copy, useId, tag);
-        dirtyCopies.add(copy);
-        fireChanged(true);
+        changed(copy);
+        Tag oldTag = before == null ? null : data.getTag(before.tag());
+        if(oldTag != null) TagUndoAction.register(UType.ELEMENT, copy, () -> {
+            data.change(copy, useId, oldTag);
+            changed(copy);
+        }, () -> {
+            data.change(copy, useId, tag);
+            changed(copy);
+        });
     }
     public static void moveOccurrence(String copy, String useId, Placement placement){
+        Use before = data.getUse(copy, useId);
         data.move(copy, useId, placement); // What is written on the copy stays where it is
+        fireChanged(true);
+        if(before != null) TagUndoAction.register(UType.ELEMENT, copy, () -> {
+            data.move(copy, useId, before.placement());
+            fireChanged(true);
+        }, () -> {
+            data.move(copy, useId, placement);
+            fireChanged(true);
+        });
+    }
+    private static void changed(String copy){
+        dirtyCopies.add(copy);
         fireChanged(true);
     }
     // Points (positive, or null) and comment of a tag: written on all the copies that have it.

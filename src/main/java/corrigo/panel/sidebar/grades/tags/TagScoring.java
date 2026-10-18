@@ -21,6 +21,10 @@ import corrigo.panel.sidebar.grades.scoredcomments.ScoredCommentGrades;
 import corrigo.panel.sidebar.grades.scoredcomments.ScoredComments;
 import corrigo.panel.sidebar.grades.tags.EvaluationTags.Target;
 import corrigo.panel.sidebar.grades.tags.EvaluationTags.Use;
+import fr.clementgre.pdf4teachers.document.editions.elements.Element;
+import javafx.application.Platform;
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
 import javafx.scene.paint.Color;
 
 import java.io.File;
@@ -111,6 +115,62 @@ public final class TagScoring {
                 target.comment() == null ? "" : target.comment(), TagEditFiles.getPoints(target), false, false);
         element.setNoPoints(target.points() == null);
         page.addElement(element, true, UType.NO_UNDO);
+        // A comment written at the spot goes to the free place the closest to it (a tick stays on its spot)
+        if(!use.placement().isExerciseSpot() && target.key().isEmpty() && !ScoredCommentGrades.CHECK.equals(target.comment())){
+            moveToFreeSpotWhenLaidOut(element, page, 20);
+        }
+    }
+
+    // Once the element has its size (its text is laid out after it is added)
+    private static void moveToFreeSpotWhenLaidOut(ScoredCommentElement element, PageRenderer page, int tries){
+        Platform.runLater(() -> {
+            if(element.getLayoutBounds().getWidth() <= 0 && tries > 0) moveToFreeSpotWhenLaidOut(element, page, tries - 1);
+            else moveToFreeSpot(element, page);
+        });
+    }
+    // Size of a cell of the grid of the free places, in pixels of the page
+    private static final double CELL = 4;
+    // Moves the element to the free place of the page the closest to where it is: no ink of the student under it (from
+    // the rendered page), no other annotation. Stays where it is if there is none near.
+    private static void moveToFreeSpot(ScoredCommentElement element, PageRenderer page){
+        if(element.getPage() != page || !page.hasRenderedImage()) return;
+        double pageWidth = page.getWidth(), pageHeight = page.getHeight();
+        double width = element.getLayoutBounds().getWidth(), height = element.getLayoutBounds().getHeight();
+        Image image = page.getRenderedImage();
+        PixelReader reader = image.getPixelReader();
+        if(reader == null || width <= 0 || height <= 0 || pageWidth <= 0 || pageHeight <= 0) return;
+        int cols = (int) (pageWidth / CELL), rows = (int) (pageHeight / CELL);
+        boolean[][] occupied = new boolean[rows][cols];
+        double scaleX = image.getWidth() / pageWidth, scaleY = image.getHeight() / pageHeight;
+        for(int y = 0; y < rows; y++){
+            for(int x = 0; x < cols; x++){
+                int dark = 0;
+                for(int i = 0; i < 3 && dark < 2; i++){
+                    for(int j = 0; j < 3 && dark < 2; j++){
+                        int px = (int) Math.min(image.getWidth() - 1, (x + (i + .5) / 3) * CELL * scaleX);
+                        int py = (int) Math.min(image.getHeight() - 1, (y + (j + .5) / 3) * CELL * scaleY);
+                        Color color = reader.getColor(px, py);
+                        if(.2126 * color.getRed() + .7152 * color.getGreen() + .0722 * color.getBlue() < .75) dark++;
+                    }
+                }
+                occupied[y][x] = dark >= 2;
+            }
+        }
+        for(Element other : page.getElements()){
+            if(other == element) continue;
+            int x0 = (int) (other.getLayoutX() / CELL), y0 = (int) (other.getLayoutY() / CELL);
+            int x1 = (int) Math.ceil((other.getLayoutX() + other.getLayoutBounds().getWidth()) / CELL);
+            int y1 = (int) Math.ceil((other.getLayoutY() + other.getLayoutBounds().getHeight()) / CELL);
+            for(int y = Math.max(0, y0); y < Math.min(rows, y1); y++){
+                for(int x = Math.max(0, x0); x < Math.min(cols, x1); x++) occupied[y][x] = true;
+            }
+        }
+        int[] free = FreeSpot.find(FreeSpot.grow(occupied, 1), (int) Math.ceil(width / CELL), (int) Math.ceil(height / CELL),
+                (int) (element.getLayoutX() / CELL), (int) (element.getLayoutY() / CELL), (int) (pageWidth * .25 / CELL));
+        if(free == null) return;
+        element.setRealX(page.toGridX(free[0] * CELL));
+        element.setRealY(page.toGridY(free[1] * CELL));
+        Edition.setUnsave("TagCommentPlaced");
     }
 
     // The teacher deleted the element of an occurrence: the occurrence is removed.
@@ -118,7 +178,7 @@ public final class TagScoring {
         if(syncing) return;
         String copy = ExerciseTags.getOpenCopy();
         if(copy == null) return;
-        if(ExerciseTags.getData().remove(copy, TagEditFiles.getUseId(elementId)) != null) ExerciseTags.fireChanged(true);
+        ExerciseTags.onOccurrenceElementDeleted(copy, TagEditFiles.getUseId(elementId));
     }
 
     // OTHER COPIES
@@ -134,8 +194,9 @@ public final class TagScoring {
             try{
                 Config config = new Config(editFile);
                 config.load();
-                if(!TagEditFiles.sync(config.base, data, copy, MainWindow.gradesDigFormat)) continue;
                 ScoredCommentCatalog catalog = ScoredComments.getCatalogs().getOrDefault(ScoredCommentGrades.getSignature(config.base), ScoredComments.getCatalog());
+                ScoredCommentGrades.keepStoredValues(config.base, catalog); // Graded with a previous version: its other grades stay
+                if(!TagEditFiles.sync(config.base, data, copy, MainWindow.gradesDigFormat)) continue;
                 ScoredCommentGrades.recomputeGrades(config.base, catalog, GradeElement::isBonus);
                 config.save();
                 Edition.removePreloadedEditFile(editFile);

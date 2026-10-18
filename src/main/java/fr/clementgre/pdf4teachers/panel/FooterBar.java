@@ -216,7 +216,12 @@ public class FooterBar extends StackPane {
     public void showToast(Color background, Color messageColor, String text){
         showToast(background, messageColor, ToastDuration.SHORT, text);
     }
+    // Each message shown has a new id: hiding an older one must not hide it
+    private int toastId;
+    private Timeline hiding;
     public void showToast(Color background, Color messageColor, ToastDuration duration, String text){
+        int id = ++toastId;
+        if(hiding != null) hiding.stop();
         if(!getChildren().contains(messagePane)){
             getChildren().add(messagePane);
             messagePane.setTranslateY(20);
@@ -238,13 +243,17 @@ public class FooterBar extends StackPane {
             timelineShow.play();
 
             PlatformUtils.runLaterOnUIThread(duration.duration, () -> {
+                if(id != toastId) return; // Another message is shown
                 Timeline timelineHide = new Timeline(60);
                 timelineHide.getKeyFrames().addAll(
                         new KeyFrame(Duration.millis(200), new KeyValue(messagePane.translateYProperty(), 20)),
                         new KeyFrame(Duration.millis(200), new KeyValue(messagePane.opacityProperty(), 0))
                 );
+                hiding = timelineHide;
                 timelineHide.play();
-                timelineHide.setOnFinished((e) -> getChildren().remove(messagePane));
+                timelineHide.setOnFinished((e) -> {
+                    if(id == toastId) getChildren().remove(messagePane);
+                });
             });
         });
     }
@@ -257,8 +266,12 @@ public class FooterBar extends StackPane {
                 new KeyFrame(Duration.millis(150), new KeyValue(messagePane.translateYProperty(), 20)),
                 new KeyFrame(Duration.millis(150), new KeyValue(messagePane.opacityProperty(), 0))
         );
+        int id = toastId;
+        hiding = timelineHide;
         timelineHide.play();
-        timelineHide.setOnFinished((e) -> getChildren().remove(messagePane));
+        timelineHide.setOnFinished((e) -> {
+            if(id == toastId) getChildren().remove(messagePane);
+        });
     }
 
     private Pane getSpacerShape(){

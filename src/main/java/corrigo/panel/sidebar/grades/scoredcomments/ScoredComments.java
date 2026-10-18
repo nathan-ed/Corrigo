@@ -239,61 +239,141 @@ public class ScoredComments {
     }
 
     /**
-     * Sets the value of a sub-grade from its placed comments.
-     * @param switchToComments If the grade value was typed, it is computed from the comments from now on.
+     * Sets the values of the sub-grades of the exercise of this sub-grade from their placed comments and the mode of
+     * the exercise (see ScoredCommentGrades.computeExercise).
+     * @param switchToComments If the value of this sub-grade was typed, it is computed from the comments from now on.
      *                         Otherwise, a typed value is kept.
      */
     public static void recomputeGrade(String gradePath, boolean switchToComments){
         GradeElement grade = findGrade(gradePath);
         if(grade == null || grade.getGradeTreeItem() == null || grade.getGradeTreeItem().hasSubGrade()) return;
-
-        List<Double> points = getPlacedComments().stream()
-                .filter(c -> gradePath.equals(c.getGradePath()) && !c.isNoPoints())
-                .map(ScoredCommentElement::getPoints)
-                .toList();
-
-        if(points.isEmpty()){
-            if(grade.isValueFromComments()) grade.setComputedValue(-1);
-            return;
+        recomputeExercise(ScoredCommentGrades.getExercisePath(gradePath), switchToComments ? gradePath : null);
+    }
+    // switchPath: the sub-grade whose typed value gives way to the points, or null
+    public static void recomputeExercise(String exercisePath, String switchPath){
+        GradeTreeItem exercise = findExercise(exercisePath);
+        if(exercise == null) return;
+        List<GradeTreeItem> leaves = getLeaves(exercise);
+        List<ScoredCommentGrades.Leaf> data = leaves.stream().map(item -> toLeaf(item.getCore(), item.getCore().getPath().equals(switchPath))).toList();
+        ScoredCommentCatalog.Base copyMode = exercise.getCore().getPointsMode();
+        ScoredCommentGrades.ExerciseValues result = ScoredCommentGrades.computeExercise(data,
+                path -> ScoredCommentGrades.getChosenMode(copyMode, getCatalog(), path), exercise.getCore().getPointsAutoMode());
+        exercise.getCore().setPointsAutoMode(result.auto());
+        for(int i = 0; i < leaves.size(); i++){
+            GradeElement leaf = leaves.get(i).getCore();
+            ScoredCommentGrades.LeafValue value = result.values().get(i);
+            if(value.computed()){
+                if(!leaf.isValueFromComments() || leaf.getValue() != value.value()) leaf.setComputedValue(value.value());
+            }else if(leaf.isValueFromComments()) leaf.setComputedValue(-1); // Back to the value typed before
         }
-        if(!grade.isValueFromComments() && !switchToComments) return;
-
-        double start = ScoredCommentGrades.getStart(grade.getTotal(), getCatalog(), gradePath, grade.getTypedValue(), points);
-        double value = ScoredCommentGrades.computeLeafFrom(grade.getTotal(), start, points);
-        grade.setComputedValue(value);
+    }
+    private static ScoredCommentGrades.Leaf toLeaf(GradeElement grade, boolean switchToComments){
+        String path = grade.getPath();
+        boolean computed = grade.isValueFromComments();
+        return new ScoredCommentGrades.Leaf(path, grade.getTotal(), grade.getValue(), computed, computed ? grade.getTypedValue() : -1,
+                grade.getPointsStart(), getPoints(path), isTicked(path), switchToComments);
+    }
+    // The exercise (child of the total) with this path, or null
+    private static GradeTreeItem findExercise(String exercisePath){
+        if(MainWindow.gradeTab == null || GradeTreeView.getTotal() == null) return null;
+        for(var child : GradeTreeView.getTotal().getChildren()){
+            if(child instanceof GradeTreeItem item && item.getCore().getPath().equals(exercisePath)) return item;
+        }
+        return null;
+    }
+    private static List<GradeTreeItem> getLeaves(GradeTreeItem exercise){
+        if(!exercise.hasSubGrade()) return List.of(exercise);
+        return GradeTreeView.getGradesArray(exercise).stream().filter(item -> !item.hasSubGrade()).toList();
     }
 
-    // Base of the sub-grade on the open copy (automatic: from the points placed on it)
-    public static ScoredCommentCatalog.Base getBase(String gradePath){
-        List<Double> points = getPlacedComments().stream()
+    // Points counted on a sub-grade of the open copy
+    private static List<Double> getPoints(String gradePath){
+        return getPlacedComments().stream()
                 .filter(c -> gradePath.equals(c.getGradePath()) && !c.isNoPoints())
                 .map(ScoredCommentElement::getPoints)
                 .toList();
-        return getCatalog().getBase(gradePath, points);
+    }
+    // The criterion of the sub-grade is ticked on the open copy
+    private static boolean isTicked(String gradePath){
+        return getPlacedComments().stream().anyMatch(c -> !c.isNoPoints() && gradePath.equals(c.getGradePath())
+                && ScoredCommentGrades.CHECK.equals(c.getComment()));
     }
 
-    // The value typed by hand the points of the sub-grade start from (no base chosen), or null
-    public static Double getTypedStart(String gradePath){
-        if(getCatalog().getChosenBase(gradePath) != null) return null;
+    // Where the points of the sub-grade of the open copy start from
+    public static double getStartShown(String gradePath){
         GradeElement grade = findGrade(gradePath);
-        if(grade == null) return null;
-        double typed = grade.getTypedValue();
-        return typed >= 0 ? Math.min(typed, grade.getTotal()) : null;
-    }
-    // Next start on a click: automatic (or typed value) → from max → from 0 → automatic
-    public static void switchBase(String gradePath){
-        ScoredCommentCatalog.Base chosen = getCatalog().getChosenBase(gradePath);
-        ScoredCommentCatalog.Base next;
-        if(chosen == null) next = getTypedStart(gradePath) == null && getBase(gradePath) == ScoredCommentCatalog.Base.FULL ? ScoredCommentCatalog.Base.ZERO : ScoredCommentCatalog.Base.FULL;
-        else if(chosen == ScoredCommentCatalog.Base.FULL) next = ScoredCommentCatalog.Base.ZERO;
-        else next = null;
-        setBase(gradePath, next);
+        if(grade == null) return 0;
+        ScoredCommentCatalog.Base chosen = getChosenMode(gradePath);
+        return ScoredCommentGrades.getStart(toLeaf(grade, false), getMode(gradePath), chosen == null);
     }
 
-    public static void setBase(String gradePath, ScoredCommentCatalog.Base base){
-        getCatalog().setBase(gradePath, base);
-        recomputeGrade(gradePath, false);
+    // MODE OF AN EXERCISE: by mistakes (FULL, from the maximum) or by criteria (ZERO, from 0)
+
+    // Mode chosen for the sub-grade (or exercise) on the open copy (copy, else class), or null: automatic
+    private static ScoredCommentCatalog.Base getChosenMode(String gradePath){
+        return ScoredCommentGrades.getChosenMode(getCopyMode(ScoredCommentGrades.getExercisePath(gradePath)), getCatalog(), gradePath);
+    }
+    // Mode of the sub-grade (or exercise) on the open copy
+    public static ScoredCommentCatalog.Base getMode(String gradePath){
+        return ScoredCommentGrades.getMode(getChosenMode(gradePath), getAutoMode(ScoredCommentGrades.getExercisePath(gradePath)));
+    }
+    // Mode chosen for the exercise for the class, or null: automatic
+    public static ScoredCommentCatalog.Base getClassMode(String exercisePath){
+        return ScoredCommentGrades.getChosenMode(null, getCatalog(), exercisePath);
+    }
+    // Mode of the exercise changed on the open copy, or null
+    public static ScoredCommentCatalog.Base getCopyMode(String exercisePath){
+        GradeTreeItem exercise = findExercise(exercisePath);
+        return exercise == null ? null : exercise.getCore().getPointsMode();
+    }
+    // Mode of the exercise set by the first point placed in it on the open copy, or null
+    public static ScoredCommentCatalog.Base getAutoMode(String exercisePath){
+        GradeTreeItem exercise = findExercise(exercisePath);
+        return exercise == null ? null : exercise.getCore().getPointsAutoMode();
+    }
+    // Changes the mode of the exercise for the class (null: automatic): all the copies of the evaluation are computed
+    // again (except the ones where it was changed for the copy)
+    public static void setClassMode(String exercisePath, ScoredCommentCatalog.Base mode){
+        ScoredCommentCatalog catalog = getCatalog();
+        ScoredCommentCatalog previous = catalog.copy();
+        GradeTreeItem exercise = findExercise(exercisePath);
+        if(exercise != null) getLeaves(exercise).forEach(leaf -> catalog.setBase(leaf.getCore().getPath(), null)); // Older choices by sub-grade
+        catalog.setBase(exercisePath, mode); // null: automatic
+        recomputeExercise(exercisePath, null);
+        recomputeOtherCopies(exercisePath, previous);
         fireChanged(true);
+    }
+    // Changes the mode of the exercise on the open copy only (null: as for the class)
+    public static void setCopyMode(String exercisePath, ScoredCommentCatalog.Base mode){
+        GradeTreeItem exercise = findExercise(exercisePath);
+        if(exercise == null) return;
+        exercise.getCore().setPointsMode(mode);
+        recomputeExercise(exercisePath, null);
+        fireChanged(false);
+    }
+    // The other copies of the evaluation (files list, same grade scale): their edit files are computed again
+    private static void recomputeOtherCopies(String exercisePath, ScoredCommentCatalog previous){
+        String signature = getCurrentSignature();
+        File current = MainWindow.mainScreen.document.getFile();
+        boolean changed = false;
+        for(File file : MainWindow.filesTab.getOpenedFiles()){
+            if(file.equals(current)) continue;
+            File editFile = Edition.getEditFile(file);
+            if(!editFile.exists()) continue;
+            try{
+                Config config = new Config(editFile);
+                config.load();
+                if(!signature.equals(ScoredCommentGrades.getSignature(config.base))) continue;
+                ScoredCommentGrades.keepStoredValues(config.base, previous); // Before the change: graded with a previous version
+                ScoredCommentGrades.recomputeGrades(config.base, getCatalog(), GradeElement::isBonus);
+                config.save();
+                Edition.removePreloadedEditFile(editFile);
+                changed = true;
+            }catch(Exception e){
+                fr.clementgre.pdf4teachers.interfaces.windows.log.Log.eNotified(e, "Unable to compute again the grades of " + file.getName());
+            }
+        }
+        if(changed) MainWindow.filesTab.refresh();
     }
 
     public static void onGradeRenamed(String oldPath, String newPath){

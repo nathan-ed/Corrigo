@@ -112,6 +112,7 @@ public class ScoredCommentPropagationDialog {
                 Config config = new Config(editFile);
                 config.load();
                 if(!signature.equals(ScoredCommentGrades.getSignature(config.base))) continue;
+                ScoredCommentGrades.keepStoredValues(config.base, catalog);
 
                 double[] before = ScoredCommentGrades.getRootGrade(config.base);
                 int linked;

@@ -346,13 +346,22 @@ it from anywhere.</p>
 <p><strong>Header</strong>: the exercise and its points, <code>‹ ›</code> for the previous/next exercise, the copy (e.g. "07_DUPONT.pdf · copy
 7/24") and a button per exercise to jump to its page (✓ when graded on this copy). The panel follows the page you are
 reading.</p>
+<p><strong>How the points count</strong>: under the name of the copy, for instance "Points: by mistakes (from max), first point".
+Automatically, the first point placed in the exercise on the copy decides:</p>
+<ul>
+<li>a <strong>mistake</strong> first: <strong>by mistakes</strong>, from the maximum; mistakes remove points, a method can give some back (never
+  above the maximum);</li>
+<li>a <strong>method</strong> or a <strong>criterion</strong> first: <strong>by criteria</strong>, from 0; ticked criteria and methods add their points,
+  mistakes remove some. A sub-grade with nothing is then 0: what is shown is what counts.</li>
+</ul>
+<p>This choice stays while a point counts in the exercise; when none is left, the next first point decides again. A click
+on the "Points" line sets it for the whole class (automatic, by mistakes or by criteria; all the copies are computed
+again) or for this copy only. In every case, a ticked criterion gives its points minus the mistakes, a grade typed by
+hand comes first (the points start from it), and Ctrl+Z undoes the last action. A copy graded with a previous version
+of Corrigo keeps its grades.</p>
 <p><strong>One section per sub-grade</strong>, the active one highlighted:</p>
 <ul>
-<li>the points field and the maximum; on the active sub-grade, "from max" / "from 0" says whether the points of the
-  methods and mistakes count down from the maximum or up from zero. By default they start from the grade typed by
-  hand if any ("from 1.5": a mistake at −0.5 gives 1); else mistakes alone count from the maximum, and as soon as a
-  method or a criterion adds points the sub-grade starts from 0 (the points add up one by one). Click to force from
-  the maximum, then from 0, then back to automatic;</li>
+<li>the points field and the maximum; on the active sub-grade, "from max" / "from 0" says where its points start from;</li>
 <li><strong>Mark</strong>: ╱ (cross out), ✓, ✗, ◯ (circle). Click the button, then click on the copy: the mark has a normal size,
   centered on the click; drag instead to give it the dragged size. Same button or <code>Escape</code>: cancel. The click goes to
   the page even over a text or a shape already there;</li>

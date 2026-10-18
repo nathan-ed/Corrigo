@@ -87,6 +87,9 @@ public class Edition{
             }
             Config config = loadConfig(editFile);
             int versionID = (int) config.getLong("versionID");
+            // Graded with a previous version: where the points of each sub-grade start from is kept, its grades stay
+            List<String> keptGrades = ScoredCommentGrades.keepStoredValues(config.base,
+                    ScoredComments.getCatalogs().getOrDefault(ScoredCommentGrades.getSignature(config.base), ScoredComments.getCatalog()));
     
             boolean upscaleGrid = versionID == 0; // Between 1.2.1 and 1.3.0, the grid size was multiplied by 100
             
@@ -122,6 +125,10 @@ public class Edition{
             EvaluationComments.onEditionLoaded();
             corrigo.panel.sidebar.grades.tags.ExerciseTags.onEditionLoaded();
             corrigo.panel.sidebar.grades.PNFAnnotationManager.onEditionLoaded();
+            if(!keptGrades.isEmpty()){ // Nothing changes on the copy: only where its points start from is written
+                setUnsave("GradesKept");
+                Log.i("Start of the points kept: " + keptGrades);
+            }
             
             return true;
         }catch(IOException e){

@@ -223,6 +223,7 @@ public final class TagEditFiles {
         if(grade == null || ScoredCommentGrades.VALUE_SOURCE_COMMENTS.equals(grade.get(ScoredCommentGrades.KEY_VALUE_SOURCE))) return;
         grade.put(ScoredCommentGrades.KEY_VALUE_BEFORE, grade.get("value") instanceof Number value ? value.doubleValue() : -1d);
         grade.put(ScoredCommentGrades.KEY_VALUE_SOURCE, ScoredCommentGrades.VALUE_SOURCE_COMMENTS);
+        grade.remove(ScoredCommentGrades.KEY_START);
     }
 
     private static Map<String, Object> findGrade(Map<String, Object> editBase, String gradePath){

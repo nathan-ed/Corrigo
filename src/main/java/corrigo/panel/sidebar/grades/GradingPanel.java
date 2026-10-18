@@ -78,6 +78,8 @@ public class GradingPanel extends VBox {
     private final Label exerciseName = new Label();
     private final Label exerciseScore = new Label();
     private final Label copyInfo = new Label();
+    // How the points of the exercise count (by mistakes / by criteria) and why (first point, class, copy): a click changes it
+    private final Label pointsMode = new Label();
     private final Button previousExercise = new Button("‹");
     private final Button nextExercise = new Button("›");
     // One button per exercise, to jump to its page
@@ -179,7 +181,15 @@ public class GradingPanel extends VBox {
         title.managedProperty().bind(title.visibleProperty());
         exerciseJumps.setPadding(new Insets(6, 0, 0, 4));
         exerciseJumps.managedProperty().bind(exerciseJumps.visibleProperty());
-        VBox header = new VBox(2, title, copyInfo, exerciseJumps);
+        pointsMode.setStyle("-fx-font-size: 11; -fx-text-fill: " + palette.text() + "; -fx-underline: true;");
+        pointsMode.setCursor(Cursor.HAND);
+        pointsMode.setWrapText(true); // Long in French: on two lines rather than cut
+        pointsMode.setMinHeight(Region.USE_PREF_SIZE);
+        pointsMode.setTooltip(new Tooltip(TR.tr("gradingPanel.mode.tooltip")));
+        pointsMode.setOnMouseClicked(e -> showModeMenu(pointsMode));
+        pointsMode.visibleProperty().bind(title.visibleProperty());
+        pointsMode.managedProperty().bind(pointsMode.visibleProperty());
+        VBox header = new VBox(2, title, copyInfo, pointsMode, exerciseJumps);
         header.setPadding(new Insets(10, 12, 10, 8));
         header.setStyle("-fx-border-color: " + palette.border() + "; -fx-border-width: 0 0 1 0;");
         getChildren().add(header);
@@ -473,7 +483,52 @@ public class GradingPanel extends VBox {
         // Position of the open copy in the list (the selection of the list may be empty)
         int file = MainWindow.filesTab.files.getItems().indexOf(MainWindow.mainScreen.document.getFile());
         copyInfo.setText(TR.tr("gradingPanel.copy", MainWindow.mainScreen.document.getFileName(), String.valueOf(file + 1), String.valueOf(files)));
+        updatePointsMode();
         updateExerciseJumps();
+    }
+
+    // MODE OF THE EXERCISE
+
+    private void updatePointsMode(){
+        String path = exercise.getCore().getPath();
+        ScoredCommentCatalog.Base copyMode = ScoredComments.getCopyMode(path);
+        ScoredCommentCatalog.Base classMode = ScoredComments.getClassMode(path);
+        ScoredCommentCatalog.Base autoMode = ScoredComments.getAutoMode(path);
+        ScoredCommentCatalog.Base mode = copyMode != null ? copyMode : classMode != null ? classMode : autoMode;
+        if(mode == null){ // Automatic, nothing placed yet
+            pointsMode.setText(TR.tr("gradingPanel.mode.auto"));
+            return;
+        }
+        pointsMode.setText(TR.tr(mode == ScoredCommentCatalog.Base.ZERO ? "gradingPanel.mode.criteria" : "gradingPanel.mode.mistakes")
+                + TR.tr(copyMode != null ? "gradingPanel.mode.fromCopy" : classMode != null ? "gradingPanel.mode.fromClass" : "gradingPanel.mode.fromFirst"));
+    }
+    // Automatic (the first point placed decides), by mistakes or by criteria, for the class or for this copy only
+    private void showModeMenu(javafx.scene.Node anchor){
+        if(exercise == null) return;
+        String path = exercise.getCore().getPath();
+        ScoredCommentCatalog.Base classMode = ScoredComments.getClassMode(path);
+        ScoredCommentCatalog.Base copyMode = ScoredComments.getCopyMode(path);
+        ToggleGroup classGroup = new ToggleGroup(), copyGroup = new ToggleGroup();
+        RadioMenuItem classAuto = new RadioMenuItem(TR.tr("gradingPanel.mode.class.auto"));
+        RadioMenuItem classMistakes = new RadioMenuItem(TR.tr("gradingPanel.mode.class.mistakes"));
+        RadioMenuItem classCriteria = new RadioMenuItem(TR.tr("gradingPanel.mode.class.criteria"));
+        RadioMenuItem copyAsClass = new RadioMenuItem(TR.tr("gradingPanel.mode.copy.class"));
+        RadioMenuItem copyMistakes = new RadioMenuItem(TR.tr("gradingPanel.mode.copy.mistakes"));
+        RadioMenuItem copyCriteria = new RadioMenuItem(TR.tr("gradingPanel.mode.copy.criteria"));
+        for(RadioMenuItem item : new RadioMenuItem[]{classAuto, classMistakes, classCriteria}) item.setToggleGroup(classGroup);
+        (classMode == null ? classAuto : classMode == ScoredCommentCatalog.Base.ZERO ? classCriteria : classMistakes).setSelected(true);
+        for(RadioMenuItem item : new RadioMenuItem[]{copyAsClass, copyMistakes, copyCriteria}) item.setToggleGroup(copyGroup);
+        (copyMode == null ? copyAsClass : copyMode == ScoredCommentCatalog.Base.ZERO ? copyCriteria : copyMistakes).setSelected(true);
+        classAuto.setOnAction(e -> ScoredComments.setClassMode(path, null));
+        classMistakes.setOnAction(e -> ScoredComments.setClassMode(path, ScoredCommentCatalog.Base.FULL));
+        classCriteria.setOnAction(e -> ScoredComments.setClassMode(path, ScoredCommentCatalog.Base.ZERO));
+        copyAsClass.setOnAction(e -> ScoredComments.setCopyMode(path, null));
+        copyMistakes.setOnAction(e -> ScoredComments.setCopyMode(path, ScoredCommentCatalog.Base.FULL));
+        copyCriteria.setOnAction(e -> ScoredComments.setCopyMode(path, ScoredCommentCatalog.Base.ZERO));
+        ContextMenu menu = new ContextMenu(classAuto, classMistakes, classCriteria, new SeparatorMenuItem(), copyAsClass, copyMistakes, copyCriteria);
+        menu.setOnHidden(e -> scheduleUpdate(false));
+        javafx.geometry.Bounds bounds = anchor.localToScreen(anchor.getBoundsInLocal());
+        menu.show(anchor, bounds.getMinX(), bounds.getMaxY());
     }
     
     private void updateExerciseJumps(){
@@ -1025,7 +1080,7 @@ public class GradingPanel extends VBox {
             HBox.setHgrow(name, Priority.ALWAYS);
             base.setCursor(Cursor.HAND);
             base.setTooltip(new Tooltip(TR.tr("gradingPanel.base.tooltip")));
-            base.setOnMouseClicked(e -> ScoredComments.switchBase(path));
+            base.setOnMouseClicked(e -> showModeMenu(base));
             points.setPrefWidth(64); // The digits and the clear button of the field
             points.setMinWidth(Region.USE_PREF_SIZE);
             points.setAlignment(Pos.CENTER); // Right-aligned, the digits would be under the clear button of the focused field
@@ -1166,10 +1221,10 @@ public class GradingPanel extends VBox {
         }
         // Where the points of the methods and mistakes start from: the typed value, the maximum or 0
         private void updateBase(){
-            Double typed = ScoredComments.getTypedStart(path);
-            boolean fromFull = ScoredComments.getBase(path) == ScoredCommentCatalog.Base.FULL;
-            base.setText(typed != null ? TR.tr("gradingPanel.base.typed", MainWindow.gradesDigFormat.format(typed))
-                    : TR.tr(fromFull ? "gradingPanel.base.full" : "gradingPanel.base.zero"));
+            double start = ScoredComments.getStartShown(path);
+            double total = leaf.getCore().getTotal();
+            base.setText(start >= total ? TR.tr("gradingPanel.base.full") : start <= 0 ? TR.tr("gradingPanel.base.zero")
+                    : TR.tr("gradingPanel.base.typed", MainWindow.gradesDigFormat.format(start)));
         }
         private void syncPointsIfNotFocused(){
             updateBase(); // A typed value changes it

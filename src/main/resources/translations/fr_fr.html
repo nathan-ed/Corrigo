@@ -368,13 +368,24 @@ va depuis n'importe où.</p>
 <p><strong>En-tête</strong> : l'exercice et ses points, <code>‹ ›</code> pour l'exercice précédent/suivant, la copie (par exemple
 « 07_DUPONT.pdf · copie 7/24 ») et un bouton par exercice pour aller à sa page (✓ quand il est corrigé sur cette copie).
 Le panneau suit la page que vous lisez.</p>
+<p><strong>Comment comptent les points</strong> : sous le nom de la copie, par exemple « Points : par erreurs (depuis le max),
+premier point ». Automatiquement, le premier point placé dans l'exercice sur la copie décide :</p>
+<ul>
+<li>une <strong>erreur</strong> en premier : <strong>par erreurs</strong>, on part du maximum ; les erreurs enlèvent des points, une méthode peut en
+  rendre (jamais au-dessus du maximum) ;</li>
+<li>une <strong>méthode</strong> ou un <strong>critère</strong> en premier : <strong>par critères</strong>, on part de 0 ; les critères cochés et les méthodes
+  ajoutent leurs points, les erreurs en enlèvent. Une sous-note sans rien vaut alors 0 : ce qui est affiché est ce
+  qui compte.</li>
+</ul>
+<p>Ce choix reste tant qu'un point compte dans l'exercice ; quand il n'y en a plus, le premier point suivant décide à
+nouveau. Un clic sur la ligne « Points » l'impose pour toute la classe (automatique, par erreurs ou par critères ;
+toutes les copies sont recalculées) ou pour cette copie seulement. Dans tous les cas, un critère coché donne ses
+points moins les erreurs, une note tapée à la main reste prioritaire (les points partent d'elle), et Ctrl+Z annule le
+dernier geste. Une copie notée avec une version précédente de Corrigo garde ses notes.</p>
 <p><strong>Une section par sous-note</strong>, celle en cours mise en évidence :</p>
 <ul>
-<li>le champ des points et le maximum ; sur la sous-note en cours, « depuis le max » / « depuis 0 » indique si les
-  points des méthodes et erreurs comptent à partir du maximum ou de zéro. Par défaut, ils partent de la note tapée à la
-  main s'il y en a une (« depuis 1,5 » : une erreur à −0,5 donne 1) ; sinon des erreurs seules comptent depuis le max,
-  et dès qu'une méthode ou un critère ajoute des points, la sous-note part de 0 (les points s'ajoutent un à un).
-  Cliquez pour imposer depuis le max, puis depuis 0, puis revenir à l'automatique ;</li>
+<li>le champ des points et le maximum ; sur la sous-note en cours, « depuis le max » / « depuis 0 » indique d'où
+  partent ses points ;</li>
 <li><strong>Annoter</strong> : ╱ (barrer), ✓, ✗, ◯ (entourer). Un clic sur le bouton, puis un clic sur la copie pose la marque à une
   taille normale, centrée sur le clic ; en glissant, elle prend la taille tirée. Même bouton ou <code>Échap</code> : annuler. Le
   clic va à la page même sur un texte ou une forme déjà là ;</li>
