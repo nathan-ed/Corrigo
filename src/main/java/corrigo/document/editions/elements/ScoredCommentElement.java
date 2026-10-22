@@ -214,7 +214,7 @@ public class ScoredCommentElement extends TextElement {
     @Override
     public void select(){
         if(MainWindow.gradingTab != null && MainWindow.gradingTab.isSelected()){
-            selectPartial();
+            selectWhileGrading();
             return;
         }
         super.select();

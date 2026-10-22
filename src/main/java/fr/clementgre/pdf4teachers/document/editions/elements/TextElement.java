@@ -109,6 +109,13 @@ public class TextElement extends Element {
             setupGeneral(true, isMath() ? this.image : this.textNode);
             updateText();
             this.textNode.setUnderline(isURL());
+            // Selected while grading, it has the keyboard (selectWhileGrading): Delete removes it from the copy
+            setOnKeyPressed(e -> {
+                if(e.getCode() == KeyCode.DELETE || e.getCode() == KeyCode.BACK_SPACE){
+                    e.consume();
+                    delete(true, UType.ELEMENT);
+                }
+            });
         }
         
     }
@@ -203,12 +210,21 @@ public class TextElement extends Element {
     
     @Override
     public void select(){
-        super.selectPartial();
         // While grading, selecting a text of the copy (to move or delete it) keeps the grading panel
-        if(MainWindow.gradingTab != null && MainWindow.gradingTab.isSelected()) return;
+        if(MainWindow.gradingTab != null && MainWindow.gradingTab.isSelected()){
+            selectWhileGrading();
+            return;
+        }
+        super.selectPartial();
         SideBar.selectTab(MainWindow.textTab);
         MainWindow.textTab.selectItem();
         AutoTipsManager.showByAction("textselect");
+    }
+    // Selected on the copy while the grading panel is shown: the keys go to it, not to a field of the panel (Delete
+    // there would remove a character of the text of the exercise, not this text)
+    protected void selectWhileGrading(){
+        super.selectPartial();
+        requestFocus();
     }
     @Override
     public void onDoubleClickAfterSelected(){

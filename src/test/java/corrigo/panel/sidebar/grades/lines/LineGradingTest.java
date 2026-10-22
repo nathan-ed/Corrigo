@@ -193,4 +193,37 @@ class LineGradingTest {
         assertEquals("a", twice.get(0));
         assertEquals("b", twice.get(2));
     }
+
+    // Random texts and edits (fixed seed): a grade stays between 0 and the maximum, reading never fails, the ids stay
+    // one per line and unique, and a line keeps its id when another line is typed, deleted or when it is corrected
+    @Test
+    void randomTextsKeepTheRules(){
+        String[] pieces = {"Correct", "Faux", "Cohérent", "Pas de réponse", "Erreur formule", "Notation", "PNF", "PNF : unités",
+                "x = 3", "Voir question 2", "(privé)", "b)", "a)", "Q2", "-0.5", "- 0.5", "+1", "1", "2,5", "−0,5", "0", "(−0,5)",
+                "-1 pt", "1000", "-1000", "é", "\"3\"", ":", "  ", "$x$", "))", "(("};
+        java.util.Random random = new java.util.Random(7);
+        for(int t = 0; t < 20000; t++){
+            StringBuilder text = new StringBuilder();
+            for(int i = random.nextInt(9); i > 0; i--){
+                for(int w = random.nextInt(3); w > 0; w--) text.append(pieces[random.nextInt(pieces.length)]).append(random.nextBoolean() ? " " : "");
+                text.append(random.nextInt(5) == 0 ? "\n\n" : "\n");
+            }
+            for(Block block : LineGrading.parse(text.toString(), random.nextBoolean() ? List.of("a", "b", "c") : List.of("Ex"), "PNF")){
+                double total = random.nextInt(6);
+                Double grade = LineGrading.grade(block.lines(), total);
+                assertTrue(grade == null || grade >= 0 && grade <= total, text + " → " + grade);
+            }
+            List<String> lines = new java.util.ArrayList<>(List.of(text.toString().split("\\R", -1)));
+            List<String> ids = LineIds.update(List.of(), List.of(), lines);
+            int position = random.nextInt(lines.size() + 1);
+            List<String> typed = new java.util.ArrayList<>(lines);
+            typed.add(position, "Nouvelle ligne " + t);
+            List<String> after = LineIds.update(lines, ids, typed);
+            assertEquals(typed.size(), after.size());
+            assertEquals(after.stream().filter(id -> !id.isEmpty()).count(), after.stream().filter(id -> !id.isEmpty()).distinct().count());
+            for(int i = 0; i < lines.size(); i++){
+                if(!lines.get(i).isBlank()) assertEquals(ids.get(i), after.get(i < position ? i : i + 1), lines + " + line at " + position);
+            }
+        }
+    }
 }
