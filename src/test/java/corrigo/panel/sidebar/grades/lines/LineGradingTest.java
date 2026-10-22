@@ -111,6 +111,8 @@ class LineGradingTest {
         assertFalse(LineGrading.isEverywhere(text));
         assertNull(LineGrading.parseLine(0, "x = 5 g", "PNF").points()); // A formula stays a formula
         assertEquals(1.5, grade(2, "Correct", "Notation -0.5 g"));
+        assertEquals("Notation (−0,5)", LineGrading.render(line, FORMAT, true)); // Never the "g" on the copy
+        assertEquals(LineGrading.CHECK + " Bonus (+1)", LineGrading.render(LineGrading.parseLine(0, "Bonus +1 g", "PNF"), FORMAT, true));
     }
 
     @Test

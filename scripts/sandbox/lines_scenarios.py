@@ -419,6 +419,21 @@ def hotel():
     save()
     check("« g » line offered in another exercise: Ex 1 = 3 − 0.5", grades("08_HOTEL")[EX1] == 2.5, grades("08_HOTEL"))
     check("« g » kept when typed again", lines("08_HOTEL", EX1).get("text", "").rstrip().endswith("g"), lines("08_HOTEL", EX1))
+    # What is typed after a line taken with Tab starts a new line
+    type_text("Faux")
+    save()
+    check("after Tab, a new line (not « …gFaux »)", lines("08_HOTEL", EX1).get("text", "").endswith("g\nFaux"), lines("08_HOTEL", EX1))
+    # Alt+↓ from the text: the next exercise, its text ready (a new line after its last one)
+    key("alt+Down", 2)
+    type_text("Bien")
+    save()
+    check("Alt+↓ then typing: in the text of Ex 2, on a new line", lines("08_HOTEL").get("text", "").endswith("g\nBien"), lines("08_HOTEL"))
+    # A text of the copy selected (to move it), then typing: in the text of the exercise, nothing lost
+    click((PAGE[0][0] + 40, PAGE[0][1]), .8)
+    type_text("Juste")
+    save()
+    check("a text of the copy selected, then typing: in the text, on a new line", lines("08_HOTEL").get("text", "").endswith("\nBien\nJuste"),
+          lines("08_HOTEL"))
     snapshot = edit("08_HOTEL")
     stop()
     start("08_HOTEL")

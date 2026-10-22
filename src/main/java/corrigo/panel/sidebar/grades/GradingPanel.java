@@ -15,6 +15,8 @@ import corrigo.panel.sidebar.grades.tags.ExerciseTagsCard;
 import corrigo.panel.sidebar.grades.tags.EvaluationTags;
 import corrigo.datasaving.simpleconfigs.ExerciseCorrectionData;
 import fr.clementgre.pdf4teachers.document.editions.Edition;
+import fr.clementgre.pdf4teachers.Main;
+import fr.clementgre.pdf4teachers.document.editions.elements.Element;
 import fr.clementgre.pdf4teachers.document.editions.elements.GradeElement;
 import fr.clementgre.pdf4teachers.document.editions.elements.TextElement;
 import fr.clementgre.pdf4teachers.document.editions.undoEngine.UType;
@@ -35,6 +37,7 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -78,7 +81,7 @@ public class GradingPanel extends VBox {
     private final QuickMarksBar quickMarks = new QuickMarksBar(palette.border(), palette.text(), palette.muted(), palette.accent());
     // Grading by lines: the text of the exercise, its marks (tick, cross, presentation)
     private final LinesEditor linesEditor = new LinesEditor(new LinesEditor.Colors(palette.card(), palette.border(), palette.text(), palette.muted(), palette.accent()),
-            new QuickMarksBar(palette.border(), palette.text(), palette.muted(), palette.accent()), this::openUngradedCopy);
+            new QuickMarksBar(palette.border(), palette.text(), palette.muted(), palette.accent()), this::openUngradedCopy, this::openExercise);
     // The panel shows the grading by lines (setting)
     private final BooleanProperty linesMode = new SimpleBooleanProperty(LineCorrection.isEnabled());
 
@@ -119,6 +122,7 @@ public class GradingPanel extends VBox {
     private boolean markThenCompute;
 
     private boolean focusOnNextReload;
+    private final EventHandler<KeyEvent> windowKeyFilter = this::onWindowKey;
     private boolean swallowNextTyped;
     private final PauseTransition followPageDelay = new PauseTransition(Duration.millis(250));
     // After a jump to an exercise, its page may also hold sub-grades of another exercise: the panel must not follow the page.
@@ -160,8 +164,8 @@ public class GradingPanel extends VBox {
         });
         ScoredComments.revisionProperty().addListener((o, oldValue, newValue) -> scheduleUpdate(false));
         LineCorrection.revisionProperty().addListener((o, oldValue, newValue) -> scheduleUpdate(false));
-        if(fr.clementgre.pdf4teachers.Main.settings != null){
-            fr.clementgre.pdf4teachers.Main.settings.gradingByLines.valueProperty().addListener((o, oldValue, newValue) -> reload());
+        if(Main.settings != null){
+            Main.settings.gradingByLines.valueProperty().addListener((o, oldValue, newValue) -> reload());
         }
     }
 
@@ -183,8 +187,8 @@ public class GradingPanel extends VBox {
         }
         previousExercise.setTooltip(new Tooltip(TR.tr("gradingPanel.previousExercise")));
         nextExercise.setTooltip(new Tooltip(TR.tr("gradingPanel.nextExercise")));
-        previousExercise.setOnAction(e -> MainWindow.footerBar.selectExercise(-1));
-        nextExercise.setOnAction(e -> MainWindow.footerBar.selectExercise(1));
+        previousExercise.setOnAction(e -> openExercise(-1));
+        nextExercise.setOnAction(e -> openExercise(1));
 
         HBox title = new HBox(2, previousExercise, exerciseName, nextExercise, exerciseScore);
         title.setAlignment(Pos.CENTER_LEFT);
@@ -222,6 +226,11 @@ public class GradingPanel extends VBox {
             }
         });
         scroll.addEventFilter(KeyEvent.KEY_RELEASED, e -> swallowNextTyped = false);
+        // Grading by lines: what is typed in the window outside a text field goes to the text of the exercise
+        sceneProperty().addListener((o, oldScene, newScene) -> {
+            if(oldScene != null) oldScene.removeEventFilter(KeyEvent.KEY_PRESSED, windowKeyFilter);
+            if(newScene != null) newScene.addEventFilter(KeyEvent.KEY_PRESSED, windowKeyFilter);
+        });
         // A click in the empty space gives the keyboard to the panel
         sectionsBox.setOnMousePressed(e -> scroll.requestFocus());
         VBox.setVgrow(scroll, Priority.ALWAYS);
@@ -753,23 +762,28 @@ public class GradingPanel extends VBox {
         }
     }
 
-    // KEYBOARD (the panel has the focus, not one of its fields)
+    // KEYBOARD
+
+    // Grading by lines: a letter or a number typed outside a text field (a text of the copy just selected or moved,
+    // the page, a button of the panel) goes to the text of the exercise, on a new line: what is typed is never lost
+    // nor taken by a shortcut of the old mode (C, G, Z, digits)
+    private void onWindowKey(KeyEvent e){
+        if(!linesMode.get() || exercise == null || MainWindow.gradingTab == null || !MainWindow.gradingTab.isSelected()) return;
+        if(e.isShortcutDown() || e.isControlDown() || e.isAltDown() || e.isMetaDown()) return;
+        String typed = e.getText();
+        if(typed.isBlank() || Character.isISOControl(typed.charAt(0))) return; // Space stays for the buttons
+        if(isInTextField(getScene().getFocusOwner())) return;
+        linesEditor.focusAreaNow(); // Its character (KEY_TYPED) then reaches the text
+    }
+
+    // The panel has the focus, not one of its fields
 
     private void onPanelKey(KeyEvent e){
         if(e.isShortcutDown() || e.isAltDown()) return; // Global shortcuts
         // The fields of the panel handle their own keys (this filter also receives them)
         if(isInTextField(e.getTarget()) || isInTextField(getScene() == null ? null : getScene().getFocusOwner())) return;
         Section section = getActive();
-        if(linesMode.get()){
-            // A letter or a number typed on the panel goes to the text of the lines, on a new line (the shortcuts of
-            // the old mode, C, G, Z, digits…, would do something else)
-            String typed = e.getText();
-            if(!typed.isEmpty() && !Character.isISOControl(typed.charAt(0)) && exercise != null){
-                linesEditor.focusAreaNow(); // The character itself (KEY_TYPED) then reaches the text
-                return;
-            }
-            if(e.getCode() == KeyCode.BACK_SPACE) return;
-        }
+        if(linesMode.get() && e.getCode() == KeyCode.BACK_SPACE) return; // No method nor mistake to remove
 
         Integer number = MathUtils.parseDigitTypedOrNull(e);
         if(number != null && section != null){
@@ -1021,7 +1035,7 @@ public class GradingPanel extends VBox {
         if(MainWindow.mainScreen.isEditPagesMode() || !linesEditor.isWaitingForClick()) return false;
         Node node = e.getTarget() instanceof Node target ? target : null;
         while(node != null){
-            if(node instanceof fr.clementgre.pdf4teachers.document.editions.elements.Element) return false;
+            if(node instanceof Element) return false;
             if(node instanceof PageRenderer) return true;
             node = node.getParent();
         }
@@ -1080,6 +1094,11 @@ public class GradingPanel extends VBox {
 
     // NEXT UNGRADED COPY
 
+    // The previous (-1) or next (1) exercise of the copy, the panel ready to type once it shows it
+    private void openExercise(int delta){
+        focusOnNextReload = true;
+        if(!MainWindow.footerBar.selectExercise(delta)) focusOnNextReload = false;
+    }
     // Grading by lines: time of the warning about the lines not placed (the same key again within 5 s leaves anyway)
     private long unplacedWarningTime;
     private void openUngradedCopy(int delta){

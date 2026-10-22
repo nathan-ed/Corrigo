@@ -10,6 +10,7 @@ import fr.clementgre.pdf4teachers.datasaving.Config;
 import corrigo.datasaving.evaluation.EvaluationFolders;
 import fr.clementgre.pdf4teachers.document.editions.Edition;
 import fr.clementgre.pdf4teachers.document.editions.elements.GradeElement;
+import fr.clementgre.pdf4teachers.document.editions.elements.TextElement;
 import corrigo.document.editions.elements.ScoredCommentElement;
 import fr.clementgre.pdf4teachers.document.editions.undoEngine.UType;
 import fr.clementgre.pdf4teachers.document.render.display.PageRenderer;
@@ -123,13 +124,13 @@ public final class TagScoring {
 
     // Once the element has its size (its text is laid out after it is added)
     // Moves it now if its size can be known now (the copy is about to be closed), else once it is laid out
-    public static void moveToFreeSpotNowOrLater(fr.clementgre.pdf4teachers.document.editions.elements.TextElement element, PageRenderer page){
+    public static void moveToFreeSpotNowOrLater(TextElement element, PageRenderer page){
         element.applyCss();
         element.autosize();
         if(element.getLayoutBounds().getWidth() > 0) moveToFreeSpot(element, page);
         else moveToFreeSpotWhenLaidOut(element, page, 20);
     }
-    public static void moveToFreeSpotWhenLaidOut(fr.clementgre.pdf4teachers.document.editions.elements.TextElement element, PageRenderer page, int tries){
+    public static void moveToFreeSpotWhenLaidOut(TextElement element, PageRenderer page, int tries){
         Platform.runLater(() -> {
             if(element.getLayoutBounds().getWidth() <= 0 && tries > 0) moveToFreeSpotWhenLaidOut(element, page, tries - 1);
             else moveToFreeSpot(element, page);
@@ -139,7 +140,7 @@ public final class TagScoring {
     private static final double CELL = 4;
     // Moves the element to the free place of the page the closest to where it is: no ink of the student under it (from
     // the rendered page), no other annotation. Stays where it is if there is none near.
-    private static void moveToFreeSpot(fr.clementgre.pdf4teachers.document.editions.elements.TextElement element, PageRenderer page){
+    private static void moveToFreeSpot(TextElement element, PageRenderer page){
         if(element.getPage() != page) return;
         double pageWidth = page.getWidth(), pageHeight = page.getHeight();
         double width = element.getLayoutBounds().getWidth(), height = element.getLayoutBounds().getHeight();

@@ -289,33 +289,43 @@ def expected_text(blocks, labels, leaves):
     return "\n\n".join(parts)
 
 
-def grade_exercise(blocks, labels, during, leaves):
-    """Types the lines of one exercise on the open copy (the text has the focus) and places each written line."""
+def type_line(line, used, rng):
+    """Types a line as a teacher does: a line already used on a copy graded before is often taken from the choices
+    (its start, then Tab); sometimes Ctrl+S after it. Returns True if it was taken with Tab."""
+    taken = line.kind in ("FULL", "ZERO", "COMMENT") and line.shown == line.typed and line.typed in used and rng.random() < .6
+    if taken:
+        type_text(line.typed[:-1], .5)
+        key("Tab", .5)
+    else:
+        type_text(line.typed, .5)
+    if rng.random() < .15: key("ctrl+s", 1)
+    return taken
+
+
+def grade_exercise(blocks, labels, during, leaves, used, rng):
+    """Types the lines of one exercise on the open copy (the text has the focus) and places each written line. After
+    a line placed or taken with Tab, the next one is typed without Return: it must start a new line by itself."""
     slot = 0
+    first = True
+    for leaf, lines in blocks:
+        if not first: type_text("\n\n", .3)
+        if labels: type_text(label_of(leaves[leaf][0]) + "\n", .3)
+        new_line_ready = False
+        for j, line in enumerate(lines):
+            if j > 0 and not new_line_ready: type_text("\n", .2)
+            new_line_ready = type_line(line, used, rng)
+            if during and line.written:
+                click(SLOTS[slot], .9)
+                slot += 1
+                new_line_ready = True
+        first = False
     if not during:
-        type_text(expected_text(blocks, labels, leaves), .8)
         for leaf, lines in blocks:
             for line in lines:
                 if line.written:
                     click(SLOTS[slot], .8)
                     slot += 1
-        return
-    # During the typing: each line placed as soon as it is typed; the next one is typed without Return (it must start a
-    # new line by itself, never stuck to the line placed)
-    first = True
-    for leaf, lines in blocks:
-        if not first: type_text("\n\n", .3)
-        if labels: type_text(label_of(leaves[leaf][0]) + "\n", .3)
-        placed_before = False
-        for j, line in enumerate(lines):
-            if j > 0 and not placed_before: type_text("\n", .2)
-            type_text(line.typed, .6)
-            placed_before = False
-            if line.written:
-                click(SLOTS[slot], .9)
-                slot += 1
-                placed_before = True
-        first = False
+    for leaf, lines in blocks: used.update(line.typed for line in lines)
 
 
 def run_evaluation(key_name):
@@ -331,6 +341,7 @@ def run_evaluation(key_name):
     print("EVALUATION %s: %d copies, %d exercises" % (key_name, len(copies), len([e for e in scale if e[0] != "PNF"])), flush=True)
     start(pdfs[0])
     seen = {}
+    used = {}  # The lines typed in each exercise on the copies graded before
     for index, (exercise, content) in enumerate(scale):
         if exercise == "PNF": continue
         leaves = [(exercise, content)] if isinstance(content, float) else content
@@ -343,7 +354,7 @@ def run_evaluation(key_name):
                 check("%s %s: copy %d opened by Ctrl+Enter" % (key_name, exercise, n + 1), False, (name, sorted(seen)))
                 break
             blocks, labels, during = todo[(code, exercise)]
-            grade_exercise(blocks, labels, during, leaves)
+            grade_exercise(blocks, labels, during, leaves, used.setdefault(exercise, set()), rng)
             seen[(code, exercise)] = True
             key("ctrl+Return", 1)
             for _ in range(30):  # The next copy not graded for this exercise

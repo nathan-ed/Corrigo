@@ -42,15 +42,15 @@ import java.util.function.IntConsumer;
  * Tab or a click to take one), what is not right (extra block, same line with other points elsewhere), the lines to
  * place with a click on the copy, and the marks (tick, cross, presentation mark with its comment).
  */
-public class LinesEditor extends VBox {
+public final class LinesEditor extends VBox {
 
     public record Colors(String card, String border, String text, String muted, String accent) {}
 
     private static final int CHOICES = 6;
 
     private final Colors colors;
-    // Opens the next (1) or previous (-1) copy to grade
-    private final IntConsumer openCopy;
+    // Opens the next (1) or previous (-1) copy to grade, exercise of the copy
+    private final IntConsumer openCopy, openExercise;
 
     private final TextArea area = new TextArea();
     private final VBox choicesBox = new VBox(1);
@@ -72,10 +72,11 @@ public class LinesEditor extends VBox {
     // Placed by the last click on the copy, nothing typed since: Ctrl+Z in the text undoes this placement
     private boolean lastActionPlaced;
 
-    public LinesEditor(Colors colors, QuickMarksBar quickMarks, IntConsumer openCopy){
+    public LinesEditor(Colors colors, QuickMarksBar quickMarks, IntConsumer openCopy, IntConsumer openExercise){
         super(6);
         this.colors = colors;
         this.openCopy = openCopy;
+        this.openExercise = openExercise;
         setPadding(new Insets(6, 0, 4, 0));
 
         area.setWrapText(true);
@@ -86,6 +87,7 @@ public class LinesEditor extends VBox {
             if(updating || exercise == null) return;
             lastActionPlaced = false;
             LineCorrection.setText(exercise, newValue);
+            if(!getCaretLineText().equals(dismissed)) dismissed = null; // Escape hides the choices of one line only
             updateChoices();
             updateWarnings();
         });
@@ -94,10 +96,10 @@ public class LinesEditor extends VBox {
         area.addEventFilter(KeyEvent.KEY_PRESSED, this::onKey);
         area.addEventFilter(KeyEvent.KEY_TYPED, e -> {
             String typed = e.getCharacter();
-            if(typed.isEmpty()) return;
+            if(typed.isEmpty() || Character.isISOControl(typed.charAt(0))) return; // Tab, Return: their key did it
             // A line was just added, or the field got the focus back: what is typed starts a new line
             if(newLineAt >= 0 && newLineAt == area.getCaretPosition() && area.getSelection().getLength() == 0
-                    && !Character.isISOControl(typed.charAt(0)) && !e.isShortcutDown()) area.insertText(newLineAt, "\n");
+                    && !e.isShortcutDown()) area.insertText(newLineAt, "\n");
             newLineAt = -1;
         });
         area.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> newLineAt = -1); // A click in the text: the teacher chose where
@@ -344,8 +346,10 @@ public class LinesEditor extends VBox {
     // KEYS
 
     private void onKey(KeyEvent e){
-        // A key that moves or deletes (not a letter, nor Shift for a capital): what is typed next stays where the caret is
-        if(!e.getCode().isModifierKey() && (e.getText().isEmpty() || Character.isISOControl(e.getText().charAt(0)))) newLineAt = -1;
+        // A key that moves or deletes (not a letter, nor Shift for a capital, nor a shortcut as Ctrl+S): what is typed
+        // next stays where the caret is
+        boolean shortcut = e.isShortcutDown() || e.isControlDown() || e.isAltDown();
+        if(!shortcut && !e.getCode().isModifierKey() && (e.getText().isEmpty() || Character.isISOControl(e.getText().charAt(0)))) newLineAt = -1;
         // Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y in the text: its own undo, not the undo of the copy. Its history starts with the
         // copy (setExercise sets the text, which resets it): never the text of another copy.
         if(e.isShortcutDown() && (e.getCode() == KeyCode.Z || e.getCode() == KeyCode.Y)){
@@ -357,6 +361,7 @@ public class LinesEditor extends VBox {
                 refresh();
                 return;
             }
+            newLineAt = -1; // The text changes: what is typed next goes where the caret is
             if(redo && area.isRedoable()) area.redo();
             else if(!redo && area.isUndoable()) area.undo();
             return;
@@ -365,9 +370,8 @@ public class LinesEditor extends VBox {
             e.consume();
             openCopy.accept(e.isShiftDown() ? -1 : 1);
         }else if((e.getCode() == KeyCode.UP || e.getCode() == KeyCode.DOWN) && e.isAltDown()){
-            e.consume(); // The previous or next exercise (the text field would keep the key), the text ready to type
-            MainWindow.footerBar.selectExercise(e.getCode() == KeyCode.UP ? -1 : 1);
-            focusArea();
+            e.consume(); // The previous or next exercise (the text field would keep the key), its text ready to type
+            openExercise.accept(e.getCode() == KeyCode.UP ? -1 : 1);
         }else if(e.getCode() == KeyCode.TAB && !e.isShortcutDown()){
             e.consume(); // Never a tab character in the text
             if(!choices.isEmpty() && !e.isShiftDown()) take(choices.get(chosen));

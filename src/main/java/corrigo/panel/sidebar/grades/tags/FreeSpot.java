@@ -6,6 +6,9 @@
 
 package corrigo.panel.sidebar.grades.tags;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+
 /**
  * Where to write a comment near a spot of the page without covering what is written there: the free place closest to
  * the preferred one, on a grid of cells (true: ink of the student or another annotation). Does not depend on JavaFX.
@@ -68,8 +71,8 @@ public final class FreeSpot {
         int rows = occupied.length, cols = rows == 0 ? 0 : occupied[0].length;
         boolean[][] kept = new boolean[rows][cols];
         boolean[][] seen = new boolean[rows][cols];
-        java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();
-        java.util.ArrayList<int[]> group = new java.util.ArrayList<>();
+        ArrayDeque<int[]> queue = new ArrayDeque<>();
+        ArrayList<int[]> group = new ArrayList<>();
         for(int y = 0; y < rows; y++){
             for(int x = 0; x < cols; x++){
                 if(!occupied[y][x] || seen[y][x]) continue;

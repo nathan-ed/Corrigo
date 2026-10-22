@@ -21,6 +21,7 @@ import fr.clementgre.pdf4teachers.panel.MainScreen.MainScreen;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
 import corrigo.panel.sidebar.grades.scoredcomments.ScoredComments;
+import corrigo.panel.sidebar.grades.lines.LineCorrection;
 import fr.clementgre.pdf4teachers.panel.sidebar.skills.data.Notation;
 import fr.clementgre.pdf4teachers.panel.sidebar.skills.data.Skill;
 import fr.clementgre.pdf4teachers.panel.sidebar.skills.data.SkillsAssessment;
@@ -80,7 +81,7 @@ public class Edition{
         new File(Main.dataFolder + "editions").mkdirs();
         MainWindow.gradeTab.treeView.clearElements(true, false); // Generate root in case of no root in edition
         
-        corrigo.panel.sidebar.grades.lines.LineCorrection.clear();
+        LineCorrection.clear();
         try{
             if(!editFile.exists()){ // File does not exist
                 ScoredComments.fireChanged(false);
@@ -118,7 +119,7 @@ public class Edition{
                 MainWindow.gradeTab.treeView.endDeferredExerciseChoicesRefresh();
             }
             
-            corrigo.panel.sidebar.grades.lines.LineCorrection.load(config.base.get(corrigo.panel.sidebar.grades.lines.LineCorrection.KEY));
+            LineCorrection.load(config.base.get(LineCorrection.KEY));
             
             isSave.set(true);
             MainWindow.gradeTab.treeView.updateAllSum();
@@ -194,14 +195,14 @@ public class Edition{
             
             
             // GRADING BY LINES
-            LinkedHashMap<String, Object> corrections = corrigo.panel.sidebar.grades.lines.LineCorrection.toYAML();
+            LinkedHashMap<String, Object> corrections = LineCorrection.toYAML();
             if(!corrections.isEmpty()) counter++;
             
             // delete edit file if edition is empty
             if(counter == 0) editFile.delete();
             else{
                 config.base.put("lastScrollValue", document.getLastScrollValue());
-                if(!corrections.isEmpty()) config.base.put(corrigo.panel.sidebar.grades.lines.LineCorrection.KEY, corrections);
+                if(!corrections.isEmpty()) config.base.put(LineCorrection.KEY, corrections);
                 config.base.put("texts", texts);
                 config.base.put("grades", grades);
                 config.base.put("images", images);
@@ -393,7 +394,7 @@ public class Edition{
             if(editFile.exists()){
                 Config previous = new Config(editFile);
                 previous.load();
-                corrections = previous.base.get(corrigo.panel.sidebar.grades.lines.LineCorrection.KEY);
+                corrections = previous.base.get(LineCorrection.KEY);
             }
             editFile.createNewFile();
             Config config = new Config(editFile);
@@ -441,7 +442,7 @@ public class Edition{
             // delete edit file if edition is empty
             if(counter == 0) editFile.delete();
             else{
-                if(corrections != null) config.base.put(corrigo.panel.sidebar.grades.lines.LineCorrection.KEY, corrections);
+                if(corrections != null) config.base.put(LineCorrection.KEY, corrections);
                 config.base.put("texts", texts);
                 config.base.put("grades", grades);
                 config.base.put("images", images);
