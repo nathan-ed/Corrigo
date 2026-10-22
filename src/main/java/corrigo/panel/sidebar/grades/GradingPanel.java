@@ -9,6 +9,8 @@ package corrigo.panel.sidebar.grades;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
 import corrigo.panel.sidebar.grades.tags.TagPicker;
+import corrigo.panel.sidebar.grades.lines.LineCorrection;
+import corrigo.panel.sidebar.grades.lines.LinesEditor;
 import corrigo.panel.sidebar.grades.tags.ExerciseTagsCard;
 import corrigo.panel.sidebar.grades.tags.EvaluationTags;
 import corrigo.datasaving.simpleconfigs.ExerciseCorrectionData;
@@ -73,6 +75,11 @@ public class GradingPanel extends VBox {
     // Methods and mistakes of the exercise, after the general comment
     private final ExerciseTagsCard tagsCard = new ExerciseTagsCard(tagColors);
     private final QuickMarksBar quickMarks = new QuickMarksBar(palette.border(), palette.text(), palette.muted(), palette.accent());
+    // Grading by lines: the text of the exercise, its marks (tick, cross, presentation)
+    private final LinesEditor linesEditor = new LinesEditor(new LinesEditor.Colors(palette.card(), palette.border(), palette.text(), palette.muted(), palette.accent()),
+            new QuickMarksBar(palette.border(), palette.text(), palette.muted(), palette.accent()), this::openUngradedCopy);
+    // The panel shows the grading by lines (setting)
+    private final javafx.beans.property.BooleanProperty linesMode = new javafx.beans.property.SimpleBooleanProperty(LineCorrection.isEnabled());
 
     // HEADER
     private final Label exerciseName = new Label();
@@ -151,6 +158,10 @@ public class GradingPanel extends VBox {
             }
         });
         ScoredComments.revisionProperty().addListener((o, oldValue, newValue) -> scheduleUpdate(false));
+        LineCorrection.revisionProperty().addListener((o, oldValue, newValue) -> scheduleUpdate(false));
+        if(fr.clementgre.pdf4teachers.Main.settings != null){
+            fr.clementgre.pdf4teachers.Main.settings.gradingByLines.valueProperty().addListener((o, oldValue, newValue) -> reload());
+        }
     }
 
     // SETUP
@@ -187,7 +198,7 @@ public class GradingPanel extends VBox {
         pointsMode.setMinHeight(Region.USE_PREF_SIZE);
         pointsMode.setTooltip(new Tooltip(TR.tr("gradingPanel.mode.tooltip")));
         pointsMode.setOnMouseClicked(e -> showModeMenu(pointsMode));
-        pointsMode.visibleProperty().bind(title.visibleProperty());
+        pointsMode.visibleProperty().bind(title.visibleProperty().and(linesMode.not()));
         pointsMode.managedProperty().bind(pointsMode.visibleProperty());
         VBox header = new VBox(2, title, copyInfo, pointsMode, exerciseJumps);
         header.setPadding(new Insets(10, 12, 10, 8));
@@ -351,6 +362,7 @@ public class GradingPanel extends VBox {
     
     private void reloadNow(){
         commitEdits();
+        linesMode.set(LineCorrection.isEnabled());
         GradeTreeItem newExercise = getSelectedExercise();
         if(newExercise == null || exercise == null || newExercise.getCore() != exercise.getCore()) active = 0;
         exercise = newExercise;
@@ -370,6 +382,7 @@ public class GradingPanel extends VBox {
             exerciseJumps.getChildren().clear();
             exerciseJumps.setVisible(false);
             tagsCard.setExercise(null);
+            linesEditor.setExercise(null);
             Label empty = new Label(TR.tr(MainWindow.mainScreen.hasDocument(false) ? "gradingPanel.noGradeScale" : "gradingPanel.noDocument"));
             empty.setWrapText(true);
             empty.setStyle("-fx-text-fill: " + palette.muted() + ";");
@@ -409,11 +422,18 @@ public class GradingPanel extends VBox {
             sections.add(section);
             sectionsBox.getChildren().add(section);
         }
-        sectionsBox.getChildren().addAll(generalBox, quickMarks, tagsCard);
+        if(linesMode.get()){ // The text of the exercise replaces the comments, the methods and the mistakes
+            sectionsBox.getChildren().add(linesEditor);
+            linesEditor.setExercise(exercise);
+            tagsCard.setExercise(null);
+        }else{
+            linesEditor.setExercise(null);
+            sectionsBox.getChildren().addAll(generalBox, quickMarks, tagsCard);
+            tagsCard.setExercise(exercise);
+        }
         // Without sub-grades, the comment of the exercise is its general comment: one field only
-        generalBox.setVisible(hasGeneral());
-        generalBox.setManaged(hasGeneral());
-        tagsCard.setExercise(exercise);
+        generalBox.setVisible(hasGeneral() && !linesMode.get());
+        generalBox.setManaged(generalBox.isVisible());
         active = Math.clamp(active, 0, getLastIndex());
 
         bindValue(exercise.getCore(), this::updateHeader);
@@ -463,7 +483,8 @@ public class GradingPanel extends VBox {
         }
         updateHeader();
         sections.forEach(Section::update);
-        tagsCard.refreshScores(); // The points of the copy may have changed
+        if(linesMode.get()) linesEditor.refresh();
+        else tagsCard.refreshScores(); // The points of the copy may have changed
         if(!general.isFocused()) general.setText(getCommentText(exercise));
         updateActiveStyle();
         hint.setVisible(pendingMark || pendingText != null);
@@ -689,7 +710,8 @@ public class GradingPanel extends VBox {
             return;
         }
         if(exercise == null) return;
-        if(getActive() == null) general.requestFocus();
+        if(linesMode.get()) linesEditor.focusArea();
+        else if(getActive() == null) general.requestFocus();
         else scroll.requestFocus();
     }
 
@@ -737,6 +759,7 @@ public class GradingPanel extends VBox {
         // The fields of the panel handle their own keys (this filter also receives them)
         if(isInTextField(e.getTarget()) || isInTextField(getScene() == null ? null : getScene().getFocusOwner())) return;
         Section section = getActive();
+        if(linesMode.get() && (MathUtils.parseDigitTypedOrNull(e) != null || e.getCode() == KeyCode.BACK_SPACE)) return;
 
         Integer number = MathUtils.parseDigitTypedOrNull(e);
         if(number != null && section != null){
@@ -942,6 +965,13 @@ public class GradingPanel extends VBox {
     }
     
     private void onMainScreenPressed(MouseEvent e){
+        if(pendingText == null && !pendingMark && isPlacingLines(e)){
+            PageRenderer page = MainWindow.mainScreen.document.getLastCursorOverPageObject();
+            if(page == null) return;
+            e.consume();
+            linesEditor.onPageClicked(page, page.toGridX(page.getMouseX()), page.toGridY(page.getMouseY()));
+            return;
+        }
         if((pendingText == null && !pendingMark) || e.getButton() != MouseButton.PRIMARY || !MainWindow.mainScreen.hasDocument(false)) return;
         PageRenderer page = MainWindow.mainScreen.document.getLastCursorOverPageObject();
         if(page == null) return;
@@ -974,6 +1004,26 @@ public class GradingPanel extends VBox {
         Platform.runLater(this::focusPanel);
     }
     
+    // A click on the free space of a page places the next line (a click on a text or a mark is for this element)
+    private boolean isPlacingLines(MouseEvent e){
+        if(!linesMode.get() || e.getButton() != MouseButton.PRIMARY || !MainWindow.mainScreen.hasDocument(false)) return false;
+        if(!MainWindow.gradingTab.isSelected() || MainWindow.mainScreen.getToPlace() != null || corrigo.panel.sidebar.grades.tags.TagPlacing.isArmed()) return false;
+        if(MainWindow.mainScreen.isEditPagesMode() || !linesEditor.isWaitingForClick()) return false;
+        Node node = e.getTarget() instanceof Node target ? target : null;
+        while(node != null){
+            if(node instanceof fr.clementgre.pdf4teachers.document.editions.elements.Element) return false;
+            if(node instanceof PageRenderer) return true;
+            node = node.getParent();
+        }
+        return false;
+    }
+    // The copy is closed: in the grading by lines, the lines not placed yet are written next to their grades
+    public void beforeCopyClosed(){
+        if(!LineCorrection.isEnabled() || fr.clementgre.pdf4teachers.Main.settings == null
+                || !fr.clementgre.pdf4teachers.Main.settings.linesAutoPlace.getValue()) return;
+        LineCorrection.placeAllNextToGrades();
+    }
+
     private void cancelPending(){
         if(pendingText == null && !pendingMark) return;
         pendingMark = false;
@@ -1061,6 +1111,8 @@ public class GradingPanel extends VBox {
         private final Label commentPreview = new Label();
         private final TextField comment = new TextField();
         private final CommentSuggestions suggestions;
+        // Grading by lines: where the points start from, or the grade typed by hand (a click: back to the lines)
+        private final Label linesInfo = new Label();
 
         Section(GradeTreeItem leaf){
             super(4);
@@ -1116,7 +1168,13 @@ public class GradingPanel extends VBox {
             });
             total.setStyle("-fx-font-weight: bold; -fx-text-fill: " + palette.muted() + ";");
             total.setMinWidth(Region.USE_PREF_SIZE);
-            HBox header = new HBox(6, name, base, points, total);
+            linesInfo.setStyle("-fx-font-size: 11; -fx-text-fill: " + palette.muted() + ";");
+            linesInfo.setMinWidth(Region.USE_PREF_SIZE);
+            linesInfo.managedProperty().bind(linesInfo.visibleProperty());
+            linesInfo.setOnMouseClicked(e -> {
+                if(exercise != null && LineCorrection.getState(exercise, leaf).typed()) LineCorrection.resetToLines(exercise, leaf);
+            });
+            HBox header = new HBox(6, name, base, linesInfo, points, total);
             header.setAlignment(Pos.CENTER_LEFT);
 
             // Comment on the copy
@@ -1179,6 +1237,7 @@ public class GradingPanel extends VBox {
         }
 
         void update(){
+            updateLinesInfo();
             updateBase();
             base.setStyle("-fx-font-size: 11; -fx-text-fill: " + palette.muted() + "; -fx-underline: true;");
             total.setText("/ " + MainWindow.gradesDigFormat.format(leaf.getCore().getTotal()));
@@ -1190,10 +1249,35 @@ public class GradingPanel extends VBox {
         // Inactive: one line (name, points), its comment as a line of text if any; "from max" on the active one only.
         private boolean shownActive;
         void updateCompact(){
+            if(linesMode.get()){ // One line: name, start, points; the text of the exercise is below
+                comment.setVisible(false);
+                commentPreview.setVisible(false);
+                base.setVisible(false);
+                return;
+            }
             boolean editing = shownActive || comment.isFocused();
             comment.setVisible(editing);
             commentPreview.setVisible(!editing && !comment.getText().isBlank());
             base.setVisible(shownActive); // How the points of the methods and mistakes count
+        }
+        private void updateLinesInfo(){
+            linesInfo.setVisible(linesMode.get() && exercise != null);
+            if(!linesInfo.isVisible()) return;
+            LineCorrection.LeafState state = LineCorrection.getState(exercise, leaf);
+            double totalValue = leaf.getCore().getTotal();
+            if(state.typed()){
+                double value = leaf.getCore().getValue();
+                linesInfo.setText(TR.tr("lines.typed", value < 0 ? "–" : MainWindow.gradesDigFormat.format(value),
+                        state.linesGrade() == null ? TR.tr("lines.block.notGraded") : MainWindow.gradesDigFormat.format(state.linesGrade())));
+                linesInfo.setStyle("-fx-font-size: 11; -fx-underline: true; -fx-text-fill: #e65100;");
+                linesInfo.setCursor(Cursor.HAND);
+                linesInfo.setTooltip(new Tooltip(TR.tr("lines.typed.tooltip")));
+            }else{
+                linesInfo.setText(state.start() == null ? "" : state.start() >= totalValue ? TR.tr("lines.block.fromMax") : TR.tr("lines.block.fromZero"));
+                linesInfo.setStyle("-fx-font-size: 11; -fx-text-fill: " + palette.muted() + ";");
+                linesInfo.setCursor(Cursor.DEFAULT);
+                linesInfo.setTooltip(null);
+            }
         }
 
         void markActive(boolean isActive){
@@ -1228,6 +1312,7 @@ public class GradingPanel extends VBox {
         }
         private void syncPointsIfNotFocused(){
             updateBase(); // A typed value changes it
+            updateLinesInfo();
             if(!points.isFocused()) syncPoints();
             updateHeader();
         }

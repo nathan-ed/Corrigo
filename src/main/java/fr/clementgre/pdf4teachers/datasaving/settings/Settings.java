@@ -150,8 +150,22 @@ public class Settings {
     public StringSetting presentationName = new StringSetting("PNF", true, SVGPathIcons.TEXT_HEIGHT, "presentationName",
             "settings.presentationName.title", "settings.presentationName.tooltip");
     
+    // Grading by lines: one text per exercise, a block of lines per sub-question (see LineGrading)
+    @SettingObject
+    public BooleanSetting gradingByLines = new BooleanSetting(true, true, SVGPathIcons.LIST, "gradingByLines",
+            "settings.gradingByLines.title", "settings.gradingByLines.tooltip");
+    @SettingObject
+    public BooleanSetting linesShowPoints = new BooleanSetting(true, true, SVGPathIcons.LIST, "linesShowPoints",
+            "settings.linesShowPoints.title", "settings.linesShowPoints.tooltip");
+    @SettingObject
+    public BooleanSetting linesAutoPlace = new BooleanSetting(true, true, SVGPathIcons.LIST, "linesAutoPlace",
+            "settings.linesAutoPlace.title", "settings.linesAutoPlace.tooltip");
+    @SettingObject
+    public IntSetting commentsSize = new IntSetting(14, true, 8, 30, 1, false, false, SVGPathIcons.TEXT_HEIGHT, "commentsSize",
+            "settings.commentsSize.title", "settings.commentsSize.tooltip");
+    
     @SettingsGroup(title = "settings.group.grading")
-    public Setting<?>[] gradingGroup = {presentationMarks, presentationName};
+    public Setting<?>[] gradingGroup = {gradingByLines, linesShowPoints, linesAutoPlace, commentsSize, presentationMarks, presentationName};
     
     
     @SettingObject

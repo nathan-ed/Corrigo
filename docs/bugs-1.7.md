@@ -11,6 +11,14 @@ de calcul seules), **L** = trouvé à la lecture du code, **N** = signalé par N
 aucune note ne change ; une note PNF vide se remplit encore une fois ; une méthode ou une erreur ajoutée depuis une autre
 copie compte encore.
 
+**1.8.0** (correction par lignes, ancien mode désactivé par défaut) : B16 corrigé (une marque PNF comptée retire sa barre
+quand on la supprime, et revient avec Ctrl+Z) ; B18 en partie (les petites taches du scan ne bloquent plus une place
+libre ; utilisé pour les lignes placées à côté des notes) ; B21 corrigé (sélectionner un texte de la copie garde le
+panneau de correction) ; B22 : le champ des lignes a un curseur visible ; B23 : taille des commentaires réglable
+(défaut 14) ; B14 : le commentaire PNF se tape dans le panneau (touches mortes) ; en mode lignes, B3–B13 ne
+s'appliquent plus (pas de pastilles). Nouveau, corrigé : B28, un réglage booléen ajouté par une nouvelle version était
+lu comme désactivé (`Config.getBooleanNull`).
+
 Pour une IA : « Pour chaque bug de `docs/bugs-1.7.md`, fais le test rapide sur ce dépôt et réponds : encore présent /
 corrigé / impossible à dire, avec la ligne de code qui le prouve. Ne lis aucune vraie copie. »
 

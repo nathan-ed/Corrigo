@@ -102,6 +102,15 @@ public class QuickMarksBar extends HBox {
         updateStyle();
     }
 
+    // Only the tick and the cross (grading by lines), or all the marks
+    public void setOnlyTickAndCross(boolean only){
+        for(int i = 0; i < MARKS.size(); i++){
+            boolean shown = !only || MARKS.get(i).data() == DefaultFavoriteVectors.CHECK || MARKS.get(i).data() == DefaultFavoriteVectors.CROSS;
+            buttons.get(i).setVisible(shown);
+            buttons.get(i).setManaged(shown);
+        }
+    }
+
     // A mark put with a click (not dragged): the size of its shape, centered on the click. Returns false if it is not a quick mark.
     public static boolean setClickedSize(GraphicElement element){
         if(!(element instanceof VectorElement vector) || element.getPage() == null) return false;

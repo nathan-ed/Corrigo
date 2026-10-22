@@ -1,5 +1,12 @@
 # Plan : la correction par lignes (Corrigo 1.8.0)
 
+> **État (1.8.0, 22 octobre 2026)** — fait : le calcul (§2) avec ses tests, le champ par exercice avec ce que Corrigo a
+> compris (note et départ de chaque sous-question), les lignes déjà utilisées (clic, Tab), l'alerte « mêmes mots, autres
+> points », le placement au clic et « à côté des notes » (aussi en quittant la copie), Ctrl+Z, les marques ✓ ✗ et PNF
+> avec commentaire, la note tapée qui reste (✎, ↺), le tableau PNF qui suit les marques. Pas encore fait : le retrait du
+> code de l'ancien mode (il est seulement désactivé par le réglage), le bouton « Harmoniser », la vue d'ensemble de
+> l'exercice, le recalage du barème dans le tableau scanné (B19), la grille importée du corrigé, le guide utilisateur.
+
 **But** : corriger vite, de façon équitable, avec un retour pour l'élève. **Un seul champ texte par exercice** : on
 tape les lignes de la sous-question a, une ligne vide, celles de b, etc. Ctrl+Entrée → copie suivante. Rien d'autre à
 décider pendant la correction.

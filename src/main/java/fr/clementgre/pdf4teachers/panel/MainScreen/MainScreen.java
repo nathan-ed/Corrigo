@@ -687,6 +687,8 @@ public class MainScreen extends Pane {
     public boolean closeFile(boolean confirm, boolean forceNotToSave, boolean backToFilesTab){
         // A comment or points being typed in the grading panel are written before saving
         if(MainWindow.gradingPanel != null) MainWindow.gradingPanel.commitEdits();
+        // The lines of the grading by lines not placed yet are written next to their grades (the student gets them)
+        if(MainWindow.gradingPanel != null && document != null) MainWindow.gradingPanel.beforeCopyClosed();
         setSelected(null);
         
         if(document != null){

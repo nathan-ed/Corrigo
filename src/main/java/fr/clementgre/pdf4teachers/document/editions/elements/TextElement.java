@@ -82,6 +82,12 @@ public class TextElement extends Element {
     // The mark of the copy (written by "Compute marks", see Marks).
     private boolean mark;
     public static final String KEY_MARK = "mark";
+    // Id of the line of the grading by lines that wrote this text (see LineCorrection), or null.
+    private String correctionLine;
+    public static final String KEY_CORRECTION_LINE = "correctionLine";
+    // Exercise of a presentation mark counted in the table of the first page (see PNFAnnotationManager), or null.
+    private String pnfExercise;
+    public static final String KEY_PNF_EXERCISE = "pnfExercise";
     
     public static final float SIZE_FACTOR = 1f;
     public static final float RENDER_FACTOR = 3f;
@@ -198,6 +204,8 @@ public class TextElement extends Element {
     @Override
     public void select(){
         super.selectPartial();
+        // While grading, selecting a text of the copy (to move or delete it) keeps the grading panel
+        if(MainWindow.gradingTab != null && MainWindow.gradingTab.isSelected()) return;
         SideBar.selectTab(MainWindow.textTab);
         MainWindow.textTab.selectItem();
         AutoTipsManager.showByAction("textselect");
@@ -226,12 +234,16 @@ public class TextElement extends Element {
     @Override
     public void addedToDocument(boolean markAsUnsave){
         if(markAsUnsave) MainWindow.textTab.treeView.onFileSection.addElement(this);
+        if(correctionLine != null) corrigo.panel.sidebar.grades.lines.LineCorrection.onPlacedChanged();
     }
     
     @Override
     public void removedFromDocument(boolean markAsUnsave){
         super.removedFromDocument(markAsUnsave);
         if(markAsUnsave) MainWindow.textTab.treeView.onFileSection.removeElement(this);
+        // A presentation mark deleted by the teacher: its bar is removed from the table (undone with it)
+        if(markAsUnsave && pnfExercise != null) corrigo.panel.sidebar.grades.PNFAnnotationManager.onCountedMarkDeleted(pnfExercise);
+        if(correctionLine != null) corrigo.panel.sidebar.grades.lines.LineCorrection.onPlacedChanged();
     }
     @Override
     public void size(double scale){
@@ -253,6 +265,8 @@ public class TextElement extends Element {
         data.put("maxWidth", maxWidth.get());
         if(gradeCommentPath != null) data.put(KEY_GRADE_COMMENT, gradeCommentPath);
         if(mark) data.put(KEY_MARK, true);
+        if(correctionLine != null) data.put(KEY_CORRECTION_LINE, correctionLine);
+        if(pnfExercise != null) data.put(KEY_PNF_EXERCISE, pnfExercise);
         
         return data;
     }
@@ -289,6 +303,8 @@ public class TextElement extends Element {
         TextElement element = new TextElement(x, y, page, hasPage, text, color, font, maxWidth);
         if(data.get(KEY_GRADE_COMMENT) instanceof String path) element.setGradeCommentPath(path);
         element.setMark(Boolean.TRUE.equals(data.get(KEY_MARK)));
+        if(data.get(KEY_CORRECTION_LINE) instanceof String line && !line.isEmpty()) element.correctionLine = line;
+        if(data.get(KEY_PNF_EXERCISE) instanceof String exercise && !exercise.isEmpty()) element.pnfExercise = exercise;
         return element;
     }
     
@@ -627,6 +643,18 @@ public class TextElement extends Element {
     }
     public void setMark(boolean mark){
         this.mark = mark;
+    }
+    public String getCorrectionLine(){
+        return correctionLine;
+    }
+    public void setCorrectionLine(String correctionLine){
+        this.correctionLine = correctionLine;
+    }
+    public String getPnfExercise(){
+        return pnfExercise;
+    }
+    public void setPnfExercise(String pnfExercise){
+        this.pnfExercise = pnfExercise;
     }
     // TRANSFORMATIONS
     

@@ -231,8 +231,10 @@ public class Config {
         return Boolean.parseBoolean(getValue(base, path).toString());
     }
     
+    // null if the value is missing or is not a boolean: a setting added in a new version keeps its default value
     public static Boolean getBooleanNull(HashMap<String, Object> base, String path){
-        return StringUtils.getBoolean(getValue(base, path).toString());
+        String value = getValue(base, path).toString().strip().toLowerCase();
+        return value.equals("true") ? Boolean.TRUE : value.equals("false") ? Boolean.FALSE : null;
     }
     
     public static ArrayList<Object> getList(HashMap<String, Object> base, String path){

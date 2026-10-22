@@ -51,4 +51,14 @@ class FreeSpotTest {
         assertTrue(grown[1][1] && grown[3][3] && grown[2][3]);
         assertFalse(grown[0][0] || grown[4][4]);
     }
+
+    @Test
+    void specksOfTheScanAreFree(){
+        boolean[][] occupied = new boolean[6][8];
+        occupied[1][1] = true; // A dot of dust
+        occupied[4][4] = occupied[4][5] = occupied[4][6] = occupied[3][6] = true; // A stroke
+        boolean[][] kept = FreeSpot.removeSpecks(occupied, 3);
+        org.junit.jupiter.api.Assertions.assertFalse(kept[1][1]);
+        org.junit.jupiter.api.Assertions.assertTrue(kept[4][4] && kept[4][5] && kept[4][6] && kept[3][6]);
+    }
 }

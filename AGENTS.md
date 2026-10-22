@@ -2,18 +2,22 @@
 
 Notes de développement : `DEV_NOTES.md`.
 
-## Règle des points : décidée par Nathan le 2026-10-18, ne pas la changer
+## Règle des points : correction par lignes, décidée par Nathan le 2026-10-22, ne pas la changer
 
-Le premier point placé dans un exercice sur une copie décide comment comptent ses points :
+Un seul champ texte par exercice ; une ligne vide sépare les sous-questions (1er bloc = a, 2e = b… ; « b) » en tête
+de bloc choisit la sous-question). Une ligne = un texte et ses points à la fin (« Notation - 0.5 », « Calculs
+cohérents 1 », « −0,5 ») ; « Correct », « Cohérent », « Juste » sans nombre : tous les points ; « Faux », « Pas de
+réponse », « Incomplet »… sans nombre : départ de 0 ; « PNF » (« PNF : commentaire ») : une marque de présentation ; ce
+qui est entre parenthèses n'est jamais écrit sur la copie. Le mode est **par sous-question** : un mot « tous les
+points » ou « départ de 0 » décide, sinon la première ligne à points (une erreur : on part du maximum, une méthode : de
+0). Note = départ + points, entre 0 et le maximum ; une sous-question sans ligne n'est pas notée.
 
-- une erreur en premier : **par erreurs**, on part du maximum ; les erreurs enlèvent, une méthode peut rendre ;
-- une méthode ou un critère en premier : **par critères**, on part de 0 ; critères cochés et méthodes ajoutent, erreurs
-  enlèvent ; une sous-note sans rien vaut 0 (ce qui est affiché est ce qui compte).
+Toujours : ouvrir une copie ne change jamais une note ; une note change seulement quand on modifie le texte de son
+exercice ; une note tapée à la main reste (✎) jusqu'au clic sur ↺, même si les lignes changent ; une copie notée avec
+une version précédente garde ses notes. Code : `LineGrading.grade`, `LineCorrection.applyGrades`.
 
-Ce choix reste tant qu'un point compte dans l'exercice. Il est affiché en haut du panneau de correction et peut être
-changé par exercice (toute la classe) et par copie. Toujours : un critère coché donne ses points moins les erreurs,
-une note tapée à la main reste prioritaire, Ctrl+Z annule le dernier geste, une copie notée avec une version
-précédente garde ses notes. Code : `ScoredCommentGrades.computeExercise`, `getChosenMode`, `getStart`.
+L'ancien mode (pastilles méthodes/erreurs, mode par exercice) reste quand le réglage « Correction par lignes » est
+désactivé : règle du 2026-10-18 (`ScoredCommentGrades.computeExercise`).
 
 ## Données des élèves : règle absolue
 

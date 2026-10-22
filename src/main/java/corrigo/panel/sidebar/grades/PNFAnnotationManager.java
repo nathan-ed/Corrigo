@@ -55,20 +55,62 @@ public class PNFAnnotationManager {
     public static void addPNF(PageRenderer page, double pageX, double pageY, String comment){
         addPNFAtGrid(page, page.toGridX(pageX), page.toGridY(pageY), comment);
     }
-    public static void addPNFAtGrid(PageRenderer page, int gridX, int gridY, String comment){
-        if(!MainWindow.mainScreen.hasDocument(false)) return;
+    public static TextElement addPNFAtGrid(PageRenderer page, int gridX, int gridY, String comment){
+        return addPNFAtGrid(page, gridX, gridY, comment, MainWindow.footerBar.getSelectedExerciseIndex());
+    }
+    // A mark counted for the exercise at this index of the grade scale (-1: not counted)
+    public static TextElement addPNFAtGrid(PageRenderer page, int gridX, int gridY, String comment, int topLevelIndex){
+        if(!MainWindow.mainScreen.hasDocument(false)) return null;
         
         List<String> exercises = getExerciseNames();
-        int exerciseIndex = getRowIndex(exercises, MainWindow.footerBar.getSelectedExerciseIndex());
+        int exerciseIndex = getRowIndex(exercises, topLevelIndex);
         int rowCount = getRowCount(exercises);
         
         // All the changes below are registered as a single undo action.
         UndoGroup undoGroup = new UndoGroup();
         if(exerciseIndex >= 0) incrementSummaryMark(exerciseIndex, rowCount, undoGroup);
-        addPNFAnnotation(page, gridX, gridY, comment, undoGroup);
+        TextElement element = addPNFAnnotation(page, gridX, gridY, comment, undoGroup);
+        // Counted for this exercise: deleting the mark removes its bar (set after it is added, which already counted it)
+        if(exerciseIndex >= 0) element.setPnfExercise(exercises.get(topLevelIndex));
         rememberComment(comment);
         Edition.setUnsave("PNF annotation added");
         MainWindow.mainScreen.document.edition.save(false);
+        return element;
+    }
+    
+    // A mark counted in the table of the first page was deleted by the teacher: its bar is removed, in the same undo
+    // step (an undo or a redo puts back the table itself).
+    public static void onCountedMarkDeleted(String exercise){
+        if(MainWindow.mainScreen.getUndoEngine() == null || MainWindow.mainScreen.getUndoEngine().isUndoingThings()) return;
+        removeMarkFromTable(exercise, UType.ELEMENT_NO_COUNT_AFTER);
+    }
+    // Removes a bar of this exercise from the table of the first page (undoType: of the change of the row)
+    public static void removeMarkFromTable(String exercise, UType undoType){
+        if(!MainWindow.mainScreen.hasDocument(false) || exercise == null) return;
+        List<String> exercises = getExerciseNames();
+        int index = exercises.indexOf(exercise);
+        int row = index < 0 ? -1 : getRowIndex(exercises, index);
+        if(row < 0) return;
+        ArrayList<TextElement> rows = getSummaryRows(MainWindow.mainScreen.document.getPage(0));
+        if(row >= rows.size() || countMarks(rows.get(row).getText()) == 0) return;
+        // The table shows MAX_MARKS_PER_EXERCISE bars at most: with as many marks left, it does not change
+        long left = MainWindow.mainScreen.document.getPages().stream().flatMap(page -> page.getElements().stream())
+                .filter(element -> element instanceof TextElement text && exercise.equals(text.getPnfExercise())).count();
+        if(left >= MAX_MARKS_PER_EXERCISE) return;
+        var engine = MainWindow.mainScreen.getUndoEngine();
+        UType previous = engine == null ? null : engine.getOverrideUndoType();
+        if(engine != null) engine.setOverrideUndoType(undoType);
+        try{
+            rows.get(row).setText(removeMarkFromRowText(rows.get(row).getText(), row));
+        }finally{
+            if(engine != null) engine.setOverrideUndoType(previous);
+        }
+    }
+    static String removeMarkFromRowText(String text, int rowIndex){
+        int marks = countMarks(text);
+        if(marks == 0) return text;
+        String label = getRowLabel(rowIndex);
+        return marks == 1 ? label : label + String.join("  ", java.util.Collections.nCopies(marks - 1, PNF_MARK));
     }
     
     // TEXT AND COMMENTS
@@ -225,12 +267,13 @@ public class PNFAnnotationManager {
         }
     }
     
-    private static void addPNFAnnotation(PageRenderer page, int gridX, int gridY, String comment, UndoGroup undoGroup){
+    private static TextElement addPNFAnnotation(PageRenderer page, int gridX, int gridY, String comment, UndoGroup undoGroup){
         boolean commented = comment != null && !comment.isBlank();
         TextElement element = new TextElement(gridX, gridY, page.getPage(),
                 true, getText(comment), PNF_COLOR, commented ? PNF_COMMENT_FONT : PNF_FONT, commented ? 40 : 0);
         page.addElement(element, true, undoGroup.next());
         element.centerOnCoordinatesY();
+        return element;
     }
     
     private static void incrementSummaryMark(int exerciseIndex, int rowCount, UndoGroup undoGroup){

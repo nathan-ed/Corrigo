@@ -57,7 +57,7 @@ public class Main extends Application {
     
     public static final Mode mode = Mode.DEV;
     public static final int VERSION_ID = VersionIds.RL_1_5_0;
-    public static final String VERSION = "1.7.1"; // The Mode only keeps the translations in the code: no suffix on the name
+    public static final String VERSION = "1.8.0"; // The Mode only keeps the translations in the code: no suffix on the name
     public static LogLevel logLevel = getLogLevel();
     /****************************************/
     

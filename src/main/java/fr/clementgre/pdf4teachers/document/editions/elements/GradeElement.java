@@ -117,7 +117,8 @@ public class GradeElement extends Element {
             updateText();
             Edition.setUnsave("GradeNameChanged");
             ScoredComments.onGradeRenamed(getParentPath() + "\\" + oldValue, getParentPath() + "\\" + newValue);
-            
+            corrigo.panel.sidebar.grades.lines.LineCorrection.onGradeRenamed(getParentPath() + "\\" + oldValue, getParentPath() + "\\" + newValue);
+
             // Check if name is null
             if(newValue.isBlank()){
                 setName(TR.tr("gradeTab.gradeDefaultName"));

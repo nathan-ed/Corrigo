@@ -62,4 +62,35 @@ public final class FreeSpot {
         }
         return grown;
     }
+
+    // The groups of occupied cells (touching by a side) smaller than minCells are free: specks of dust of the scan
+    public static boolean[][] removeSpecks(boolean[][] occupied, int minCells){
+        int rows = occupied.length, cols = rows == 0 ? 0 : occupied[0].length;
+        boolean[][] kept = new boolean[rows][cols];
+        boolean[][] seen = new boolean[rows][cols];
+        java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();
+        java.util.ArrayList<int[]> group = new java.util.ArrayList<>();
+        for(int y = 0; y < rows; y++){
+            for(int x = 0; x < cols; x++){
+                if(!occupied[y][x] || seen[y][x]) continue;
+                group.clear();
+                queue.add(new int[]{x, y});
+                seen[y][x] = true;
+                while(!queue.isEmpty()){
+                    int[] cell = queue.poll();
+                    group.add(cell);
+                    int[][] around = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+                    for(int[] d : around){
+                        int nx = cell[0] + d[0], ny = cell[1] + d[1];
+                        if(nx >= 0 && ny >= 0 && nx < cols && ny < rows && occupied[ny][nx] && !seen[ny][nx]){
+                            seen[ny][nx] = true;
+                            queue.add(new int[]{nx, ny});
+                        }
+                    }
+                }
+                if(group.size() >= minCells) for(int[] cell : group) kept[cell[1]][cell[0]] = true;
+            }
+        }
+        return kept;
+    }
 }

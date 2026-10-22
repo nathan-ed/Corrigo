@@ -122,7 +122,14 @@ public final class TagScoring {
     }
 
     // Once the element has its size (its text is laid out after it is added)
-    private static void moveToFreeSpotWhenLaidOut(ScoredCommentElement element, PageRenderer page, int tries){
+    // Moves it now if its size can be known now (the copy is about to be closed), else once it is laid out
+    public static void moveToFreeSpotNowOrLater(fr.clementgre.pdf4teachers.document.editions.elements.TextElement element, PageRenderer page){
+        element.applyCss();
+        element.autosize();
+        if(element.getLayoutBounds().getWidth() > 0) moveToFreeSpot(element, page);
+        else moveToFreeSpotWhenLaidOut(element, page, 20);
+    }
+    public static void moveToFreeSpotWhenLaidOut(fr.clementgre.pdf4teachers.document.editions.elements.TextElement element, PageRenderer page, int tries){
         Platform.runLater(() -> {
             if(element.getLayoutBounds().getWidth() <= 0 && tries > 0) moveToFreeSpotWhenLaidOut(element, page, tries - 1);
             else moveToFreeSpot(element, page);
@@ -132,29 +139,33 @@ public final class TagScoring {
     private static final double CELL = 4;
     // Moves the element to the free place of the page the closest to where it is: no ink of the student under it (from
     // the rendered page), no other annotation. Stays where it is if there is none near.
-    private static void moveToFreeSpot(ScoredCommentElement element, PageRenderer page){
-        if(element.getPage() != page || !page.hasRenderedImage()) return;
+    private static void moveToFreeSpot(fr.clementgre.pdf4teachers.document.editions.elements.TextElement element, PageRenderer page){
+        if(element.getPage() != page) return;
         double pageWidth = page.getWidth(), pageHeight = page.getHeight();
         double width = element.getLayoutBounds().getWidth(), height = element.getLayoutBounds().getHeight();
-        Image image = page.getRenderedImage();
-        PixelReader reader = image.getPixelReader();
-        if(reader == null || width <= 0 || height <= 0 || pageWidth <= 0 || pageHeight <= 0) return;
+        if(width <= 0 || height <= 0 || pageWidth <= 0 || pageHeight <= 0) return;
         int cols = (int) (pageWidth / CELL), rows = (int) (pageHeight / CELL);
         boolean[][] occupied = new boolean[rows][cols];
-        double scaleX = image.getWidth() / pageWidth, scaleY = image.getHeight() / pageHeight;
-        for(int y = 0; y < rows; y++){
-            for(int x = 0; x < cols; x++){
-                int dark = 0;
-                for(int i = 0; i < 3 && dark < 2; i++){
-                    for(int j = 0; j < 3 && dark < 2; j++){
-                        int px = (int) Math.min(image.getWidth() - 1, (x + (i + .5) / 3) * CELL * scaleX);
-                        int py = (int) Math.min(image.getHeight() - 1, (y + (j + .5) / 3) * CELL * scaleY);
-                        Color color = reader.getColor(px, py);
-                        if(.2126 * color.getRed() + .7152 * color.getGreen() + .0722 * color.getBlue() < .75) dark++;
+        // The ink of the student, from the rendered page (a page not rendered yet: only the other annotations)
+        Image image = page.hasRenderedImage() ? page.getRenderedImage() : null;
+        PixelReader reader = image == null ? null : image.getPixelReader();
+        if(reader != null){
+            double scaleX = image.getWidth() / pageWidth, scaleY = image.getHeight() / pageHeight;
+            for(int y = 0; y < rows; y++){
+                for(int x = 0; x < cols; x++){
+                    int dark = 0;
+                    for(int i = 0; i < 3 && dark < 2; i++){
+                        for(int j = 0; j < 3 && dark < 2; j++){
+                            int px = (int) Math.min(image.getWidth() - 1, (x + (i + .5) / 3) * CELL * scaleX);
+                            int py = (int) Math.min(image.getHeight() - 1, (y + (j + .5) / 3) * CELL * scaleY);
+                            Color color = reader.getColor(px, py);
+                            if(.2126 * color.getRed() + .7152 * color.getGreen() + .0722 * color.getBlue() < .75) dark++;
+                        }
                     }
+                    occupied[y][x] = dark >= 2;
                 }
-                occupied[y][x] = dark >= 2;
             }
+            occupied = FreeSpot.removeSpecks(occupied, 3); // Dust of the scan: not writing
         }
         for(Element other : page.getElements()){
             if(other == element) continue;
