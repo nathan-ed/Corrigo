@@ -69,6 +69,11 @@ VARIANTS = [
     [L("PNF", "PNF", comment=""), L("Cohérent", "FULL")],
     [L("Calcul juste (attention) +1", "METHOD", 1, "Calcul juste"), L("Oubli -0.5", "MISTAKE", -0.5, "Oubli")],
     [L("Faux (voir corrigé)", "ZERO", shown="Faux")],
+    # Written as a teacher writes quickly: comma, "pt", capitals, a final dot
+    [L("Correct", "FULL"), L("Unité oubliée -0,5 pt", "MISTAKE", -0.5, "Unité oubliée")],
+    [L("EXACT", "FULL")],
+    [L("Fausse.", "ZERO")],
+    [L("Démarche 1,5 points", "METHOD", 1.5, "Démarche"), L("Calcul -0.5", "MISTAKE", -0.5, "Calcul")],
 ]
 
 
@@ -292,7 +297,8 @@ def expected_text(blocks, labels, leaves):
 def type_line(line, used, rng):
     """Types a line as a teacher does: a line already used on a copy graded before is often taken from the choices
     (its start, then Tab); sometimes Ctrl+S after it. Returns True if it was taken with Tab."""
-    taken = line.kind in ("FULL", "ZERO", "COMMENT") and line.shown == line.typed and line.typed in used and rng.random() < .6
+    taken = line.kind in ("FULL", "ZERO", "COMMENT") and line.shown == line.typed and line.typed[-1].isalpha() \
+        and line.typed in used and rng.random() < .6
     if taken:
         type_text(line.typed[:-1], .5)
         key("Tab", .5)
@@ -362,9 +368,35 @@ def run_evaluation(key_name):
                 time.sleep(.5)
             time.sleep(4)
         check("%s %s: graded on every copy" % (key_name, exercise), all((code, exercise) in seen for code in copies), sorted(seen))
+    revisit(key_name, scale, todo, names, code_of, rng)
     stop()
     verify(key_name, folder, scale, todo, names, code_of)
     reopen(key_name, folder)
+
+
+def revisit(key_name, scale, todo, names, code_of, rng):
+    """Back to copies graded before (Alt+PageUp/PageDown, Alt+↑ ↓): a line added at the end of an exercise and placed."""
+    exercises = [(index, exercise, content) for index, (exercise, content) in enumerate(scale) if exercise != "PNF"]
+    for _ in range(3):
+        target = rng.choice(names)
+        index, exercise, content = rng.choice(exercises)
+        for _ in range(len(names)):
+            current = open_copy()
+            if current == target: break
+            key("alt+Prior" if names.index(target) < names.index(current) else "alt+Next", 1)
+            for _ in range(30):
+                if open_copy() != current: break
+                time.sleep(.5)
+            time.sleep(3)
+        check("%s: back to %s" % (key_name, code_of[target]), open_copy() == target, open_copy())
+        select_exercise(index)  # From the text: the text of the exercise gets the focus, ready for a new line
+        blocks, labels, during = todo[(code_of[target], exercise)]
+        written = sum(1 for _, lines in blocks for line in lines if line.written)
+        type_text("Bonus +0.5", .6)
+        click(SLOTS[written], .9)
+        leaf, lines = blocks[-1]
+        blocks[-1] = (leaf, lines + [L("Bonus +0.5", "METHOD", 0.5, "Bonus")])
+        key("ctrl+s", 2)
 
 
 # CHECKS

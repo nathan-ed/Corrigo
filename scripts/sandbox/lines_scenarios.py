@@ -375,18 +375,22 @@ def golf():
     placed = [t["text"] for t in linked("07_GOLF").values()]
     check("equal lines: each placed by its own click", len(placed) == 5 and sum(t.startswith("Erreur") for t in placed) == 2
           and sum("Méthode" in t for t in placed) == 2, placed)
-    # Delete one of the two "Erreur" lines: one text goes, the other stays
+    second_erreur_y = max(t["y"] for t in linked("07_GOLF").values() if t["text"].startswith("Erreur"))
+    # Delete the first of the two "Erreur" lines: its own text goes, the text of the second one stays (a diff of the
+    # lines alone would keep the first id: the edit tells which line it was)
     click(AREA)
     key("ctrl+Home")
-    key("Down")
     key("End")
     key("shift+Home")
     key("BackSpace")
-    key("BackSpace", 1)
+    key("Delete", 1)
     save()
     placed = [t["text"] for t in linked("07_GOLF").values()]
     check("one equal line deleted: a = 1.5", grades("07_GOLF")[A] == 1.5, grades("07_GOLF"))
     check("one equal line deleted: one of its two texts stays", len(placed) == 4 and sum(t.startswith("Erreur") for t in placed) == 1, placed)
+    left = [t for t in linked("07_GOLF").values() if t["text"].startswith("Erreur")]
+    check("the first line deleted: the text of the second one stays", len(left) == 1 and left[0]["y"] == second_erreur_y,
+          (second_erreur_y, left))
     snapshot = edit("07_GOLF")
     stop()
     start("07_GOLF")
@@ -395,6 +399,25 @@ def golf():
     check("reopened: GOLF unchanged", edit("07_GOLF").get("corrections") == snapshot.get("corrections") and
           grades("07_GOLF") == {(g["parentPath"] + "\\" + g["name"]): g["value"] for g in snapshot["grades"]} and
           [t["text"] for t in texts("07_GOLF")] == [t["text"] for p in snapshot["texts"].values() for t in p])
+
+
+def foxtrot():
+    print("FOXTROT: Alt+Enter writes the lines next to the grades", flush=True)
+    start("06_FOXTROT")
+    click(AREA)
+    type_text("Correct\nNotation -0.5\n\nFaux")
+    key("alt+Return", 2)
+    save()
+    placed = [t["text"] for t in linked("06_FOXTROT").values()]
+    check("Alt+Enter: the three lines written", len(placed) == 3, placed)
+    check("Alt+Enter: grades a = 1.5, b = 0", grades("06_FOXTROT")[A] == 1.5 and grades("06_FOXTROT")[B] == 0.0, grades("06_FOXTROT"))
+    snapshot = edit("06_FOXTROT")
+    stop()
+    start("06_FOXTROT")
+    save()
+    stop(False)
+    check("reopened: FOXTROT unchanged", edit("06_FOXTROT").get("corrections") == snapshot.get("corrections") and
+          [t["text"] for t in texts("06_FOXTROT")] == [t["text"] for p in snapshot["texts"].values() for t in p])
 
 
 # Last: the lines « Everywhere » it adds move the text field of the other copies down
@@ -473,7 +496,7 @@ def main():
     parser.add_argument("--only", default=None)
     args = parser.parse_args()
     prepare()
-    for scenario in (bravo, charlie, delta, golf, next_copy, alpha_and_setting, hotel):
+    for scenario in (bravo, charlie, delta, golf, next_copy, alpha_and_setting, foxtrot, hotel):
         if args.only and args.only not in scenario.__name__: continue
         try:
             scenario()

@@ -81,7 +81,20 @@ public class GradingPanel extends VBox {
     private final QuickMarksBar quickMarks = new QuickMarksBar(palette.border(), palette.text(), palette.muted(), palette.accent());
     // Grading by lines: the text of the exercise, its marks (tick, cross, presentation)
     private final LinesEditor linesEditor = new LinesEditor(new LinesEditor.Colors(palette.card(), palette.border(), palette.text(), palette.muted(), palette.accent()),
-            new QuickMarksBar(palette.border(), palette.text(), palette.muted(), palette.accent()), this::openUngradedCopy, this::openExercise);
+            new QuickMarksBar(palette.border(), palette.text(), palette.muted(), palette.accent()), new LinesEditor.Navigation(){
+                @Override
+                public void ungradedCopy(int delta){
+                    openUngradedCopy(delta);
+                }
+                @Override
+                public void copy(int delta){
+                    openNeighborCopy(delta);
+                }
+                @Override
+                public void exercise(int delta){
+                    openExercise(delta);
+                }
+            });
     // The panel shows the grading by lines (setting)
     private final BooleanProperty linesMode = new SimpleBooleanProperty(LineCorrection.isEnabled());
 
@@ -1098,6 +1111,12 @@ public class GradingPanel extends VBox {
     private void openExercise(int delta){
         focusOnNextReload = true;
         if(!MainWindow.footerBar.selectExercise(delta)) focusOnNextReload = false;
+    }
+    // The previous (-1) or next (1) copy of the list, on the same exercise, the panel ready to type once it shows it
+    private void openNeighborCopy(int delta){
+        commitEdits();
+        focusOnNextReload = true;
+        MainWindow.filesTab.openNeighborFile(delta, true);
     }
     // Grading by lines: time of the warning about the lines not placed (the same key again within 5 s leaves anyway)
     private long unplacedWarningTime;

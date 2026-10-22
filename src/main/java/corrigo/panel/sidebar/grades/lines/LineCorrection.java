@@ -140,13 +140,20 @@ public final class LineCorrection {
 
     // The text of the exercise was edited: ids, grades of its sub-questions, texts written on the copy.
     public static void setText(GradeTreeItem exercise, String text){
+        setText(exercise, text, null);
+    }
+    // An edit of the text: the part [start, end[ of the old text replaced by inserted
+    public record TextEdit(int start, int end, String inserted) {}
+    // edit: what was edited, if known (null: compared as a whole); the lines out of it keep their ids
+    public static void setText(GradeTreeItem exercise, String text, TextEdit edit){
         if(exercise == null || !MainWindow.mainScreen.hasDocument(false)) return;
         String path = exercise.getCore().getPath();
         Entry entry = entries.computeIfAbsent(path, k -> new Entry());
         if(text.equals(entry.text)) return;
         Set<String> oldIds = new HashSet<>(entry.ids);
         Map<String, String> oldLines = linesById(entry.text, entry.ids);
-        entry.ids = LineIds.update(split(entry.text), entry.ids, split(text));
+        int[] kept = edit == null ? new int[]{0, 0} : linesOutside(entry.text, edit);
+        entry.ids = LineIds.update(split(entry.text), entry.ids, split(text), kept[0], kept[1]);
         entry.text = text;
         applyGrades(exercise, entry);
         PNFAnnotationManager.onGradingChanged(); // An empty presentation grade is filled once the copy is graded
@@ -176,6 +183,19 @@ public final class LineCorrection {
             entry.computed.put(leafPath, grade);
             if(Math.abs(leaf.getValue() - grade) > EPS) leaf.setAutomaticValue(grade);
         }
+    }
+    // The number of lines of the text not touched by the edit: before it (their line break before its start) and
+    // after it (starting after its end; the one starting at its end only if a line break is still before it)
+    static int[] linesOutside(String text, TextEdit edit){
+        String inserted = edit.inserted();
+        boolean apart = inserted.isEmpty() ? edit.start() == 0 || text.charAt(edit.start() - 1) == '\n' : inserted.endsWith("\n");
+        int before = 0, after = edit.end() == 0 && apart ? 1 : 0;
+        for(int i = 0; i < text.length(); i++){
+            if(text.charAt(i) != '\n') continue;
+            if(i < edit.start()) before++;
+            if(i + 1 > edit.end() || i + 1 == edit.end() && apart) after++;
+        }
+        return new int[]{before, after};
     }
     // A value typed by hand: not the one the lines gave last (a grade there before the lines counts as typed)
     private static boolean isTyped(double value, Double computed){

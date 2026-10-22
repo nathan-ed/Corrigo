@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.IntConsumer;
 
 /**
  * The grading panel of an exercise in the grading by lines: the text of the exercise (one block per sub-question,
@@ -45,12 +44,17 @@ import java.util.function.IntConsumer;
 public final class LinesEditor extends VBox {
 
     public record Colors(String card, String border, String text, String muted, String accent) {}
+    // Where the keys of the text go (delta: -1 previous, 1 next), the text ready to type once there
+    public interface Navigation {
+        void ungradedCopy(int delta); // Ctrl+Enter, Ctrl+Shift+Enter: the next copy where the exercise is not graded
+        void copy(int delta); // Alt+PageDown, Alt+PageUp: the next copy of the list, same exercise
+        void exercise(int delta); // Alt+↓, Alt+↑
+    }
 
     private static final int CHOICES = 6;
 
     private final Colors colors;
-    // Opens the next (1) or previous (-1) copy to grade, exercise of the copy
-    private final IntConsumer openCopy, openExercise;
+    private final Navigation navigation;
 
     private final TextArea area = new TextArea();
     private final VBox choicesBox = new VBox(1);
@@ -68,25 +72,33 @@ public final class LinesEditor extends VBox {
     private int chosen; // Index in choices
     private String dismissed; // The line for which Escape hid the choices
     private int newLineAt = -1; // A letter typed with the caret here starts a new line (-1: none)
+    private LineCorrection.TextEdit edit; // The edit of the text being applied
     private boolean updating;
     // Placed by the last click on the copy, nothing typed since: Ctrl+Z in the text undoes this placement
     private boolean lastActionPlaced;
 
-    public LinesEditor(Colors colors, QuickMarksBar quickMarks, IntConsumer openCopy, IntConsumer openExercise){
+    public LinesEditor(Colors colors, QuickMarksBar quickMarks, Navigation navigation){
         super(6);
         this.colors = colors;
-        this.openCopy = openCopy;
-        this.openExercise = openExercise;
+        this.navigation = navigation;
         setPadding(new Insets(6, 0, 4, 0));
 
         area.setWrapText(true);
         area.setPrefRowCount(9);
         area.setPromptText(TR.tr("lines.prompt"));
         area.setStyle("-fx-font-size: 14;");
+        // The part of the text each edit replaces: the lines out of it keep their ids (two equal lines, one deleted:
+        // the text of the other one stays on the copy)
+        area.setTextFormatter(new TextFormatter<>(change -> {
+            edit = new LineCorrection.TextEdit(change.getRangeStart(), change.getRangeEnd(), change.getText());
+            return change;
+        }));
         area.textProperty().addListener((o, oldValue, newValue) -> {
+            LineCorrection.TextEdit applied = edit;
+            edit = null;
             if(updating || exercise == null) return;
             lastActionPlaced = false;
-            LineCorrection.setText(exercise, newValue);
+            LineCorrection.setText(exercise, newValue, applied);
             if(!getCaretLineText().equals(dismissed)) dismissed = null; // Escape hides the choices of one line only
             updateChoices();
             updateWarnings();
@@ -122,10 +134,7 @@ public final class LinesEditor extends VBox {
         placeAll.setTooltip(new Tooltip(TR.tr("lines.placeAll.tooltip")));
         placeAll.setFocusTraversable(false);
         placeAll.setMinWidth(Region.USE_PREF_SIZE);
-        placeAll.setOnAction(e -> {
-            if(exercise != null) LineCorrection.placeAllNextToGrades(exercise);
-            focusArea();
-        });
+        placeAll.setOnAction(e -> placeAllNextToGrades());
         placingBox = new HBox(6, placing, placeAll);
         placingBox.setAlignment(Pos.CENTER_LEFT);
         placingBox.setPadding(new Insets(4, 6, 4, 6));
@@ -188,7 +197,6 @@ public final class LinesEditor extends VBox {
     public void focusArea(){
         Platform.runLater(this::focusAreaNow);
     }
-    // The focus in the text, at its end: what is typed next starts a new line, never stuck to the last line
     // The bottom of the text written in the field, in the scene (its last line)
     private double getTextBottom(){
         double bottom = Double.NEGATIVE_INFINITY;
@@ -199,6 +207,7 @@ public final class LinesEditor extends VBox {
         }
         return bottom;
     }
+    // The focus in the text, at its end: what is typed next starts a new line, never stuck to the last line
     public void focusAreaNow(){
         area.requestFocus();
         String text = area.getText();
@@ -368,10 +377,16 @@ public final class LinesEditor extends VBox {
         }
         if(e.getCode() == KeyCode.ENTER && e.isShortcutDown()){
             e.consume();
-            openCopy.accept(e.isShiftDown() ? -1 : 1);
+            navigation.ungradedCopy(e.isShiftDown() ? -1 : 1);
+        }else if(e.getCode() == KeyCode.ENTER && e.isAltDown()){
+            e.consume();
+            placeAllNextToGrades();
         }else if((e.getCode() == KeyCode.UP || e.getCode() == KeyCode.DOWN) && e.isAltDown()){
-            e.consume(); // The previous or next exercise (the text field would keep the key), its text ready to type
-            openExercise.accept(e.getCode() == KeyCode.UP ? -1 : 1);
+            e.consume(); // The previous or next exercise (the text field would keep the key)
+            navigation.exercise(e.getCode() == KeyCode.UP ? -1 : 1);
+        }else if((e.getCode() == KeyCode.PAGE_UP || e.getCode() == KeyCode.PAGE_DOWN) && e.isAltDown()){
+            e.consume(); // The previous or next copy of the list, same exercise
+            navigation.copy(e.getCode() == KeyCode.PAGE_UP ? -1 : 1);
         }else if(e.getCode() == KeyCode.TAB && !e.isShortcutDown()){
             e.consume(); // Never a tab character in the text
             if(!choices.isEmpty() && !e.isShiftDown()) take(choices.get(chosen));
@@ -390,6 +405,12 @@ public final class LinesEditor extends VBox {
     }
 
     // PLACEMENT
+
+    // The lines not placed yet, next to the grades of their sub-questions (the button, Alt+Enter)
+    private void placeAllNextToGrades(){
+        if(exercise != null) LineCorrection.placeAllNextToGrades(exercise);
+        focusArea();
+    }
 
     // Something waits for a click on the copy (a presentation mark, or lines to place)
     public boolean isWaitingForClick(){

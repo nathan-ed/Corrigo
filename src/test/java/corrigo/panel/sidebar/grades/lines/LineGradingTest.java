@@ -246,6 +246,29 @@ class LineGradingTest {
         // One of two equal lines deleted: the other keeps one of the ids, never a new one
         List<String> one = LineIds.update(List.of("Erreur -0.5", "Erreur -0.5"), List.of("a", "b"), List.of("Erreur -0.5"), next);
         assertTrue(one.equals(List.of("a")) || one.equals(List.of("b")));
+        // Known from where the text was edited: the line deleted loses its id, the other one keeps its own
+        List<String> equal = List.of("Correct", "Erreur -0.5", "Erreur -0.5", "Faux");
+        List<String> equalIds = List.of("c", "a", "b", "f");
+        List<String> without = List.of("Correct", "Erreur -0.5", "Faux");
+        assertEquals(List.of("c", "b", "f"), LineIds.update(equal, equalIds, without, 1, 2, next)); // The first one deleted
+        assertEquals(List.of("c", "a", "f"), LineIds.update(equal, equalIds, without, 2, 1, next)); // The second one
+        // Lines said kept but not the same: compared as a whole, nothing lost
+        assertEquals(List.of("c", "a", "f"), LineIds.update(equal, equalIds, without, 3, 1, next));
+    }
+
+    @Test
+    void linesOutsideTheEdit(){
+        String text = "Correct\nErreur -0.5\nErreur -0.5\nFaux";
+        // The first "Erreur -0.5\n" deleted (from 8 to 20): 1 line before, 2 after
+        assertArrayEquals(new int[]{1, 2}, LineCorrection.linesOutside(text, new LineCorrection.TextEdit(8, 20, "")));
+        // The second one selected with its line break (from 20 to 32): 2 before, 1 after
+        assertArrayEquals(new int[]{2, 1}, LineCorrection.linesOutside(text, new LineCorrection.TextEdit(20, 32, "")));
+        // Selected with the line break before it: the line before is not said kept (its line break goes), the diff decides
+        assertArrayEquals(new int[]{1, 1}, LineCorrection.linesOutside(text, new LineCorrection.TextEdit(19, 31, "")));
+        assertArrayEquals(new int[]{0, 2}, LineCorrection.linesOutside(text, new LineCorrection.TextEdit(7, 19, ""))); // The first one, same way
+        assertArrayEquals(new int[]{0, 3}, LineCorrection.linesOutside(text, new LineCorrection.TextEdit(0, 0, "X"))); // Typed at the start
+        assertArrayEquals(new int[]{0, 4}, LineCorrection.linesOutside(text, new LineCorrection.TextEdit(0, 0, "X\n"))); // A line added
+        assertArrayEquals(new int[]{3, 0}, LineCorrection.linesOutside(text, new LineCorrection.TextEdit(36, 36, "X"))); // At the end
     }
 
     // Random texts and edits (fixed seed): a grade stays between 0 and the maximum, reading never fails, the ids stay
@@ -277,6 +300,28 @@ class LineGradingTest {
             assertEquals(after.stream().filter(id -> !id.isEmpty()).count(), after.stream().filter(id -> !id.isEmpty()).distinct().count());
             for(int i = 0; i < lines.size(); i++){
                 if(!lines.get(i).isBlank()) assertEquals(ids.get(i), after.get(i < position ? i : i + 1), lines + " + line at " + position);
+            }
+            // An edit of the text at a random place (typed, deleted or replaced, as in the field): the lines before and
+            // after the part edited keep their ids, one id per line, never twice the same
+            String old = text.toString();
+            int start = random.nextInt(old.length() + 1), end = Math.min(old.length(), start + random.nextInt(25));
+            String inserted = random.nextBoolean() ? "" : pieces[random.nextInt(pieces.length)] + (random.nextBoolean() ? "\n" : "");
+            String edited = old.substring(0, start) + inserted + old.substring(end);
+            List<String> editedLines = List.of(edited.split("\\R", -1));
+            int[] kept = LineCorrection.linesOutside(old, new LineCorrection.TextEdit(start, end, inserted));
+            List<String> editedIds = LineIds.update(lines, ids, editedLines, kept[0], kept[1]);
+            assertEquals(editedLines.size(), editedIds.size());
+            assertEquals(editedIds.stream().filter(id -> !id.isEmpty()).count(), editedIds.stream().filter(id -> !id.isEmpty()).distinct().count());
+            for(int i = 0; i < editedLines.size(); i++) assertEquals(editedLines.get(i).isBlank(), editedIds.get(i).isEmpty());
+            boolean keptSame = kept[0] + kept[1] <= Math.min(lines.size(), editedLines.size());
+            for(int i = 0; keptSame && i < kept[0]; i++) keptSame = lines.get(i).strip().equals(editedLines.get(i).strip());
+            for(int i = 0; keptSame && i < kept[1]; i++){
+                keptSame = lines.get(lines.size() - 1 - i).strip().equals(editedLines.get(editedLines.size() - 1 - i).strip());
+            }
+            assertTrue(keptSame, () -> "lines said kept but changed: [" + old.replace("\n", "/") + "] " + start + "-" + end + " [" + inserted.replace("\n", "/") + "] → [" + edited.replace("\n", "/") + "] " + java.util.Arrays.toString(kept)); // Exact, never only a guess
+            if(keptSame){
+                for(int i = 0; i < kept[0]; i++) assertEquals(ids.get(i), editedIds.get(i), old + " → " + edited);
+                for(int i = 1; i <= kept[1]; i++) assertEquals(ids.get(ids.size() - i), editedIds.get(editedIds.size() - i), old + " → " + edited);
             }
         }
     }
