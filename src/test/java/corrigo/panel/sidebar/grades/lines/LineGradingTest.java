@@ -165,7 +165,7 @@ class LineGradingTest {
         assertEquals("Formule (+1)", LineGrading.render(line("Formule 1"), FORMAT, true));
         assertEquals("−1", LineGrading.render(line("-1"), FORMAT, false));
         assertEquals(LineGrading.CHECK + " Correct", LineGrading.render(line("Correct (tous les points)"), FORMAT, true));
-        assertEquals("Faux", LineGrading.render(line("Faux"), FORMAT, true));
+        assertEquals(LineGrading.CROSS + " Faux", LineGrading.render(line("Faux"), FORMAT, true));
         assertEquals("Bien vu", LineGrading.render(line("Bien vu (copie propre)"), FORMAT, true));
     }
 

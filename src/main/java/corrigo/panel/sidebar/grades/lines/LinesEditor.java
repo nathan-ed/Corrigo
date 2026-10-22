@@ -179,7 +179,7 @@ public class LinesEditor extends VBox {
             placingBox.setVisible(true);
             placeAll.setVisible(false);
         }else if(!unplaced.isEmpty()){
-            String next = LineCorrection.getCopyText(unplaced.getFirst().line()).replace(LineGrading.CHECK, "✓");
+            String next = LineCorrection.getCopyText(unplaced.getFirst().line()).replace(LineGrading.CHECK, "✓").replace(LineGrading.CROSS, "✗");
             placing.setText(TR.tr("lines.toPlace", next, String.valueOf(unplaced.size())));
             placingBox.setVisible(true);
             placeAll.setVisible(true);
@@ -207,7 +207,7 @@ public class LinesEditor extends VBox {
             }
             for(Use use : leafUses){
                 // The number of copies is after "×": not to be read as points
-                Label chip = new Label(use.text().replace(LineGrading.CHECK, "✓") + "  ×" + use.copies());
+                Label chip = new Label(use.text().replace(LineGrading.CHECK, "✓").replace(LineGrading.CROSS, "✗") + "  ×" + use.copies());
                 chip.setStyle("-fx-font-size: 11; -fx-padding: 1 6; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: "
                         + colors.border() + "; -fx-background-color: " + colors.card() + "; -fx-text-fill: " + colors.text() + ";");
                 chip.setCursor(Cursor.HAND);

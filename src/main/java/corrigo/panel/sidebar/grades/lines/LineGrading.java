@@ -229,12 +229,15 @@ public final class LineGrading {
     // TEXT ON THE COPY
 
     public static final String CHECK = "$\\checkmark$";
+    // A red cross for the lines that start from 0 ("Faux")
+    public static final String CROSS = "$\\boldsymbol{\\times}$";
 
     // What is written on the copy for a line (not for a presentation mark)
     public static String render(Line line, NumberFormat format, boolean withPoints){
         String points = line.points() == null || line.points() == 0 ? "" : formatPoints(line.points(), format);
         return switch(line.kind()){
             case FULL -> line.shown().isEmpty() ? CHECK : CHECK + " " + line.shown();
+            case ZERO -> line.shown().isEmpty() ? CROSS : CROSS + " " + line.shown();
             case METHOD, MISTAKE -> line.shown().isEmpty() ? points : withPoints ? line.shown() + " (" + points + ")" : line.shown();
             default -> line.shown();
         };
