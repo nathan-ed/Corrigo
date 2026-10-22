@@ -74,6 +74,7 @@ VARIANTS = [
     [L("EXACT", "FULL")],
     [L("Fausse.", "ZERO")],
     [L("Démarche 1,5 points", "METHOD", 1.5, "Démarche"), L("Calcul -0.5", "MISTAKE", -0.5, "Calcul")],
+    [L("Méthode 0,5 pt", "METHOD", 0.5, "Méthode"), L("Erreur -1.", "MISTAKE", -1, "Erreur")],
 ]
 
 

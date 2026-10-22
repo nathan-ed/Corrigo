@@ -337,6 +337,7 @@ public final class LinesEditor extends VBox {
             for(Block block : blocks){
                 if(block.leaf() < 0) addWarning(TR.tr("lines.block.extra", String.valueOf(leaves)) + " : « " + block.lines().getFirst().raw().strip() + " »");
                 for(Line line : block.lines()){
+                    if(LineGrading.hasPointsFirst(line)) addWarning(TR.tr("lines.pointsFirst", line.raw().strip()));
                     Use conflict = LineBank.findConflict(uses, line, block.leaf());
                     if(conflict != null) addWarning(TR.tr("lines.conflict", line.shown().isEmpty() ? line.raw().strip() : line.shown(),
                             LineGrading.formatPoints(conflict.points(), MainWindow.gradesDigFormat), String.valueOf(conflict.copies())));

@@ -106,10 +106,15 @@ public final class LineGrading {
         Double points = pointsInParentheses;
         String shown = visible;
         if(points == null){
-            Matcher matcher = POINTS.matcher(visible);
-            if(matcher.find() && isPoints(visible, matcher)){
-                points = toNumber((matcher.group(1) == null ? "" : matcher.group(1)) + matcher.group(2));
-                shown = visible.substring(0, matcher.start()).strip();
+            // The points at the end, or before a final dot when there is a text before them ("Erreur -1.", not "2.")
+            String withoutDot = visible.endsWith(".") ? visible.substring(0, visible.length() - 1) : null;
+            for(String candidate : withoutDot == null ? List.of(visible) : List.of(visible, withoutDot)){
+                Matcher matcher = POINTS.matcher(candidate);
+                if(matcher.find() && isPoints(candidate, matcher) && (candidate == visible || !candidate.substring(0, matcher.start()).isBlank())){
+                    points = toNumber((matcher.group(1) == null ? "" : matcher.group(1)) + matcher.group(2));
+                    shown = candidate.substring(0, matcher.start()).strip();
+                    break;
+                }
             }
         }
         shown = shown.replaceAll("[\\s:;,]+$", "").strip(); // "Notation :" → "Notation"
@@ -122,6 +127,12 @@ public final class LineGrading {
         if(ZERO_WORDS.contains(key)) return new Line(index, raw, shown, null, Kind.ZERO, null);
         return new Line(index, raw, shown, null, Kind.COMMENT, null);
     }
+
+    // Points typed at the start of a line ("-0.5 Notation"): not counted (the points are at the end), shown as a warning
+    public static boolean hasPointsFirst(Line line){
+        return line.points() == null && line.kind() == Kind.COMMENT && POINTS_FIRST.matcher(line.raw()).find();
+    }
+    private static final Pattern POINTS_FIRST = Pattern.compile("^\\s*[+\\-−–]\\s*\\d+(?:[.,]\\d+)?\\s*(?:pts?\\.?|points?)?\\s+\\p{L}");
 
     // A line typed with "g" after its points: offered in every exercise of the test
     public static boolean isEverywhere(Line line){
@@ -138,6 +149,8 @@ public final class LineGrading {
         char last = before.charAt(before.length() - 1);
         if(FORMULA_CHARS.indexOf(last) >= 0) return false;
         if(matcher.group(1) != null) return true; // Signed: points
+        // "0,5" or "1 pt": points even after "méthode", "question"… (a reference is a whole number alone)
+        if(matcher.group(2).matches(".*[.,].*") || !text.substring(matcher.end(2)).isBlank()) return true;
         String[] words = normalize(before).split("[\\s']+");
         return !REFERENCE_WORDS.contains(words[words.length - 1].replaceAll("\\p{Punct}+$", ""));
     }

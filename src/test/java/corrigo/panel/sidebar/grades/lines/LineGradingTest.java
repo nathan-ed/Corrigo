@@ -96,6 +96,28 @@ class LineGradingTest {
     }
 
     @Test
+    void aFinalDotAfterThePoints(){
+        assertEquals(-1, line("Erreur -1.").points());
+        assertEquals("Erreur", line("Erreur -1.").shown());
+        assertEquals(.5, line("Méthode 0,5 pt.").points());
+        assertNull(line("2.").points()); // A number alone with a dot: a text (or a label), not points
+        assertNull(line("Voir question 2.").points());
+        assertNull(line("x = 3.").points());
+        assertEquals(1, line("Méthode 1 pt").points()); // A unit or a decimal: points, even after "méthode"
+        assertNull(line("Méthode 2").points()); // A whole number alone after "méthode": the method number 2
+    }
+
+    @Test
+    void pointsAtTheStartAreShown(){
+        assertTrue(LineGrading.hasPointsFirst(LineGrading.parseLine(0, "-0.5 Notation", "PNF")));
+        assertTrue(LineGrading.hasPointsFirst(LineGrading.parseLine(0, "+1 pt démarche", "PNF")));
+        assertFalse(LineGrading.hasPointsFirst(LineGrading.parseLine(0, "Notation -0.5", "PNF"))); // Counted
+        assertFalse(LineGrading.hasPointsFirst(LineGrading.parseLine(0, "-0.5", "PNF"))); // Points alone: counted
+        assertFalse(LineGrading.hasPointsFirst(LineGrading.parseLine(0, "Voir 2", "PNF")));
+        assertFalse(LineGrading.hasPointsFirst(LineGrading.parseLine(0, "2 solutions", "PNF"))); // Not signed: a text
+    }
+
+    @Test
     void gAfterThePointsIsForTheWholeTest(){
         Line line = LineGrading.parseLine(0, "Notation -0.5 g", "PNF");
         assertEquals(-.5, line.points());
