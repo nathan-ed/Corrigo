@@ -12,13 +12,23 @@ is a bug: the copy changed only because it was opened.
 Needs Xvfb and python-xlib (pip install python-xlib)."""
 import argparse, glob, os, shutil, signal, subprocess, sys, time, yaml
 
+# The YAML written by Corrigo (Java) may have a text "=" unquoted: read as a string, not as the YAML "value" tag
+class CorrigoLoader(yaml.SafeLoader):
+    pass
+CorrigoLoader.add_constructor("tag:yaml.org,2002:value", lambda loader, node: loader.construct_scalar(node))
+
+
+def load_yaml(f):
+    return yaml.load(f, Loader=CorrigoLoader)
+
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 
 
 def snapshot(edit_file):
     with open(edit_file, encoding="utf-8") as f:
-        base = yaml.safe_load(f) or {}
+        base = load_yaml(f) or {}
     base.pop("lastScrollValue", None)
     return base
 

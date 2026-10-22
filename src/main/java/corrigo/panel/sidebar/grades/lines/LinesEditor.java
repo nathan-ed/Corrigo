@@ -201,7 +201,7 @@ public class LinesEditor extends VBox {
             if(leafUses.isEmpty()) continue;
             FlowPane row = new FlowPane(4, 4); // One row per sub-question
             if(leaves.size() > 1){
-                Label name = new Label(leaves.get(leaf).getCore().getName() + ")");
+                Label name = new Label(LineGrading.labelOf(leaves.get(leaf).getCore().getName()));
                 name.setStyle("-fx-font-weight: bold; -fx-font-size: 11; -fx-text-fill: " + colors.text() + ";");
                 row.getChildren().add(name);
             }
@@ -248,7 +248,7 @@ public class LinesEditor extends VBox {
                 area.positionCaret(end + 1 + text.length());
             }else{
                 int lastLeaf = blocks.isEmpty() ? -1 : blocks.getLast().leaf();
-                String label = leaf == lastLeaf + 1 ? "" : getLeafNames().get(leaf) + ")\n";
+                String label = leaf == lastLeaf + 1 ? "" : LineGrading.labelOf(getLeafNames().get(leaf)) + "\n";
                 String before = current.isBlank() ? "" : current.stripTrailing() + "\n\n";
                 if(current.isBlank() && leaf == 0) label = "";
                 area.replaceText(0, current.length(), before + label + text); // Undoable, unlike setText

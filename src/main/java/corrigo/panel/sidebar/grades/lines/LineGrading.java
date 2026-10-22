@@ -156,11 +156,18 @@ public final class LineGrading {
             if(!labelChecked){ // First line of a block: "b)" chooses its sub-question
                 labelChecked = true;
                 Matcher matcher = LABEL.matcher(raw);
+                // The whole name of a sub-question ("1. Limites") is a label too
+                int whole = findWholeName(leafNames, raw);
+                if(whole >= 0 && leafNames.size() > 1){
+                    nextLeaf = whole;
+                    continue;
+                }
                 if(matcher.matches()){
                     int leaf = findLeaf(leafNames, matcher.group(1));
-                    if(leaf >= 0){
+                    if(leaf >= 0 && leafNames.size() > 1){
                         nextLeaf = leaf;
-                        if(matcher.group(2).isBlank()) continue;
+                        String rest = matcher.group(2);
+                        if(rest.isBlank() || normalize(rest).equals(nameAfterNumber(leafNames.get(leaf)))) continue;
                         current.add(parseLine(i, matcher.group(2), pnfLabel));
                         continue;
                     }
@@ -171,11 +178,50 @@ public final class LineGrading {
         return blocks;
     }
     private static int findLeaf(List<String> leafNames, String label){
-        String key = normalize(label);
+        String key = stripLabel(normalize(label));
         for(int i = 0; i < leafNames.size(); i++){
-            if(normalize(leafNames.get(i)).equals(key)) return i;
+            if(labelKeys(leafNames.get(i)).contains(key)) return i;
         }
         return -1;
+    }
+    // The whole name of a sub-question that has its own punctuation ("a)", "1. Limites"), typed alone; a name
+    // without it ("Calcul") typed alone is a line, not a label
+    private static int findWholeName(List<String> leafNames, String line){
+        String key = normalize(line);
+        for(int i = 0; i < leafNames.size(); i++){
+            String name = normalize(leafNames.get(i));
+            boolean punctuated = name.endsWith(")") || name.endsWith(".") || NUMBERED.matcher(name).matches();
+            if(punctuated && name.equals(key)) return i;
+        }
+        return -1;
+    }
+    // A sub-question is named "a", "a)", "1. Limites" or "Mise en équation": its label is "a)", "a)", "1." or
+    // "Mise en équation)", and "1. Limites" written in full is its label too
+    private static final Pattern NUMBERED = Pattern.compile("^([\\p{L}\\p{N}]{1,4})\\s*[).]\\s*(.*)$");
+    static Set<String> labelKeys(String leafName){
+        Set<String> keys = new HashSet<>();
+        String name = normalize(leafName);
+        keys.add(name);
+        keys.add(stripLabel(name));
+        Matcher numbered = NUMBERED.matcher(name);
+        if(numbered.matches()) keys.add(numbered.group(1));
+        return keys;
+    }
+    private static String stripLabel(String text){
+        return text.replaceAll("[\\s).]+$", "");
+    }
+    // The rest of a full name after its number ("limites" for "1. Limites"), or ""
+    private static String nameAfterNumber(String leafName){
+        Matcher numbered = NUMBERED.matcher(normalize(leafName));
+        return numbered.matches() ? numbered.group(2) : "";
+    }
+    // What to type at the start of a block to give it to this sub-question
+    public static String labelOf(String leafName){
+        String name = leafName.strip();
+        if(name.endsWith(")") || name.endsWith(".")) return name;
+        Matcher numbered = Pattern.compile("^([\\p{L}\\p{N}]{1,4})\\s*([).])\\s*.*$").matcher(name);
+        if(numbered.matches()) return numbered.group(1) + numbered.group(2);
+        return name + ")";
     }
 
     // GRADE

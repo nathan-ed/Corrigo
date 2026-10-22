@@ -359,6 +359,44 @@ def next_copy():
     stop()
 
 
+def golf():
+    print("GOLF: two equal lines", flush=True)
+    start("07_GOLF")
+    click(AREA)
+    type_text("Erreur -0.5\nErreur -0.5\n\nFaux\nMéthode +0.5\nMéthode +0.5")
+    save()
+    g = grades("07_GOLF")
+    check("equal lines both count: a = 2 − 0.5 − 0.5 = 1", g[A] == 1.0, g)
+    check("equal lines both count: b = 0.5 + 0.5 = 1", g[B] == 1.0, g)
+    ids = [i for i in lines("07_GOLF").get("ids", []) if i]
+    check("equal lines: one id each", len(ids) == 5 and len(set(ids)) == 5, ids)
+    for point in PAGE[:5]: click(point, .8)
+    save()
+    placed = [t["text"] for t in linked("07_GOLF").values()]
+    check("equal lines: each placed by its own click", len(placed) == 5 and sum(t.startswith("Erreur") for t in placed) == 2
+          and sum(t.startswith("Méthode") for t in placed) == 2, placed)
+    # Delete one of the two "Erreur" lines: one text goes, the other stays
+    click(AREA)
+    key("ctrl+Home")
+    key("Down")
+    key("End")
+    key("shift+Home")
+    key("BackSpace")
+    key("BackSpace", 1)
+    save()
+    placed = [t["text"] for t in linked("07_GOLF").values()]
+    check("one equal line deleted: a = 1.5", grades("07_GOLF")[A] == 1.5, grades("07_GOLF"))
+    check("one equal line deleted: one of its two texts stays", len(placed) == 4 and sum(t.startswith("Erreur") for t in placed) == 1, placed)
+    snapshot = edit("07_GOLF")
+    stop()
+    start("07_GOLF")
+    save()
+    stop(False)
+    check("reopened: GOLF unchanged", edit("07_GOLF").get("corrections") == snapshot.get("corrections") and
+          grades("07_GOLF") == {(g["parentPath"] + "\\" + g["name"]): g["value"] for g in snapshot["grades"]} and
+          [t["text"] for t in texts("07_GOLF")] == [t["text"] for p in snapshot["texts"].values() for t in p])
+
+
 def alpha_and_setting():
     print("ALPHA (typed grades) and the setting off/on", flush=True)
     before = grades("01_ALPHA")
@@ -389,7 +427,7 @@ def main():
     parser.add_argument("--only", default=None)
     args = parser.parse_args()
     prepare()
-    for scenario in (bravo, charlie, delta, next_copy, alpha_and_setting):
+    for scenario in (bravo, charlie, delta, golf, next_copy, alpha_and_setting):
         if args.only and args.only not in scenario.__name__: continue
         try:
             scenario()

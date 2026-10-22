@@ -17,6 +17,16 @@ try:
 except ImportError:
     sys.exit("PyYAML is needed: pip install pyyaml")
 
+
+# The YAML written by Corrigo (Java) may have a text "=" unquoted: read as a string, not as the YAML "value" tag
+class CorrigoLoader(yaml.SafeLoader):
+    pass
+CorrigoLoader.add_constructor("tag:yaml.org,2002:value", lambda loader, node: loader.construct_scalar(node))
+
+
+def load_yaml(f):
+    return yaml.load(f, Loader=CorrigoLoader)
+
 PARTS = ("tags.yml", "scoredcomments.yml")
 
 
@@ -65,7 +75,7 @@ def main():
 
     for edit_file, copy in zip(edit_files, copies):
         with open(os.path.join(folder, edit_file), encoding="utf-8") as f:
-            base = yaml.safe_load(f) or {}
+            base = load_yaml(f) or {}
         if args.strip_free_texts and isinstance(base.get("texts"), dict):
             for page in base["texts"].values():
                 for text in page or []:
@@ -78,7 +88,7 @@ def main():
         path = os.path.join(data_dir, part)
         if not os.path.exists(path): continue
         with open(path, encoding="utf-8") as f:
-            data = yaml.safe_load(f) or {}
+            data = load_yaml(f) or {}
         os.makedirs(os.path.join(output, ".pdf4teachers"), exist_ok=True)
         with open(os.path.join(output, ".pdf4teachers", part), "w", encoding="utf-8") as f:
             yaml.safe_dump(replace_names(data, names), f, allow_unicode=True, sort_keys=False)

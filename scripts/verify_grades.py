@@ -13,6 +13,16 @@ try:
 except ImportError:
     sys.exit("PyYAML is needed: pip install pyyaml")
 
+
+# The YAML written by Corrigo (Java) may have a text "=" unquoted: read as a string, not as the YAML "value" tag
+class CorrigoLoader(yaml.SafeLoader):
+    pass
+CorrigoLoader.add_constructor("tag:yaml.org,2002:value", lambda loader, node: loader.construct_scalar(node))
+
+
+def load_yaml(f):
+    return yaml.load(f, Loader=CorrigoLoader)
+
 CHECK = "$\\Large\\checkmark$"
 TAG_PREFIX = "tag:"
 TABLE_X, TABLE_HEADER_Y = 3199, 130459  # PNF table of the first page (PNFAnnotationManager)
@@ -181,9 +191,9 @@ def main():
         name = "Copie %02d" % i if args.anonymous else os.path.relpath(file, args.folder)
         try:
             with open(file, encoding="utf-8") as f:
-                base = yaml.safe_load(f) or {}
+                base = load_yaml(f) or {}
         except Exception as e:  # noqa: BLE001
-            report.append({"copy": name, "level": CHECKED, "grade": "", "rule": "0", "text": "illisible : %s" % e})
+            report.append({"copy": name, "level": CHECKED, "grade": "", "rule": "0", "text": "illisible : %s" % (type(e).__name__ if args.anonymous else e)})
             counts[CHECKED] += 1
             continue
         for level, grade, rule, text in check_copy(base, args.pnf_name):

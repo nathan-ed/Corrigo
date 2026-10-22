@@ -109,6 +109,8 @@ class LineGradingTest {
         assertEquals(0, grade(2, "Erreur -3")); // Never below 0
         assertEquals(0, grade(2, "Rien 0"));
         assertEquals(1, grade(2, "Attention 0", "Méthode +1")); // A point at 0 does not choose the start
+        assertEquals(1, grade(2, "Erreur -0.5", "Erreur -0.5")); // Two equal lines: both count
+        assertEquals(2, grade(2, "Correct", "Correct"));
         assertNull(grade(2, "Bien vu", "PNF")); // Only comments: not graded
         assertNull(grade(2));
     }
@@ -132,6 +134,34 @@ class LineGradingTest {
         assertEquals(0, blocks.get(0).leaf());
         assertEquals(1, blocks.get(1).leaf());
         assertEquals(-1, blocks.get(2).leaf()); // More blocks than sub-questions
+    }
+
+    @Test
+    void labelsOfSubQuestionsNamedLikeInTheGradeScale(){
+        List<String> named = List.of("a)", "b)");
+        assertEquals(1, LineGrading.parse("b)\nCorrect", named, "PNF").getFirst().leaf());
+        // A name without punctuation typed alone is a line, not a label
+        List<Block> calcul = LineGrading.parse("Calcul\nCorrect", List.of("Limites", "Calcul"), "PNF");
+        assertEquals(0, calcul.getFirst().leaf());
+        assertEquals(2, calcul.getFirst().lines().size());
+        List<String> numbered = List.of("1. Limites", "2. Aire");
+        List<Block> blocks = LineGrading.parse("2.\nCorrect\n\n1. Limites\nFaux", numbered, "PNF");
+        assertEquals(1, blocks.get(0).leaf());
+        assertEquals(1, blocks.get(0).lines().size());
+        assertEquals(0, blocks.get(1).leaf());
+        assertEquals(Kind.ZERO, blocks.get(1).lines().getFirst().kind());
+        List<String> words = List.of("Limites", "Mise en équation", "Calcul");
+        assertEquals(1, LineGrading.parse("Mise en équation)\nCorrect", words, "PNF").getFirst().leaf());
+        assertEquals("a)", LineGrading.labelOf("a)"));
+        assertEquals("1.", LineGrading.labelOf("1. Limites"));
+        assertEquals("Calcul)", LineGrading.labelOf("Calcul"));
+        assertEquals("b)", LineGrading.labelOf("b"));
+        // Each label found back
+        for(List<String> names : List.of(named, numbered, words)){
+            for(int i = 0; i < names.size(); i++){
+                assertEquals(i, LineGrading.parse(LineGrading.labelOf(names.get(i)) + "\nCorrect", names, "PNF").getFirst().leaf(), names.get(i));
+            }
+        }
     }
 
     @Test
@@ -192,6 +222,9 @@ class LineGradingTest {
                 List.of("Erreur -0.5", "X", "Erreur -0.5"), next);
         assertEquals("a", twice.get(0));
         assertEquals("b", twice.get(2));
+        // One of two equal lines deleted: the other keeps one of the ids, never a new one
+        List<String> one = LineIds.update(List.of("Erreur -0.5", "Erreur -0.5"), List.of("a", "b"), List.of("Erreur -0.5"), next);
+        assertTrue(one.equals(List.of("a")) || one.equals(List.of("b")));
     }
 
     // Random texts and edits (fixed seed): a grade stays between 0 and the maximum, reading never fails, the ids stay

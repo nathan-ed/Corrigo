@@ -135,10 +135,11 @@ public final class LineCorrection {
         Entry entry = entries.computeIfAbsent(path, k -> new Entry());
         if(text.equals(entry.text)) return;
         Set<String> oldIds = new HashSet<>(entry.ids);
+        Map<String, String> oldLines = linesById(entry.text, entry.ids);
         entry.ids = LineIds.update(split(entry.text), entry.ids, split(text));
         entry.text = text;
         applyGrades(exercise, entry);
-        reconcile(exercise, entry, oldIds);
+        reconcile(exercise, entry, oldIds, oldLines);
         Edition.setUnsave("LinesEdited");
         fire();
     }
@@ -250,7 +251,17 @@ public final class LineCorrection {
     }
 
     // The texts written by the lines of the exercise follow its text: updated, or removed with their line
-    private static void reconcile(GradeTreeItem exercise, Entry entry, Set<String> oldIds){
+    // The text of each line by its id
+    private static Map<String, String> linesById(String text, List<String> ids){
+        HashMap<String, String> byId = new HashMap<>();
+        List<String> lines = split(text);
+        for(int i = 0; i < Math.min(lines.size(), ids.size()); i++) if(!ids.get(i).isEmpty()) byId.put(ids.get(i), lines.get(i));
+        return byId;
+    }
+    // Only the texts of the lines that changed are written again: a text not edited stays as it is on the copy (as it
+    // was converted from an older version, or with a note in parentheses written before)
+    private static void reconcile(GradeTreeItem exercise, Entry entry, Set<String> oldIds, Map<String, String> oldLines){
+        Map<String, String> newLines = linesById(entry.text, entry.ids);
         HashMap<String, Line> lines = new HashMap<>();
         for(Block block : parse(exercise, entry)){
             for(Line line : block.lines()) lines.put(entry.ids.get(line.index()), line);
@@ -265,6 +276,7 @@ public final class LineCorrection {
                     removePlaced(element);
                     continue;
                 }
+                if(Objects.equals(oldLines.get(id), newLines.get(id))) continue; // This line did not change
                 String text = getCopyText(line);
                 if(!text.equals(element.getText())) element.setText(text);
                 if(line.kind() != Kind.PNF && !getColor(line).equals(element.getColor())) element.setColor(getColor(line));
