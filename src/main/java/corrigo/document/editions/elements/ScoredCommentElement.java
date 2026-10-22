@@ -168,6 +168,7 @@ public class ScoredCommentElement extends TextElement {
     // Applies the values of its method or mistake (see TagScoring). The local changes are kept.
     public void applyTag(String gradePath, String newComment, double newPoints, boolean newNoPoints, Color color){
         String oldGradePath = this.gradePath;
+        boolean counted = !noPoints;
         this.gradePath = gradePath;
         if(!localText) comment = newComment;
         if(!localPoints){
@@ -179,8 +180,11 @@ public class ScoredCommentElement extends TextElement {
         if(!text.equals(getText())) setText(text);
         Edition.setUnsave("TagElementUpdated");
         if(getPage() != null){
-            if(!oldGradePath.equals(gradePath)) ScoredComments.recomputeGrade(oldGradePath, false);
-            ScoredComments.recomputeGrade(gradePath, true);
+            boolean moved = !oldGradePath.equals(gradePath);
+            if(moved) ScoredComments.recomputeGrade(oldGradePath, false);
+            // A value typed by hand gives way only when the element starts counting on this sub-grade (as in
+            // TagEditFiles.update): applied again at each opening, it must not count its points a second time
+            ScoredComments.recomputeGrade(gradePath, !noPoints && (!counted || moved));
         }
     }
 

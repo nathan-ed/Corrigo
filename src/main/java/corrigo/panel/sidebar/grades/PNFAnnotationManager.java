@@ -176,7 +176,8 @@ public class PNFAnnotationManager {
             corrigo.panel.sidebar.grades.tags.ExerciseTags.fireChanged(false); // The count on the card
         });
     }
-    // The copy was opened: its presentation grade follows its marks once its grading has started
+    // The copy was opened: an empty presentation grade is filled from its marks once its grading has started. A grade
+    // already there (typed by hand or computed before) is never changed by the opening.
     public static void onEditionLoaded(){
         updateScoreWhenReady(50);
     }
@@ -196,7 +197,7 @@ public class PNFAnnotationManager {
         GradeTreeItem grade = getPresentationGrade();
         if(grade == null) return;
         int marks = countCopyMarks();
-        if(!changed && marks == 0 && grade.getCore().getValue() < 0 && !isGradingStarted(grade)) return;
+        if(!changed && (grade.getCore().getValue() >= 0 || marks == 0 && !isGradingStarted(grade))) return;
         double value = Math.min(score(marks), grade.getCore().getTotal());
         if(grade.getCore().getValue() != value) grade.getCore().setAutomaticValue(value);
     }

@@ -7,6 +7,10 @@ les copies fictives ALPHA, BRAVO… : jamais sur de vraies copies, voir le skill
 Statut : **R** = reproduit dans l'application (sandbox, copies fictives), **C** = reproduit par le calcul (classes
 de calcul seules), **L** = trouvé à la lecture du code, **N** = signalé par Nathan.
 
+**1.7.1** : B1, B2 (et donc B24) corrigés. Vérifié dans l'application sur copies fictives : 3 ouvertures de suite,
+aucune note ne change ; une note PNF vide se remplit encore une fois ; une méthode ou une erreur ajoutée depuis une autre
+copie compte encore.
+
 Pour une IA : « Pour chaque bug de `docs/bugs-1.7.md`, fais le test rapide sur ce dépôt et réponds : encore présent /
 corrigé / impossible à dire, avec la ligne de code qui le prouve. Ne lis aucune vraie copie. »
 
@@ -14,7 +18,7 @@ corrigé / impossible à dire, avec la ligne de code qui le prouve. Ne lis aucun
 
 ## A. Notes qui changent toutes seules (les plus graves)
 
-### B1. Une note tapée à la main sur une sous-question qui a une méthode ou une erreur perd (ou gagne) les points une seconde fois à la réouverture (R)
+### B1. ✅ Corrigé en 1.7.1 · Une note tapée à la main sur une sous-question qui a une méthode ou une erreur perd (ou gagne) les points une seconde fois à la réouverture (R)
 - **Où** : `ScoredCommentElement.applyTag` → `ScoredComments.recomputeGrade(gradePath, true)`
   (`src/main/java/corrigo/document/editions/elements/ScoredCommentElement.java`, vers la ligne 183). `applyTag` est
   appelé pour chaque pastille de la copie à chaque `TagScoring.syncOpenCopy` : à l'ouverture
@@ -27,7 +31,7 @@ corrigé / impossible à dire, avec la ligne de code qui le prouve. Ne lis aucun
 - **Test rapide (app)** : sur une copie fictive, poser une erreur sur une sous-question, taper une autre note à la
   main, enregistrer, fermer, rouvrir : la note doit rester celle tapée.
 
-### B2. La note de présentation (PNF) tapée à la main est remplacée à chaque ouverture (R)
+### B2. ✅ Corrigé en 1.7.1 · La note de présentation (PNF) tapée à la main est remplacée à chaque ouverture (R)
 - **Où** : `PNFAnnotationManager.updateScore(false)` appelé par `onEditionLoaded` → `updateScoreWhenReady`.
   Condition d'arrêt : `if(!changed && marks == 0 && grade.getCore().getValue() < 0 && !isGradingStarted(grade)) return;`
 - **Effet** : PNF tapé 1, aucune marque → réouverture → 2. La valeur tapée n'est gardée nulle part.
@@ -149,7 +153,7 @@ corrigé / impossible à dire, avec la ligne de code qui le prouve. Ne lis aucun
 - **Où** : `ScoredComments.FONT` (18), `TagEditFiles.FONT_SIZE` (18), `PNFAnnotationManager.PNF_COMMENT_FONT` (18),
   `QuickGradePlacement.COMMENT_FONT` (16). Pas de réglage.
 
-### B24. Une note corrigée à la main ne reste pas quand on revient sur la copie (N)
+### B24. ✅ Corrigé en 1.7.1 · Une note corrigée à la main ne reste pas quand on revient sur la copie (N)
 - C'est B1 (et B2 pour la PNF).
 
 ## F. Mineurs
