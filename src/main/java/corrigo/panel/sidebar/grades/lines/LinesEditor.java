@@ -174,7 +174,7 @@ public final class LinesEditor extends VBox {
         if(exercise == null) return;
         if(changed){
             pnf.setSelected(false);
-            uses = LineBank.collect(LineCorrection.getOtherTexts(exercise.getCore().getPath()), getLeafNames(),
+            uses = LineBank.collect(OtherCopies.getTexts(exercise.getCore().getPath()), getLeafNames(),
                     PNFAnnotationManager.label(), MainWindow.gradesDigFormat);
             everywhere = collectEverywhere();
         }
@@ -247,7 +247,7 @@ public final class LinesEditor extends VBox {
                     LineCorrection.getLeaves(item).stream().map(leaf -> leaf.getCore().getName()).toList());
         }
         ArrayList<List<Block>> copies = new ArrayList<>();
-        for(Map<String, String> texts : LineCorrection.getAllCopiesTexts()){
+        for(Map<String, String> texts : OtherCopies.getAllTexts()){
             ArrayList<Block> blocks = new ArrayList<>();
             texts.forEach((path, text) -> blocks.addAll(LineGrading.parse(text, leafNames.getOrDefault(path, List.of(path)), PNFAnnotationManager.label())));
             copies.add(blocks);

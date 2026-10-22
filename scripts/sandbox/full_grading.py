@@ -255,7 +255,7 @@ def select_exercise(index):
 
 
 def click_text_field():
-    """Clicks the text of the lines (found on the screen: the tallest white box of the panel), at its end."""
+    """Clicks the text of the lines (found on the screen: the tallest white box of the panel), under its last line."""
     path = os.path.join(args.tmp, "full-probe.png")
     subprocess.run(["import", "-window", "root", path], env=dict(os.environ, DISPLAY=args.display))
     from PIL import Image

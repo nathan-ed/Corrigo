@@ -8,13 +8,11 @@ package corrigo.panel.sidebar.grades.lines;
 
 import corrigo.panel.sidebar.grades.PNFAnnotationManager;
 import corrigo.panel.sidebar.grades.QuickGradePlacement;
-import corrigo.panel.sidebar.grades.tags.ExerciseTags;
 import corrigo.panel.sidebar.grades.tags.TagScoring;
 import corrigo.panel.sidebar.grades.lines.LineGrading.Block;
 import corrigo.panel.sidebar.grades.lines.LineGrading.Kind;
 import corrigo.panel.sidebar.grades.lines.LineGrading.Line;
 import fr.clementgre.pdf4teachers.Main;
-import fr.clementgre.pdf4teachers.datasaving.Config;
 import fr.clementgre.pdf4teachers.document.editions.Edition;
 import fr.clementgre.pdf4teachers.document.editions.elements.Element;
 import fr.clementgre.pdf4teachers.document.editions.elements.GradeElement;
@@ -23,14 +21,12 @@ import fr.clementgre.pdf4teachers.document.editions.undoEngine.UType;
 import fr.clementgre.pdf4teachers.document.editions.undoEngine.UndoEngine;
 import fr.clementgre.pdf4teachers.document.render.display.PageRenderer;
 import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
-import fr.clementgre.pdf4teachers.interfaces.windows.log.Log;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.scene.paint.Color;
 
-import java.io.File;
 import java.util.*;
 
 /**
@@ -137,6 +133,12 @@ public final class LineCorrection {
 
     // TEXT AND GRADES
 
+    // The texts of the exercises of the open copy (exercise path → text)
+    public static Map<String, String> getTexts(){
+        LinkedHashMap<String, String> texts = new LinkedHashMap<>();
+        entries.forEach((path, entry) -> { if(!entry.text.isBlank()) texts.put(path, entry.text); });
+        return texts;
+    }
     public static String getText(String exercisePath){
         Entry entry = entries.get(exercisePath);
         return entry == null ? "" : entry.text;
@@ -430,64 +432,6 @@ public final class LineCorrection {
             if(child instanceof GradeTreeItem exercise) count += getUnplaced(exercise).size();
         }
         return count;
-    }
-
-    // OTHER COPIES
-
-    private record CachedFile(long modified, Map<?, ?> corrections) {}
-    private static final HashMap<File, CachedFile> otherCopies = new HashMap<>();
-
-    // The texts of this exercise on the other copies of the evaluation folder (read again when their file changed)
-    public static List<String> getOtherTexts(String exercisePath){
-        ArrayList<String> texts = new ArrayList<>();
-        for(Map<?, ?> corrections : getOtherCorrections()){
-            if(corrections.get(exercisePath) instanceof Map<?, ?> exercise && exercise.get("text") instanceof String text
-                    && !text.isBlank()) texts.add(text);
-        }
-        return texts;
-    }
-    // The texts of all the exercises of each copy (exercise path → text), this copy included: for the lines offered
-    // everywhere in the test
-    public static List<Map<String, String>> getAllCopiesTexts(){
-        ArrayList<Map<String, String>> copies = new ArrayList<>();
-        LinkedHashMap<String, String> open = new LinkedHashMap<>();
-        entries.forEach((path, entry) -> { if(!entry.text.isBlank()) open.put(path, entry.text); });
-        copies.add(open);
-        for(Map<?, ?> corrections : getOtherCorrections()){
-            LinkedHashMap<String, String> texts = new LinkedHashMap<>();
-            corrections.forEach((path, exercise) -> {
-                if(path instanceof String p && exercise instanceof Map<?, ?> map && map.get("text") instanceof String text
-                        && !text.isBlank()) texts.put(p, text);
-            });
-            copies.add(texts);
-        }
-        return copies;
-    }
-    // The "corrections" sections of the other copies of the evaluation folder (read again when their file changed)
-    private static List<Map<?, ?>> getOtherCorrections(){
-        ArrayList<Map<?, ?>> all = new ArrayList<>();
-        if(!MainWindow.mainScreen.hasDocument(false)) return all;
-        File open = MainWindow.mainScreen.document.getFile().getAbsoluteFile();
-        for(File pdf : ExerciseTags.getFolderCopies()){
-            if(pdf.getAbsoluteFile().equals(open)) continue;
-            File editFile = Edition.getEditFile(pdf);
-            if(!editFile.exists()) continue;
-            CachedFile cached = otherCopies.get(editFile);
-            if(cached == null || cached.modified() != editFile.lastModified()){
-                Map<?, ?> corrections = Map.of();
-                try{
-                    Config config = new Config(editFile);
-                    config.load();
-                    if(config.base.get(KEY) instanceof Map<?, ?> map) corrections = map;
-                }catch(Exception e){
-                    Log.w("Unable to read the lines of " + editFile.getName() + ": " + e.getMessage());
-                }
-                cached = new CachedFile(editFile.lastModified(), corrections);
-                otherCopies.put(editFile, cached);
-            }
-            all.add(cached.corrections());
-        }
-        return all;
     }
 
     // RENAME
