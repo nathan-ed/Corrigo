@@ -96,6 +96,24 @@ class LineGradingTest {
     }
 
     @Test
+    void gAfterThePointsIsForTheWholeTest(){
+        Line line = LineGrading.parseLine(0, "Notation -0.5 g", "PNF");
+        assertEquals(-.5, line.points());
+        assertEquals("Notation", line.shown()); // The "g" is never written on the copy
+        assertTrue(LineGrading.isEverywhere(line));
+        assertTrue(LineGrading.isEverywhere(LineGrading.parseLine(0, "Unités (−0,5) G", "PNF")));
+        assertTrue(LineGrading.isEverywhere(LineGrading.parseLine(0, "Bonus +1pt g", "PNF")));
+        assertFalse(LineGrading.isEverywhere(LineGrading.parseLine(0, "Notation -0.5", "PNF")));
+        // Without points, "g" is a text
+        Line text = LineGrading.parseLine(0, "Voir le g", "PNF");
+        assertNull(text.points());
+        assertEquals("Voir le g", text.shown());
+        assertFalse(LineGrading.isEverywhere(text));
+        assertNull(LineGrading.parseLine(0, "x = 5 g", "PNF").points()); // A formula stays a formula
+        assertEquals(1.5, grade(2, "Correct", "Notation -0.5 g"));
+    }
+
+    @Test
     void gradeOfASubQuestion(){
         assertEquals(1.5, grade(2, "Correct", "Notation - 0.5"));
         assertEquals(.5, grade(2, "Faux", "Calculs cohérents 1", "PNF", "Erreur - 0.5"));
@@ -192,7 +210,8 @@ class LineGradingTest {
     void textOnTheCopy(){
         assertEquals("Erreur formule (−0,5)", LineGrading.render(line("Erreur formule -0.5"), FORMAT, true));
         assertEquals("Erreur formule", LineGrading.render(line("Erreur formule -0.5"), FORMAT, false));
-        assertEquals("Formule (+1)", LineGrading.render(line("Formule 1"), FORMAT, true));
+        assertEquals(LineGrading.CHECK + " Formule (+1)", LineGrading.render(line("Formule 1"), FORMAT, true)); // Points given: a tick
+        assertEquals(LineGrading.CHECK + " +1", LineGrading.render(line("+1"), FORMAT, true));
         assertEquals("−1", LineGrading.render(line("-1"), FORMAT, false));
         assertEquals(LineGrading.CHECK + " Correct", LineGrading.render(line("Correct (tous les points)"), FORMAT, true));
         assertEquals(LineGrading.CROSS + " Faux", LineGrading.render(line("Faux"), FORMAT, true));

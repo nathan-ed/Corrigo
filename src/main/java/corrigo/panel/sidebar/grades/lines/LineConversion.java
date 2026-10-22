@@ -141,8 +141,7 @@ public final class LineConversion {
             LinkedHashMap<String, Double> computed = new LinkedHashMap<>();
             List<Block> blocks = LineGrading.parse(text, names, pnfLabel);
             for(int i = 0; i < leaves.size(); i++){
-                List<Line> leafLines = new ArrayList<>();
-                for(Block block : blocks) if(block.leaf() == i) leafLines.addAll(block.lines());
+                List<Line> leafLines = LineGrading.linesOf(blocks, i);
                 if(leafLines.isEmpty()) continue;
                 Map<String, Object> leaf = leaves.get(i);
                 Double grade = LineGrading.grade(leafLines, num(leaf.get("total"), 0));

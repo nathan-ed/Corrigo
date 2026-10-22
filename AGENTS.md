@@ -12,6 +12,9 @@ qui est entre parenthèses n'est jamais écrit sur la copie. Le mode est **par s
 points » ou « départ de 0 » décide, sinon la première ligne à points (une erreur : on part du maximum, une méthode : de
 0). Note = départ + points, entre 0 et le maximum ; une sous-question sans ligne n'est pas notée.
 
+« g » après les points (« Notation -0.5 g ») : la ligne est proposée dans tous les exercices du test (2026-10-22).
+En tapant, les lignes déjà utilisées qui correspondent sont proposées sous le champ (↑ ↓, Tab) : pas de pastilles.
+
 Toujours : ouvrir une copie ne change jamais une note ; une note change seulement quand on modifie le texte de son
 exercice ; une note tapée à la main reste (✎) jusqu'au clic sur ↺, même si les lignes changent ; une copie notée avec
 une version précédente garde ses notes. Code : `LineGrading.grade`, `LineCorrection.applyGrades`.

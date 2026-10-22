@@ -1,5 +1,5 @@
 # SANDBOX: minimal xdotool stand-in on display :77 (XTEST).
-# xdo.py click X Y | rclick X Y | dclick X Y | drag X1 Y1 X2 Y2 | key ctrl+s | type "TEXT" (\n = Return) | move X Y
+# xdo.py click X Y | rclick X Y | dclick X Y | drag X1 Y1 X2 Y2 | key ctrl+s | type "TEXT" (\n = Return) | move X Y | titles
 import sys, time
 from Xlib import display, X, XK
 from Xlib.ext import xtest
@@ -54,5 +54,16 @@ elif cmd in ("click", "rclick", "move"):
         xtest.fake_input(d, X.ButtonPress, b); d.sync(); time.sleep(.06); xtest.fake_input(d, X.ButtonRelease, b); d.sync()
 elif cmd == "key":
     key(sys.argv[2])
+elif cmd == "titles":  # The names of the windows (the open copy is in the title of the main window)
+    net_name, utf8 = d.intern_atom("_NET_WM_NAME"), d.intern_atom("UTF8_STRING")
+    def walk(w):
+        try:
+            prop = w.get_full_property(net_name, utf8)
+            name = prop.value.decode("utf-8", "replace") if prop else w.get_wm_name()
+            if name: print(name)
+            for child in w.query_tree().children: walk(child)
+        except Exception:
+            pass
+    walk(d.screen().root)
 elif cmd == "type":
     for ch in sys.argv[2].replace("\\n", "\n"): typechar(ch)

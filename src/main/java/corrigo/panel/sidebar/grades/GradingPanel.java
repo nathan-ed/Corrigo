@@ -33,6 +33,7 @@ import javafx.util.Duration;
 import corrigo.document.editions.elements.ScoredCommentElement;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
@@ -79,7 +80,7 @@ public class GradingPanel extends VBox {
     private final LinesEditor linesEditor = new LinesEditor(new LinesEditor.Colors(palette.card(), palette.border(), palette.text(), palette.muted(), palette.accent()),
             new QuickMarksBar(palette.border(), palette.text(), palette.muted(), palette.accent()), this::openUngradedCopy);
     // The panel shows the grading by lines (setting)
-    private final javafx.beans.property.BooleanProperty linesMode = new javafx.beans.property.SimpleBooleanProperty(LineCorrection.isEnabled());
+    private final BooleanProperty linesMode = new SimpleBooleanProperty(LineCorrection.isEnabled());
 
     // HEADER
     private final Label exerciseName = new Label();
@@ -759,7 +760,16 @@ public class GradingPanel extends VBox {
         // The fields of the panel handle their own keys (this filter also receives them)
         if(isInTextField(e.getTarget()) || isInTextField(getScene() == null ? null : getScene().getFocusOwner())) return;
         Section section = getActive();
-        if(linesMode.get() && (MathUtils.parseDigitTypedOrNull(e) != null || e.getCode() == KeyCode.BACK_SPACE)) return;
+        if(linesMode.get()){
+            // A letter or a number typed on the panel goes to the text of the lines, on a new line (the shortcuts of
+            // the old mode, C, G, Z, digits…, would do something else)
+            String typed = e.getText();
+            if(!typed.isEmpty() && !Character.isISOControl(typed.charAt(0)) && exercise != null){
+                linesEditor.focusAreaNow(); // The character itself (KEY_TYPED) then reaches the text
+                return;
+            }
+            if(e.getCode() == KeyCode.BACK_SPACE) return;
+        }
 
         Integer number = MathUtils.parseDigitTypedOrNull(e);
         if(number != null && section != null){
@@ -1019,9 +1029,7 @@ public class GradingPanel extends VBox {
     }
     // The copy is closed: in the grading by lines, the lines not placed yet are written next to their grades
     public void beforeCopyClosed(){
-        if(!LineCorrection.isEnabled() || fr.clementgre.pdf4teachers.Main.settings == null
-                || !fr.clementgre.pdf4teachers.Main.settings.linesAutoPlace.getValue()) return;
-        LineCorrection.placeAllNextToGrades();
+        if(LineCorrection.isAutoPlace()) LineCorrection.placeAllNextToGrades();
     }
 
     private void cancelPending(){
@@ -1078,7 +1086,7 @@ public class GradingPanel extends VBox {
         if(exercise == null || !MainWindow.mainScreen.hasDocument(false)) return;
         commitEdits();
         // Each line is placed with a click: lines not placed yet keep the copy open, once
-        if(linesMode.get() && !(fr.clementgre.pdf4teachers.Main.settings != null && fr.clementgre.pdf4teachers.Main.settings.linesAutoPlace.getValue())){
+        if(linesMode.get() && !LineCorrection.isAutoPlace()){
             int unplaced = LineCorrection.countUnplaced();
             if(unplaced > 0 && System.currentTimeMillis() - unplacedWarningTime > 5000){
                 unplacedWarningTime = System.currentTimeMillis();

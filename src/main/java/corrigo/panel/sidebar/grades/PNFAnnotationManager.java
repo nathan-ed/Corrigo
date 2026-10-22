@@ -221,21 +221,10 @@ public class PNFAnnotationManager {
             corrigo.panel.sidebar.grades.tags.ExerciseTags.fireChanged(false); // The count on the card
         });
     }
-    // The copy was opened: an empty presentation grade is filled from its marks once its grading has started. A grade
-    // already there (typed by hand or computed before) is never changed by the opening.
-    public static void onEditionLoaded(){
-        updateScoreWhenReady(50);
-    }
-    // Once the document is ready (its undo engine is set after the edition is loaded)
-    private static void updateScoreWhenReady(int tries){
-        javafx.application.Platform.runLater(() -> {
-            if(!MainWindow.mainScreen.hasDocument(false)) return;
-            if(MainWindow.mainScreen.getUndoEngine() == null){
-                if(tries > 0) updateScoreWhenReady(tries - 1);
-                return;
-            }
-            updateScore(false);
-        });
+    // A grade was given on the copy (typed, or by the lines): an empty presentation grade is filled from its marks. Never
+    // at the opening of a copy: opening a copy never changes a grade.
+    public static void onGradingChanged(){
+        javafx.application.Platform.runLater(() -> updateScore(false));
     }
     private static void updateScore(boolean changed){
         if(Main.settings == null || !Main.settings.presentationMarks.getValue() || !MainWindow.mainScreen.hasDocument(false)) return;

@@ -374,7 +374,7 @@ def golf():
     save()
     placed = [t["text"] for t in linked("07_GOLF").values()]
     check("equal lines: each placed by its own click", len(placed) == 5 and sum(t.startswith("Erreur") for t in placed) == 2
-          and sum(t.startswith("Méthode") for t in placed) == 2, placed)
+          and sum("Méthode" in t for t in placed) == 2, placed)
     # Delete one of the two "Erreur" lines: one text goes, the other stays
     click(AREA)
     key("ctrl+Home")
@@ -395,6 +395,37 @@ def golf():
     check("reopened: GOLF unchanged", edit("07_GOLF").get("corrections") == snapshot.get("corrections") and
           grades("07_GOLF") == {(g["parentPath"] + "\\" + g["name"]): g["value"] for g in snapshot["grades"]} and
           [t["text"] for t in texts("07_GOLF")] == [t["text"] for p in snapshot["texts"].values() for t in p])
+
+
+# Last: the lines « Everywhere » it adds move the text field of the other copies down
+def hotel():
+    print("HOTEL: a line with « g » offered in every exercise", flush=True)
+    start("08_HOTEL")
+    click(AREA)
+    type_text("Correct\nNotation -0.5 g")
+    save()
+    check("« g »: a = 2 − 0.5 = 1.5", grades("08_HOTEL")[A] == 1.5, grades("08_HOTEL"))
+    click(PAGE[0], .8)
+    click(PAGE[1], .8)
+    save()
+    placed = [t["text"] for t in linked("08_HOTEL").values()]
+    check("« g » never written on the copy", any(t.startswith("Notation") for t in placed) and not any(t.rstrip().endswith("g") for t in placed), placed)
+    # Ex 1: Tab completes with the line of Ex 2
+    click(EX1_JUMP, 1.5)
+    click(AREA)
+    type_text("nota")
+    shot("everywhere_ex1")
+    key("Tab", 1)
+    save()
+    check("« g » line offered in another exercise: Ex 1 = 3 − 0.5", grades("08_HOTEL")[EX1] == 2.5, grades("08_HOTEL"))
+    check("« g » kept when typed again", lines("08_HOTEL", EX1).get("text", "").rstrip().endswith("g"), lines("08_HOTEL", EX1))
+    snapshot = edit("08_HOTEL")
+    stop()
+    start("08_HOTEL")
+    save()
+    stop(False)
+    check("reopened: HOTEL unchanged", edit("08_HOTEL").get("corrections") == snapshot.get("corrections") and
+          grades("08_HOTEL") == {(g["parentPath"] + "\\" + g["name"]): g["value"] for g in snapshot["grades"]})
 
 
 def alpha_and_setting():
@@ -427,7 +458,7 @@ def main():
     parser.add_argument("--only", default=None)
     args = parser.parse_args()
     prepare()
-    for scenario in (bravo, charlie, delta, golf, next_copy, alpha_and_setting):
+    for scenario in (bravo, charlie, delta, golf, next_copy, alpha_and_setting, hotel):
         if args.only and args.only not in scenario.__name__: continue
         try:
             scenario()

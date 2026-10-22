@@ -196,6 +196,7 @@ public class GradeElement extends Element {
                 if(!MainWindow.mainScreen.isNextUndoActionProperty(valueProperty())){
                     MainWindow.mainScreen.registerNewAction(new ObservableChangedUndoAction<>(this, valueProperty(), oldValue, UType.ELEMENT));
                 }
+                corrigo.panel.sidebar.grades.PNFAnnotationManager.onGradingChanged();
             }
         });
         totalProperty().addListener((observable, oldValue, newValue) -> {

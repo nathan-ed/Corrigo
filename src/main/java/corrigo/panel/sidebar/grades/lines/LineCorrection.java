@@ -8,10 +8,13 @@ package corrigo.panel.sidebar.grades.lines;
 
 import corrigo.panel.sidebar.grades.PNFAnnotationManager;
 import corrigo.panel.sidebar.grades.QuickGradePlacement;
+import corrigo.panel.sidebar.grades.tags.ExerciseTags;
+import corrigo.panel.sidebar.grades.tags.TagScoring;
 import corrigo.panel.sidebar.grades.lines.LineGrading.Block;
 import corrigo.panel.sidebar.grades.lines.LineGrading.Kind;
 import corrigo.panel.sidebar.grades.lines.LineGrading.Line;
 import fr.clementgre.pdf4teachers.Main;
+import fr.clementgre.pdf4teachers.datasaving.Config;
 import fr.clementgre.pdf4teachers.document.editions.Edition;
 import fr.clementgre.pdf4teachers.document.editions.elements.Element;
 import fr.clementgre.pdf4teachers.document.editions.elements.GradeElement;
@@ -20,13 +23,16 @@ import fr.clementgre.pdf4teachers.document.editions.undoEngine.UType;
 import fr.clementgre.pdf4teachers.document.editions.undoEngine.UndoEngine;
 import fr.clementgre.pdf4teachers.document.render.display.PageRenderer;
 import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
+import fr.clementgre.pdf4teachers.interfaces.windows.log.Log;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
 import fr.clementgre.pdf4teachers.utils.fonts.FontUtils;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 
+import java.io.File;
 import java.util.*;
 
 /**
@@ -66,6 +72,10 @@ public final class LineCorrection {
 
     public static boolean isEnabled(){
         return Main.settings != null && Main.settings.gradingByLines.getValue();
+    }
+    // The lines not placed yet are written next to their grades when the copy is closed (setting; else a click each)
+    public static boolean isAutoPlace(){
+        return isEnabled() && Main.settings.linesAutoPlace.getValue();
     }
     public static LongProperty revisionProperty(){
         return revision;
@@ -139,6 +149,7 @@ public final class LineCorrection {
         entry.ids = LineIds.update(split(entry.text), entry.ids, split(text));
         entry.text = text;
         applyGrades(exercise, entry);
+        PNFAnnotationManager.onGradingChanged(); // An empty presentation grade is filled once the copy is graded
         reconcile(exercise, entry, oldIds, oldLines);
         Edition.setUnsave("LinesEdited");
         fire();
@@ -170,9 +181,9 @@ public final class LineCorrection {
     private static boolean isTyped(double value, Double computed){
         return computed == null ? value >= 0 : Math.abs(value - computed) > EPS;
     }
-    static Double gradeOf(List<Block> blocks, int leaf, double total){
-        List<Line> lines = new ArrayList<>();
-        for(Block block : blocks) if(block.leaf() == leaf) lines.addAll(block.lines());
+    // The grade of the sub-question at leaf from its lines (null: no line, not graded)
+    private static Double gradeOf(List<Block> blocks, int leaf, double total){
+        List<Line> lines = LineGrading.linesOf(blocks, leaf);
         return lines.isEmpty() ? null : LineGrading.grade(lines, total);
     }
 
@@ -183,12 +194,10 @@ public final class LineCorrection {
         if(entry == null) return new LeafState(null, null, false);
         List<Block> blocks = parse(exercise, entry);
         int index = getLeaves(exercise).indexOf(leaf);
-        Double grade = gradeOf(blocks, index, leaf.getCore().getTotal());
-        List<Line> lines = new ArrayList<>();
-        for(Block block : blocks) if(block.leaf() == index) lines.addAll(block.lines());
+        double total = leaf.getCore().getTotal();
         // Typed by hand: the lines do not change it (shown when the exercise has lines)
         boolean typed = !entry.text.isBlank() && isTyped(leaf.getCore().getValue(), entry.computed.get(leaf.getCore().getPath()));
-        return new LeafState(grade, LineGrading.start(lines, leaf.getCore().getTotal()), typed);
+        return new LeafState(gradeOf(blocks, index, total), LineGrading.start(LineGrading.linesOf(blocks, index), total), typed);
     }
     // The teacher asks for the grade of the lines again, over a value typed by hand
     public static void resetToLines(GradeTreeItem exercise, GradeTreeItem leaf){
@@ -250,7 +259,6 @@ public final class LineCorrection {
         return placed;
     }
 
-    // The texts written by the lines of the exercise follow its text: updated, or removed with their line
     // The text of each line by its id
     private static Map<String, String> linesById(String text, List<String> ids){
         HashMap<String, String> byId = new HashMap<>();
@@ -258,8 +266,9 @@ public final class LineCorrection {
         for(int i = 0; i < Math.min(lines.size(), ids.size()); i++) if(!ids.get(i).isEmpty()) byId.put(ids.get(i), lines.get(i));
         return byId;
     }
-    // Only the texts of the lines that changed are written again: a text not edited stays as it is on the copy (as it
-    // was converted from an older version, or with a note in parentheses written before)
+    // The texts written by the lines of the exercise follow its text: removed with their line, written again when their
+    // line changed. A text whose line did not change stays as it is on the copy (as it was converted from an older
+    // version, or with a note in parentheses written before)
     private static void reconcile(GradeTreeItem exercise, Entry entry, Set<String> oldIds, Map<String, String> oldLines){
         Map<String, String> newLines = linesById(entry.text, entry.ids);
         HashMap<String, Line> lines = new HashMap<>();
@@ -356,7 +365,7 @@ public final class LineCorrection {
             QuickGradePlacement.Spot spot = QuickGradePlacement.nextSpot(anchor, fallbackPage);
             TextElement element = place(exercise, pending, spot.page(), spot.x(), spot.y(), false);
             // Not over what the student wrote nor over another annotation: the free place the closest
-            if(element != null && element.getPage() != null) corrigo.panel.sidebar.grades.tags.TagScoring.moveToFreeSpotNowOrLater(element, element.getPage());
+            if(element != null && element.getPage() != null) TagScoring.moveToFreeSpotNowOrLater(element, element.getPage());
         }
     }
     // The copy is closed: the lines of all its exercises not placed yet are written next to their grades
@@ -375,15 +384,8 @@ public final class LineCorrection {
         }
         return count;
     }
-    public static boolean hasUnplaced(){
-        if(GradeTreeView.getTotal() == null) return false;
-        for(var child : GradeTreeView.getTotal().getChildren()){
-            if(child instanceof GradeTreeItem exercise && !getUnplaced(exercise).isEmpty()) return true;
-        }
-        return false;
-    }
 
-    private static javafx.scene.text.Font getFont(){
+    private static Font getFont(){
         int size = Main.settings == null ? 14 : Main.settings.commentsSize.getValue();
         return FontUtils.getFont("Open Sans", false, false, Math.clamp(size, 6, 60));
     }
@@ -391,34 +393,59 @@ public final class LineCorrection {
     // OTHER COPIES
 
     private record CachedFile(long modified, Map<?, ?> corrections) {}
-    private static final HashMap<java.io.File, CachedFile> otherCopies = new HashMap<>();
+    private static final HashMap<File, CachedFile> otherCopies = new HashMap<>();
 
     // The texts of this exercise on the other copies of the evaluation folder (read again when their file changed)
     public static List<String> getOtherTexts(String exercisePath){
         ArrayList<String> texts = new ArrayList<>();
-        if(!MainWindow.mainScreen.hasDocument(false)) return texts;
-        java.io.File open = MainWindow.mainScreen.document.getFile().getAbsoluteFile();
-        for(java.io.File pdf : corrigo.panel.sidebar.grades.tags.ExerciseTags.getFolderCopies()){
+        for(Map<?, ?> corrections : getOtherCorrections()){
+            if(corrections.get(exercisePath) instanceof Map<?, ?> exercise && exercise.get("text") instanceof String text
+                    && !text.isBlank()) texts.add(text);
+        }
+        return texts;
+    }
+    // The texts of all the exercises of each copy (exercise path → text), this copy included: for the lines offered
+    // everywhere in the test
+    public static List<Map<String, String>> getAllCopiesTexts(){
+        ArrayList<Map<String, String>> copies = new ArrayList<>();
+        LinkedHashMap<String, String> open = new LinkedHashMap<>();
+        entries.forEach((path, entry) -> { if(!entry.text.isBlank()) open.put(path, entry.text); });
+        copies.add(open);
+        for(Map<?, ?> corrections : getOtherCorrections()){
+            LinkedHashMap<String, String> texts = new LinkedHashMap<>();
+            corrections.forEach((path, exercise) -> {
+                if(path instanceof String p && exercise instanceof Map<?, ?> map && map.get("text") instanceof String text
+                        && !text.isBlank()) texts.put(p, text);
+            });
+            copies.add(texts);
+        }
+        return copies;
+    }
+    // The "corrections" sections of the other copies of the evaluation folder (read again when their file changed)
+    private static List<Map<?, ?>> getOtherCorrections(){
+        ArrayList<Map<?, ?>> all = new ArrayList<>();
+        if(!MainWindow.mainScreen.hasDocument(false)) return all;
+        File open = MainWindow.mainScreen.document.getFile().getAbsoluteFile();
+        for(File pdf : ExerciseTags.getFolderCopies()){
             if(pdf.getAbsoluteFile().equals(open)) continue;
-            java.io.File editFile = Edition.getEditFile(pdf);
+            File editFile = Edition.getEditFile(pdf);
             if(!editFile.exists()) continue;
             CachedFile cached = otherCopies.get(editFile);
             if(cached == null || cached.modified() != editFile.lastModified()){
                 Map<?, ?> corrections = Map.of();
                 try{
-                    fr.clementgre.pdf4teachers.datasaving.Config config = new fr.clementgre.pdf4teachers.datasaving.Config(editFile);
+                    Config config = new Config(editFile);
                     config.load();
                     if(config.base.get(KEY) instanceof Map<?, ?> map) corrections = map;
                 }catch(Exception e){
-                    fr.clementgre.pdf4teachers.interfaces.windows.log.Log.w("Unable to read the lines of " + editFile.getName() + ": " + e.getMessage());
+                    Log.w("Unable to read the lines of " + editFile.getName() + ": " + e.getMessage());
                 }
                 cached = new CachedFile(editFile.lastModified(), corrections);
                 otherCopies.put(editFile, cached);
             }
-            if(cached.corrections().get(exercisePath) instanceof Map<?, ?> exercise && exercise.get("text") instanceof String text
-                    && !text.isBlank()) texts.add(text);
+            all.add(cached.corrections());
         }
-        return texts;
+        return all;
     }
 
     // RENAME

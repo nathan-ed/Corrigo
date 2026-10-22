@@ -127,7 +127,6 @@ public class Edition{
             ScoredComments.fireChanged(false);
             EvaluationComments.onEditionLoaded();
             corrigo.panel.sidebar.grades.tags.ExerciseTags.onEditionLoaded();
-            corrigo.panel.sidebar.grades.PNFAnnotationManager.onEditionLoaded();
             if(!keptGrades.isEmpty()){ // Nothing changes on the copy: only where its points start from is written
                 setUnsave("GradesKept");
                 Log.i("Start of the points kept: " + keptGrades);

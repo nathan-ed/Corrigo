@@ -69,6 +69,8 @@ public final class LineGrading {
     private static final Pattern POINTS_IN_PARENTHESES = Pattern.compile("\\(\\s*([+\\-−–]\\s*\\d+(?:[.,]\\d+)?|\\d+(?:[.,]\\d+)?)\\s*(?:pts?\\.?|points?)?\\s*\\)\\s*$",
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     private static final Pattern PRIVATE = Pattern.compile("\\([^()]*\\)");
+    // "g" after the points: a line for the whole test, offered in every exercise ("Notation -0.5 g"); never written
+    private static final Pattern EVERYWHERE = Pattern.compile("(?<!\\p{L})[gG]\\.?\\s*$");
     // "b)" or "b." alone, or at the start of the first line of a block: the block is for this sub-question
     private static final Pattern LABEL = Pattern.compile("^\\s*([^().]{1,40}?)\\s*[).]\\s*(.*)$");
 
@@ -77,6 +79,12 @@ public final class LineGrading {
     // A line of text (pnfLabel: name of the presentation marks, "PNF")
     public static Line parseLine(int index, String raw, String pnfLabel){
         String text = raw.strip();
+        // "Notation -0.5 g": the line without its "g", if it has points ("5 g" without points stays a text)
+        Matcher everywhere = EVERYWHERE.matcher(text);
+        if(everywhere.find() && everywhere.start() > 0){
+            Line line = parseLine(index, text.substring(0, everywhere.start()), pnfLabel);
+            if(line.points() != null && line.kind() != Kind.PNF) return new Line(index, raw, line.shown(), line.points(), line.kind(), null);
+        }
         // Points written in parentheses at the end, as on the copy: "Erreur (−0,5)"
         Double pointsInParentheses = null;
         Matcher inParentheses = POINTS_IN_PARENTHESES.matcher(text);
@@ -113,6 +121,11 @@ public final class LineGrading {
         if(FULL_WORDS.contains(key)) return new Line(index, raw, shown, null, Kind.FULL, null);
         if(ZERO_WORDS.contains(key)) return new Line(index, raw, shown, null, Kind.ZERO, null);
         return new Line(index, raw, shown, null, Kind.COMMENT, null);
+    }
+
+    // A line typed with "g" after its points: offered in every exercise of the test
+    public static boolean isEverywhere(Line line){
+        return line.points() != null && line.kind() != Kind.PNF && EVERYWHERE.matcher(line.raw().strip()).find();
     }
 
     // The number of the match is points, not part of the text or of a formula
@@ -197,7 +210,7 @@ public final class LineGrading {
     }
     // A sub-question is named "a", "a)", "1. Limites" or "Mise en équation": its label is "a)", "a)", "1." or
     // "Mise en équation)", and "1. Limites" written in full is its label too
-    private static final Pattern NUMBERED = Pattern.compile("^([\\p{L}\\p{N}]{1,4})\\s*[).]\\s*(.*)$");
+    private static final Pattern NUMBERED = Pattern.compile("^([\\p{L}\\p{N}]{1,4})\\s*([).])\\s*(.*)$");
     static Set<String> labelKeys(String leafName){
         Set<String> keys = new HashSet<>();
         String name = normalize(leafName);
@@ -213,18 +226,25 @@ public final class LineGrading {
     // The rest of a full name after its number ("limites" for "1. Limites"), or ""
     private static String nameAfterNumber(String leafName){
         Matcher numbered = NUMBERED.matcher(normalize(leafName));
-        return numbered.matches() ? numbered.group(2) : "";
+        return numbered.matches() ? numbered.group(3) : "";
     }
     // What to type at the start of a block to give it to this sub-question
     public static String labelOf(String leafName){
         String name = leafName.strip();
         if(name.endsWith(")") || name.endsWith(".")) return name;
-        Matcher numbered = Pattern.compile("^([\\p{L}\\p{N}]{1,4})\\s*([).])\\s*.*$").matcher(name);
+        Matcher numbered = NUMBERED.matcher(name);
         if(numbered.matches()) return numbered.group(1) + numbered.group(2);
         return name + ")";
     }
 
     // GRADE
+
+    // The lines of the blocks of the sub-question at leaf
+    public static List<Line> linesOf(List<Block> blocks, int leaf){
+        List<Line> lines = new ArrayList<>();
+        for(Block block : blocks) if(block.leaf() == leaf) lines.addAll(block.lines());
+        return lines;
+    }
 
     /**
      * Grade of a sub-question from its lines, or null if nothing counts (only comments or presentation marks): it is
@@ -233,34 +253,13 @@ public final class LineGrading {
      * Then the points are added, between 0 and the maximum.
      */
     public static Double grade(List<Line> lines, double total){
-        Double keywordStart = null, pointsStart = null;
-        boolean counts = false;
-        double sum = 0;
-        for(Line line : lines){
-            switch(line.kind()){
-                case FULL -> {
-                    counts = true;
-                    if(keywordStart == null) keywordStart = total;
-                }
-                case ZERO -> {
-                    counts = true;
-                    if(keywordStart == null) keywordStart = 0d;
-                }
-                case METHOD, MISTAKE, NEUTRAL -> {
-                    counts = true;
-                    sum += line.points();
-                    if(pointsStart == null && line.points() != 0) pointsStart = line.points() < 0 ? total : 0;
-                }
-                default -> {
-                }
-            }
-        }
-        if(!counts) return null;
-        double start = keywordStart != null ? keywordStart : pointsStart != null ? pointsStart : 0;
+        Double start = start(lines, total);
+        if(start == null) return null;
+        double sum = lines.stream().filter(line -> line.points() != null).mapToDouble(Line::points).sum();
         return Math.max(0, Math.min(total, start + sum));
     }
 
-    // Where the points of the block start from: the maximum, 0, or null if nothing counts
+    // Where the points of the sub-question start from: the maximum, 0, or null if nothing counts
     public static Double start(List<Line> lines, double total){
         for(Line line : lines){
             if(line.kind() == Kind.FULL) return total;
@@ -269,24 +268,28 @@ public final class LineGrading {
         for(Line line : lines){
             if(line.points() != null && line.points() != 0) return line.points() < 0 ? total : 0d;
         }
-        return lines.stream().anyMatch(line -> line.points() != null) ? 0d : null;
+        return lines.stream().anyMatch(line -> line.points() != null) ? 0d : null; // Only points at 0
     }
 
     // TEXT ON THE COPY
 
     public static final String CHECK = "$\\checkmark$";
-    // A red cross for the lines that start from 0 ("Faux")
     public static final String CROSS = "$\\boldsymbol{\\times}$";
 
     // What is written on the copy for a line (not for a presentation mark)
     public static String render(Line line, NumberFormat format, boolean withPoints){
         String points = line.points() == null || line.points() == 0 ? "" : formatPoints(line.points(), format);
-        return switch(line.kind()){
-            case FULL -> line.shown().isEmpty() ? CHECK : CHECK + " " + line.shown();
-            case ZERO -> line.shown().isEmpty() ? CROSS : CROSS + " " + line.shown();
+        String text = switch(line.kind()){
             case METHOD, MISTAKE -> line.shown().isEmpty() ? points : withPoints ? line.shown() + " (" + points + ")" : line.shown();
             default -> line.shown();
         };
+        // A green tick for what gives points ("Correct", "Calculs cohérents +1"), a red cross for what starts from 0
+        String mark = switch(line.kind()){
+            case FULL, METHOD -> CHECK;
+            case ZERO -> CROSS;
+            default -> "";
+        };
+        return mark.isEmpty() || text.isEmpty() ? mark + text : mark + " " + text;
     }
     public static String formatPoints(double points, NumberFormat format){
         if(points > 0) return "+" + format.format(points);
