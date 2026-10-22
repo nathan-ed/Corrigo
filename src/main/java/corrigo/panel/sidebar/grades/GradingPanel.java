@@ -1072,9 +1072,23 @@ public class GradingPanel extends VBox {
 
     // NEXT UNGRADED COPY
 
+    // Grading by lines: time of the warning about the lines not placed (the same key again within 5 s leaves anyway)
+    private long unplacedWarningTime;
     private void openUngradedCopy(int delta){
         if(exercise == null || !MainWindow.mainScreen.hasDocument(false)) return;
         commitEdits();
+        // Each line is placed with a click: lines not placed yet keep the copy open, once
+        if(linesMode.get() && !(fr.clementgre.pdf4teachers.Main.settings != null && fr.clementgre.pdf4teachers.Main.settings.linesAutoPlace.getValue())){
+            int unplaced = LineCorrection.countUnplaced();
+            if(unplaced > 0 && System.currentTimeMillis() - unplacedWarningTime > 5000){
+                unplacedWarningTime = System.currentTimeMillis();
+                MainWindow.footerBar.showToast(Color.web("#e65100"), Color.WHITE, FooterBar.ToastDuration.LONG,
+                        TR.tr("lines.unplacedWarning", String.valueOf(unplaced)));
+                linesEditor.focusArea();
+                return;
+            }
+        }
+        unplacedWarningTime = 0;
 
         String exercisePath = exercise.getCore().getPath();
         List<File> files = MainWindow.filesTab.files.getItems();

@@ -354,6 +354,15 @@ public final class LineCorrection {
             if(child instanceof GradeTreeItem exercise && entries.containsKey(exercise.getCore().getPath())) placeAllNextToGrades(exercise);
         }
     }
+    // Number of lines of the copy not placed yet, in all its exercises
+    public static int countUnplaced(){
+        if(GradeTreeView.getTotal() == null) return 0;
+        int count = 0;
+        for(var child : GradeTreeView.getTotal().getChildren()){
+            if(child instanceof GradeTreeItem exercise) count += getUnplaced(exercise).size();
+        }
+        return count;
+    }
     public static boolean hasUnplaced(){
         if(GradeTreeView.getTotal() == null) return false;
         for(var child : GradeTreeView.getTotal().getChildren()){

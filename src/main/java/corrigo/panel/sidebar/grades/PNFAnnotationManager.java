@@ -28,8 +28,11 @@ import java.util.Optional;
 public class PNFAnnotationManager {
     
     private static final Color PNF_COLOR = Color.web("#b31a1a");
-    private static final Font PNF_FONT = FontUtils.getFont("Open Sans", false, false, 24);
-    private static final Font PNF_COMMENT_FONT = FontUtils.getFont("Open Sans", false, false, 18);
+    // A mark has the size of the other comments written on the copy (setting)
+    private static Font getMarkFont(){
+        int size = Main.settings == null ? 14 : Main.settings.commentsSize.getValue();
+        return FontUtils.getFont("Open Sans", false, false, Math.clamp(size, 6, 60));
+    }
     private static final Font PNF_TABLE_FONT = FontUtils.getFont("Open Sans", false, false, 18);
     private static final String DEFAULT_LABEL = "PNF";
     private static final String PNF_MARK = "I";
@@ -270,7 +273,7 @@ public class PNFAnnotationManager {
     private static TextElement addPNFAnnotation(PageRenderer page, int gridX, int gridY, String comment, UndoGroup undoGroup){
         boolean commented = comment != null && !comment.isBlank();
         TextElement element = new TextElement(gridX, gridY, page.getPage(),
-                true, getText(comment), PNF_COLOR, commented ? PNF_COMMENT_FONT : PNF_FONT, commented ? 40 : 0);
+                true, getText(comment), PNF_COLOR, getMarkFont(), commented ? 40 : 0);
         page.addElement(element, true, undoGroup.next());
         element.centerOnCoordinatesY();
         return element;

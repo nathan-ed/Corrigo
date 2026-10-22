@@ -158,7 +158,7 @@ public class Settings {
     public BooleanSetting linesShowPoints = new BooleanSetting(true, true, SVGPathIcons.LIST, "linesShowPoints",
             "settings.linesShowPoints.title", "settings.linesShowPoints.tooltip");
     @SettingObject
-    public BooleanSetting linesAutoPlace = new BooleanSetting(true, true, SVGPathIcons.LIST, "linesAutoPlace",
+    public BooleanSetting linesAutoPlace = new BooleanSetting(false, true, SVGPathIcons.LIST, "linesAutoPlace",
             "settings.linesAutoPlace.title", "settings.linesAutoPlace.tooltip");
     @SettingObject
     public IntSetting commentsSize = new IntSetting(14, true, 8, 30, 1, false, false, SVGPathIcons.TEXT_HEIGHT, "commentsSize",
