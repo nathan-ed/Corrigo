@@ -26,11 +26,9 @@ import fr.clementgre.pdf4teachers.interfaces.windows.MainWindow;
 import fr.clementgre.pdf4teachers.interfaces.windows.log.Log;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeItem;
 import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
-import fr.clementgre.pdf4teachers.utils.fonts.FontUtils;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 
 import java.io.File;
 import java.util.*;
@@ -65,6 +63,10 @@ public final class LineCorrection {
     }
     // By path of exercise
     private static final LinkedHashMap<String, Entry> entries = new LinkedHashMap<>();
+    // The texts of the copy whose lines were deleted (by path of exercise, the last one first): put back where they
+    // were when an undo of the text brings their lines back (restoreRemoved)
+    private record Removed(String line, int page, int x, int y) {}
+    private static final HashMap<String, ArrayDeque<Removed>> removed = new HashMap<>();
     private static final LongProperty revision = new SimpleLongProperty();
 
     private LineCorrection(){
@@ -92,10 +94,12 @@ public final class LineCorrection {
 
     public static void clear(){
         entries.clear();
+        removed.clear();
         fire();
     }
     public static void load(Object data){
         entries.clear();
+        removed.clear();
         if(data instanceof Map<?, ?> map){
             for(Map.Entry<?, ?> exercise : map.entrySet()){
                 if(!(exercise.getValue() instanceof Map<?, ?> values)) continue;
@@ -302,6 +306,11 @@ public final class LineCorrection {
                 Line line = lines.get(id);
                 boolean isMark = PNFAnnotationManager.isMark(element);
                 if(line == null || !line.isWritten() || (line.kind() == Kind.PNF) != isMark){
+                    String deleted = oldLines.get(id);
+                    if(line == null && deleted != null && !deleted.isBlank()){ // Its line deleted: kept to put it back
+                        removed.computeIfAbsent(exercise.getCore().getPath(), k -> new ArrayDeque<>())
+                                .push(new Removed(deleted.strip(), element.getPageNumber(), element.getRealX(), element.getRealY()));
+                    }
                     removePlaced(element);
                     continue;
                 }
@@ -364,14 +373,32 @@ public final class LineCorrection {
             if(element == null) return null;
             element.setCorrectionLine(pending.id());
         }else{
-            element = new TextElement(x, y, page.getPage(), true, getCopyText(line), getColor(line), getFont(), QuickGradePlacement.COLUMN_WIDTH);
+            element = new TextElement(x, y, page.getPage(), true, getCopyText(line), getColor(line), PNFAnnotationManager.getCommentFont(), QuickGradePlacement.COLUMN_WIDTH);
             element.setCorrectionLine(pending.id());
             page.addElement(element, true, UType.ELEMENT);
             if(center) element.centerOnCoordinatesY();
         }
+        if(!center){ // The place given is its own (put back after an undo, next to the grades): exactly, not rounded
+            TextElement placed = element;
+            withoutUndo(() -> {
+                placed.setRealX(x);
+                placed.setRealY(y);
+            });
+        }
         Edition.setUnsave("LinePlaced");
         fire();
         return element;
+    }
+    // An undo of the text brought back lines deleted before: their texts are written again where they were
+    public static void restoreRemoved(GradeTreeItem exercise){
+        ArrayDeque<Removed> deleted = exercise == null ? null : removed.get(exercise.getCore().getPath());
+        if(deleted == null || deleted.isEmpty() || !MainWindow.mainScreen.hasDocument(false)) return;
+        for(Pending pending : getUnplaced(exercise)){
+            Removed match = deleted.stream().filter(r -> r.line().equals(pending.line().raw().strip())).findFirst().orElse(null);
+            if(match == null || match.page() >= MainWindow.mainScreen.document.getPagesNumber()) continue;
+            deleted.remove(match);
+            place(exercise, pending, MainWindow.mainScreen.document.getPage(match.page()), match.x(), match.y(), false);
+        }
     }
     // Writes the lines not placed yet next to the grade of their sub-question
     public static void placeAllNextToGrades(GradeTreeItem exercise){
@@ -403,11 +430,6 @@ public final class LineCorrection {
             if(child instanceof GradeTreeItem exercise) count += getUnplaced(exercise).size();
         }
         return count;
-    }
-
-    private static Font getFont(){
-        int size = Main.settings == null ? 14 : Main.settings.commentsSize.getValue();
-        return FontUtils.getFont("Open Sans", false, false, Math.clamp(size, 6, 60));
     }
 
     // OTHER COPIES

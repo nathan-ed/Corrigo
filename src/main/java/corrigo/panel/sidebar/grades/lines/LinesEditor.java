@@ -373,7 +373,10 @@ public final class LinesEditor extends VBox {
             }
             newLineAt = -1; // The text changes: what is typed next goes where the caret is
             if(redo && area.isRedoable()) area.redo();
-            else if(!redo && area.isUndoable()) area.undo();
+            else if(!redo && area.isUndoable()){
+                area.undo();
+                LineCorrection.restoreRemoved(exercise); // Lines deleted by mistake: back on the copy where they were
+            }
             return;
         }
         if(e.getCode() == KeyCode.ENTER && e.isShortcutDown()){

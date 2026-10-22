@@ -411,6 +411,20 @@ def foxtrot():
     placed = [t["text"] for t in linked("06_FOXTROT").values()]
     check("Alt+Enter: the three lines written", len(placed) == 3, placed)
     check("Alt+Enter: grades a = 1.5, b = 0", grades("06_FOXTROT")[A] == 1.5 and grades("06_FOXTROT")[B] == 0.0, grades("06_FOXTROT"))
+    # All the text deleted by mistake, then Ctrl+Z: the lines, their grades and their texts on the copy come back,
+    # where they were
+    where = sorted((t["text"], t["x"], t["y"]) for t in linked("06_FOXTROT").values())
+    key("ctrl+a")
+    key("Delete", 1)
+    save()
+    check("text deleted: no text of a line on the copy", not linked("06_FOXTROT"), [t["text"] for t in texts("06_FOXTROT")])
+    key("ctrl+z", 1.5)
+    save()
+    back = sorted((t["text"], t["x"], t["y"]) for t in linked("06_FOXTROT").values())
+    # Where they were: a grid unit (1/165400 of the page) of rounding when a text is laid out again
+    check("Ctrl+Z: the texts back where they were", len(back) == len(where) and all(
+        a[0] == b[0] and abs(a[1] - b[1]) <= 2 and abs(a[2] - b[2]) <= 2 for a, b in zip(back, where)), (where, back))
+    check("Ctrl+Z: grades back", grades("06_FOXTROT")[A] == 1.5 and grades("06_FOXTROT")[B] == 0.0, grades("06_FOXTROT"))
     snapshot = edit("06_FOXTROT")
     stop()
     start("06_FOXTROT")

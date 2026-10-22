@@ -28,8 +28,8 @@ import java.util.Optional;
 public class PNFAnnotationManager {
     
     private static final Color PNF_COLOR = Color.web("#b31a1a");
-    // A mark has the size of the other comments written on the copy (setting)
-    private static Font getMarkFont(){
+    // The font of the comments written on the copy (setting): the marks and the lines of the grading by lines
+    public static Font getCommentFont(){
         int size = Main.settings == null ? 14 : Main.settings.commentsSize.getValue();
         return FontUtils.getFont("Open Sans", false, false, Math.clamp(size, 6, 60));
     }
@@ -262,7 +262,7 @@ public class PNFAnnotationManager {
     private static TextElement addPNFAnnotation(PageRenderer page, int gridX, int gridY, String comment, UndoGroup undoGroup){
         boolean commented = comment != null && !comment.isBlank();
         TextElement element = new TextElement(gridX, gridY, page.getPage(),
-                true, getText(comment), PNF_COLOR, getMarkFont(), commented ? 40 : 0);
+                true, getText(comment), PNF_COLOR, getCommentFont(), commented ? 40 : 0);
         page.addElement(element, true, undoGroup.next());
         element.centerOnCoordinatesY();
         return element;

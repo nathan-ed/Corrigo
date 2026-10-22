@@ -1,9 +1,9 @@
-# SANDBOX: minimal xdotool stand-in on display :77 (XTEST).
+# SANDBOX: minimal xdotool stand-in on the display of $DISPLAY (default :77, XTEST).
 # xdo.py click X Y | rclick X Y | dclick X Y | drag X1 Y1 X2 Y2 | key ctrl+s | type "TEXT" (\n = Return) | move X Y | titles
-import sys, time
+import os, sys, time
 from Xlib import display, X, XK
 from Xlib.ext import xtest
-d = display.Display(":77")
+d = display.Display(os.environ.get("DISPLAY", ":77"))
 NAMES = {"é": "eacute", "è": "egrave", "à": "agrave", "ç": "ccedilla", "ê": "ecircumflex", "ù": "ugrave","ctrl": "Control_L", "shift": "Shift_L", "alt": "Alt_L", "\n": "Return", " ": "space", "-": "minus", ".": "period",
          ",": "comma", ":": "colon", "(": "parenleft", ")": "parenright", "+": "plus", "'": "apostrophe", "/": "slash", "=": "equal"}
 def code(name):
