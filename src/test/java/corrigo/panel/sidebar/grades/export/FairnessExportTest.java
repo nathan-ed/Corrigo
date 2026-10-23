@@ -50,23 +50,19 @@ class FairnessExportTest {
 
     @Test
     void anonymousGradesLinesAndFairness(){
-        Map<String, Object> first = copy(1.5, 1, "Correct\nNotation -0.5 (Marie a oublié)\n\nFaux",
+        Map<String, Object> first = copy(1.5, 1, "Correct\nNotation -0.5 (unité oubliée)\n\nFaux",
                 Map.of("\\Total\\Ex 2\\a", 1.5, "\\Total\\Ex 2\\b", 0.0), // b: 1 typed by hand over the lines (0)
                 Map.of("page0", List.of(text("PNF", "x", 3199, "y", 130459), text("1. I", "x", 3199, "y", 140000)),
-                        "page2", List.of(text("PNF : unités", "pnfExercise", "Ex 2", "correctionLine", "p1"), text("Bravo Marie !"),
-                                text("Même erreur que Paul")))); // The name of another copy
+                        "page2", List.of(text("PNF : unités", "pnfExercise", "Ex 2", "correctionLine", "p1"), text("Bravo, Rose et Blanc !"))));
         Map<String, Object> second = copy(1, 0, "Correct\nNotation -1\n\nPas de réponse",
                 Map.of("\\Total\\Ex 2\\a", 1.0, "\\Total\\Ex 2\\b", 0.0), Map.of());
-        String export = FairnessExport.build(List.of(new FairnessExport.Copy("03_DUPONT_Marie", first),
-                new FairnessExport.Copy("04_MARTIN_Paul", second)), "PNF", FORMAT, FairnessExportTest::tr);
+        String export = FairnessExport.build(List.of(first, second), "PNF", FORMAT, FairnessExportTest::tr);
 
-        // No name anywhere: the copies are numbered, the words of their names hidden
-        for(String name : List.of("DUPONT", "Marie", "MARTIN", "Paul")) assertFalse(export.toLowerCase().contains(name.toLowerCase()), name);
+        // The copies are numbered (their names are only in the names of their files); the texts as written, nothing replaced
         assertTrue(export.contains("## Copie 01 — 4,5 / 6"));
         assertTrue(export.contains("## Copie 02 — 3 / 6"));
-        assertTrue(export.contains("  - Notation -0.5 ([élève] a oublié)"));
-        assertTrue(export.contains("Bravo [élève] !"));
-        assertTrue(export.contains("Même erreur que [élève]"));
+        assertTrue(export.contains("  - Notation -0.5 (unité oubliée)"));
+        assertTrue(export.contains("Bravo, Rose et Blanc !"));
         // The grade scale, the grades, where the points start from, a grade typed by hand
         assertTrue(export.contains("- Ex 2 : /4 (a /2, b /2)"));
         assertTrue(export.contains("- a : 1,5 / 2 — fairness.fromMax"));
@@ -77,12 +73,5 @@ class FairnessExportTest {
         // The same words with other points on two copies: first, with the copies
         assertTrue(export.contains("- ⚠ « Notation » — −0,5 : Copie 01 — −1 : Copie 02"), export);
         assertTrue(export.contains("« Correct » — fairness.allPoints : Copie 01, Copie 02"));
-    }
-
-    @Test
-    void wordsOfTheNameOnly(){
-        var hide = FairnessExport.hider(List.of("07_LI_Anne-Sophie"));
-        assertEquals("[élève] [élève] : Limite", hide.apply("Anne Sophie : Limite")); // "Li" too short, not inside "Limite"
-        assertEquals("Annexe", hide.apply("Annexe"));
     }
 }

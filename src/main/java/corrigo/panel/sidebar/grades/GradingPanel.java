@@ -1125,7 +1125,7 @@ public class GradingPanel extends VBox {
         MainWindow.mainScreen.document.edition.save(false); // The open copy as it is now
         List<File> pdfs = new ArrayList<>(ExerciseTags.getFolderCopies());
         pdfs.sort(Comparator.comparing(File::getName));
-        List<FairnessExport.Copy> copies = new ArrayList<>();
+        List<Map<String, Object>> copies = new ArrayList<>();
         try{
             for(File pdf : pdfs){
                 File editFile = Edition.getEditFile(pdf);
@@ -1135,7 +1135,7 @@ public class GradingPanel extends VBox {
                     config.load();
                     base = config.base;
                 }
-                copies.add(new FairnessExport.Copy(pdf.getName().replaceFirst("(?i)\\.pdf$", ""), base));
+                copies.add(base);
             }
             FileChooser chooser = new FileChooser();
             File folder = pdfs.isEmpty() ? null : pdfs.getFirst().getParentFile();

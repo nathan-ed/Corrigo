@@ -15,12 +15,11 @@ import corrigo.panel.sidebar.grades.lines.LineGrading.Line;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 
 /**
  * The grading of all the copies of an evaluation, anonymous, in one Markdown text: to give to an AI (or a colleague)
- * that reads the fairness of the grading. Each copy is "Copie 01", "Copie 02"… (in the order given); the words of the
- * names of all the copies are replaced by [élève] everywhere, in every copy. For each copy: each exercise and sub-question, its grade, where
+ * that reads the fairness of the grading. Each copy is "Copie 01", "Copie 02"… (in the order given): the names of the
+ * copies (the names of the files) are not in it, the texts are as the teacher wrote them. For each copy: each exercise and sub-question, its grade, where
  * its points start from, its lines (or the old scored comments), a grade typed by hand (✎), the presentation marks and
  * the other texts written on the copy. Then the lines used in the class with the copies that got them, the same words
  * with other points first. Does not depend on JavaFX.
@@ -30,18 +29,15 @@ public final class FairnessExport {
     private FairnessExport(){
     }
 
-    /** A copy: its name (the file name without ".pdf", only to remove it) and the data of its edit file. */
-    public record Copy(String name, Map<String, Object> base) {}
-
     private static final String CORRECTIONS = "corrections";
     private static final double EPS = 1e-9;
-    private static final String HIDDEN = "[élève]";
 
     /**
      * tr: the text of a key of the export ("fairness.*", "{0}", "{1}" replaced), in the language of the app.
      * pnfLabel: the name of the presentation marks.
      */
-    public static String build(List<Copy> copies, String pnfLabel, NumberFormat format, Function<String, String> tr){
+    // copies: the data of the edit file of each copy, in the order of their numbers
+    public static String build(List<Map<String, Object>> copies, String pnfLabel, NumberFormat format, Function<String, String> tr){
         Writer w = new Writer(format, tr);
         w.line("# " + tr.apply("fairness.title"));
         w.line("");
@@ -51,13 +47,11 @@ public final class FairnessExport {
         w.line("");
         w.line(tr.apply("fairness.rule"));
         w.line("");
-        if(!copies.isEmpty()) scale(w, copies.getFirst().base());
+        if(!copies.isEmpty()) scale(w, copies.getFirst());
 
         // Lines used in the class: exercise → sub-question → words → points → copies
         LinkedHashMap<String, LinkedHashMap<String, LinkedHashMap<String, Use>>> used = new LinkedHashMap<>();
-        // The names of all the copies hidden in every copy ("même erreur que Paul" on the copy of another student)
-        Function<String, String> hide = hider(copies.stream().map(Copy::name).toList());
-        for(int i = 0; i < copies.size(); i++) copy(w, number(i), copies.get(i), hide, pnfLabel, used);
+        for(int i = 0; i < copies.size(); i++) copy(w, number(i), copies.get(i), pnfLabel, used);
         uses(w, used);
         return w.text();
     }
@@ -90,9 +84,8 @@ public final class FairnessExport {
 
     // A COPY
 
-    private static void copy(Writer w, String number, Copy copy, Function<String, String> hide, String pnfLabel,
+    private static void copy(Writer w, String number, Map<String, Object> base, String pnfLabel,
                              LinkedHashMap<String, LinkedHashMap<String, LinkedHashMap<String, Use>>> used){
-        Map<String, Object> base = copy.base();
         Grades grades = new Grades(base);
         List<Map<String, Object>> texts = texts(base);
         w.line("## " + number + (grades.root == null ? "" : " — " + w.grade(grades.root)));
@@ -131,20 +124,20 @@ public final class FairnessExport {
                 if(!alone || !lines.isEmpty()) w.line(head.toString()); // Alone without lines: its grade is in the title
                 for(Line line : lines){
                     if(line.raw().isBlank()) continue;
-                    w.line("  - " + hide.apply(line.raw().strip()));
-                    if(line.kind() != Kind.PNF) use(used, name(exercise), alone ? "" : name(leaf), line, number, hide, w);
+                    w.line("  - " + line.raw().strip());
+                    if(line.kind() != Kind.PNF) use(used, name(exercise), alone ? "" : name(leaf), line, number, w);
                 }
                 // Copies graded with the methods and mistakes (before the lines): their scored comments, their comments
                 for(Map<String, Object> t : texts){
                     String target = t.get("scoredCommentId") != null ? str(t.get("gradePath")) : str(t.get("gradeComment"));
                     if(!target.equals(path(leaf)) || t.get("correctionLine") != null) continue;
                     told.add(t);
-                    w.line("  - " + hide.apply(scoredText(t, w)) + " " + w.tr("fairness.old"));
+                    w.line("  - " + scoredText(t, w) + " " + w.tr("fairness.old"));
                 }
             }
             for(Block block : blocks){
                 if(block.leaf() >= 0) continue;
-                for(Line line : block.lines()) w.line("- " + w.tr("fairness.extra") + " : " + hide.apply(line.raw().strip()));
+                for(Line line : block.lines()) w.line("- " + w.tr("fairness.extra") + " : " + line.raw().strip());
             }
             w.line("");
         }
@@ -156,8 +149,8 @@ public final class FairnessExport {
             if(value.isEmpty() || isTable(t, pnfLabel)) continue;
             if(isMark(t, pnfLabel)){
                 String where = t.get("pnfExercise") instanceof String e ? " (" + e + ")" : "";
-                marks.add(hide.apply(value) + where);
-            }else if(t.get("scoredCommentId") == null && t.get("gradeComment") == null) others.add(hide.apply(value.replace('\n', ' ')));
+                marks.add(value + where);
+            }else if(t.get("scoredCommentId") == null && t.get("gradeComment") == null) others.add(value.replace('\n', ' '));
         }
         w.line("- " + w.tr("fairness.marks", String.valueOf(marks.size())) + (marks.isEmpty() ? "" : " : " + String.join(" ; ", marks)));
         if(!others.isEmpty()){
@@ -177,11 +170,11 @@ public final class FairnessExport {
         }
     }
     private static void use(LinkedHashMap<String, LinkedHashMap<String, LinkedHashMap<String, Use>>> used, String exercise, String leaf,
-                            Line line, String number, Function<String, String> hide, Writer w){
+                            Line line, String number, Writer w){
         String key = LineBank.keyOf(line);
         if(key.isEmpty() && line.points() == null) return;
         Use use = used.computeIfAbsent(exercise, k -> new LinkedHashMap<>()).computeIfAbsent(leaf, k -> new LinkedHashMap<>())
-                .computeIfAbsent(key, k -> new Use(hide.apply(line.shown().isEmpty() ? line.raw().strip() : line.shown())));
+                .computeIfAbsent(key, k -> new Use(line.shown().isEmpty() ? line.raw().strip() : line.shown()));
         String points = switch(line.kind()){
             case FULL -> w.tr("fairness.allPoints");
             case ZERO -> w.tr("fairness.fromZero");
@@ -248,26 +241,6 @@ public final class FairnessExport {
         if(Boolean.TRUE.equals(t.get("noPoints"))) return comment;
         String points = LineGrading.formatPoints(num(t.get("points"), 0), w.format);
         return comment.isEmpty() ? points : comment + " " + points;
-    }
-
-    // ANONYMOUS
-
-    // The words of the names of the copies (3 letters or more, not numbers), as whole words, without case
-    static Function<String, String> hider(List<String> names){
-        List<Pattern> words = new ArrayList<>();
-        Set<String> seen = new HashSet<>();
-        for(String name : names){
-            for(String word : name.split("[\\s_.,;\\-]+")){
-                if(word.length() < 3 || word.chars().allMatch(Character::isDigit) || !seen.add(word.toLowerCase(Locale.ROOT))) continue;
-                words.add(Pattern.compile("(?<![\\p{L}\\p{N}])" + Pattern.quote(word) + "(?![\\p{L}\\p{N}])", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE));
-            }
-        }
-        words.sort(Comparator.comparingInt((Pattern p) -> -p.pattern().length())); // The longest first
-        return text -> {
-            String hidden = text;
-            for(Pattern word : words) hidden = word.matcher(hidden).replaceAll(HIDDEN);
-            return hidden;
-        };
     }
 
     // GRADES OF A COPY
