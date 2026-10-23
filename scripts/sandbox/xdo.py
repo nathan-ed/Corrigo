@@ -22,6 +22,8 @@ def spare_keycode():
     return last
 def typechar(ch):
     keysym = XK.string_to_keysym(NAMES.get(ch, ch))
+    if keysym == 0:  # Any character: its Unicode keysym (Latin-1 as is)
+        keysym = ord(ch) if ord(ch) < 0x100 else 0x1000000 | ord(ch)
     kc = d.keysym_to_keycode(keysym)
     if kc == 0:
         kc = spare_keycode()

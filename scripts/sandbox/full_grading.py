@@ -6,9 +6,10 @@ an independent model of the rule (AGENTS.md), each placed text against its line 
 missing, nothing extra), the presentation marks and their grade; then every copy reopened (reopen_check.py).
 
     python3 scripts/sandbox/full_grading.py <tmp> --data <tmp>/xdg [--init-script …] [--offline] [--seed N] [--only A|B]
+    python3 scripts/sandbox/full_grading.py <tmp> --data <tmp>/xdg … --replay <replay.json>   (replay_from_folder.py)
 
 <tmp>/full/<evaluation> is (re)created. Screenshots of the failures go to <tmp>/full-shots."""
-import argparse, glob, os, random, re, shutil, signal, subprocess, sys, time, traceback, unicodedata, yaml
+import argparse, glob, json, os, random, re, shutil, signal, subprocess, sys, time, traceback, unicodedata, yaml
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
@@ -413,6 +414,95 @@ def revisit(key_name, scale, todo, names, code_of, rng):
         key("ctrl+s", 2)
 
 
+# REPLAY: texts graded before (replay_from_folder.py), typed again as they are
+
+NATO = ["ALPHA", "BRAVO", "CHARLIE", "DELTA", "ECHO", "FOXTROT", "GOLF", "HOTEL", "INDIA", "JULIETT", "KILO", "LIMA", "MIKE",
+        "NOVEMBER", "OSCAR", "PAPA", "QUEBEC", "ROMEO", "SIERRA", "TANGO", "UNIFORM", "VICTOR", "WHISKEY", "XRAY", "YANKEE", "ZULU"]
+
+
+def written_count(text, leaves):
+    """The lines of a text written on the copy: not blank, not a label alone, not a private note alone."""
+    labels = set()
+    for name, _ in leaves:
+        for label in (name, label_of(name), name.rstrip(").")):
+            labels.add(words(label))
+        if len(name) > 2 and name[0].isdigit() and ". " in name: labels.add(words(name.split(" ")[0]))
+    count = 0
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if not stripped or (len(leaves) > 1 and words(stripped) in labels) or re.fullmatch(r"\([^()]*\)", stripped): continue
+        count += 1
+    return count
+
+
+def run_replay(path):
+    with open(path, encoding="utf-8") as f: data = json.load(f)
+    scale = [(e[0], float(e[1]) if not isinstance(e[1], list) else [(s[0], float(s[1])) for s in e[1]]) for e in data["scale"]]
+    copies = NATO[:len(data["copies"])]
+    folder = os.path.join(args.tmp, "full", "Replay")
+    shutil.rmtree(folder, ignore_errors=True)
+    pdfs = make_evaluation(folder, copies, scale)
+    names = [os.path.basename(p)[:-4] for p in pdfs]
+    settings(folder, pdfs)
+    rng = random.Random(args.seed)
+    print("REPLAY: %d copies, %d exercises" % (len(copies), len([e for e in scale if e[0] != "PNF"])), flush=True)
+    start(pdfs[0])
+    for index, (exercise, content) in enumerate(scale):
+        if exercise == "PNF": continue
+        leaves = [(exercise, content)] if isinstance(content, float) else content
+        select_exercise(index)
+        click_text_field()
+        for n, name in enumerate(names):
+            if open_copy() != name:
+                check("replay %s: copy %d open" % (exercise, n + 1), False, open_copy())
+                break
+            text = data["copies"][n]["texts"].get(exercise, "")
+            if text:
+                type_text(text, .8)
+                # A few lines placed by a click, the others next to the grades (Alt+Enter)
+                for slot in range(min(rng.randint(0, 3), written_count(text, leaves))): click(SLOTS[slot], .9)
+                key("alt+Return", 1.5)
+            if n + 1 < len(names):
+                key("alt+Next", 1)
+                for _ in range(30):
+                    if open_copy() != name: break
+                    time.sleep(.5)
+                time.sleep(3)
+        # Back to the first copy for the next exercise
+        for _ in range(len(names)):
+            if open_copy() == names[0]: break
+            current = open_copy()
+            key("alt+Prior", 1)
+            for _ in range(30):
+                if open_copy() != current: break
+                time.sleep(.5)
+            time.sleep(2)
+    stop()
+    verify_replay(folder, scale, data, names)
+    reopen("replay", folder)
+
+
+def verify_replay(folder, scale, data, names):
+    for n, name in enumerate(names):
+        base = load(folder, name)
+        grades = {(g["parentPath"] + "\\" + g["name"]): g["value"] for g in base.get("grades", [])}
+        corrections = base.get("corrections") or {}
+        linked = {t.get("correctionLine") for p in (base.get("texts") or {}).values() for t in p or [] if t.get("correctionLine")}
+        problems = []
+        for exercise, content in scale:
+            text = data["copies"][n]["texts"].get(exercise, "")
+            if exercise == "PNF" or not text: continue
+            leaves = [(exercise, content)] if isinstance(content, float) else content
+            saved = corrections.get("\\Total\\" + exercise) or {}
+            if saved.get("text", "") != text: problems.append("%s: text %r ≠ typed %r" % (exercise, saved.get("text"), text))
+            ids = [i for i in saved.get("ids", []) if i]
+            placed = sum(1 for i in ids if i in linked)
+            if placed != written_count(text, leaves): problems.append("%s: %d lines written on the copy, %d expected" % (exercise, placed, written_count(text, leaves)))
+        for leaf, value in data["copies"][n]["expected"].items():
+            if abs(grades.get(leaf, -9) - value) > 1e-9: problems.append("%s = %s, graded before %s" % (leaf, grades.get(leaf), value))
+        check("replay copy %02d: texts, grades as before, lines written" % (n + 1), not problems, problems)
+
+
 # CHECKS
 
 class Loader(yaml.SafeLoader):
@@ -519,16 +609,23 @@ def main():
     parser.add_argument("--offline", action="store_true")
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--only", default=None)
+    parser.add_argument("--replay", default=None, help="JSON of replay_from_folder.py: these texts typed again, not A and B")
     args = parser.parse_args()
     if subprocess.run(["pgrep", "-f", "Xvfb " + args.display], stdout=subprocess.DEVNULL).returncode != 0:
         subprocess.Popen(["Xvfb", args.display, "-screen", "0", "1600x1000x24"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(2)
-    for name in EVALUATIONS:
+    for name in [] if args.replay else EVALUATIONS:
         if args.only and args.only != name: continue
         try:
             run_evaluation(name)
         except Exception:  # noqa: BLE001
             check("evaluation %s ran" % name, False, traceback.format_exc(limit=4))
+            if app is not None: stop()
+    if args.replay:
+        try:
+            run_replay(args.replay)
+        except Exception:  # noqa: BLE001
+            check("replay ran", False, traceback.format_exc(limit=4))
             if app is not None: stop()
     failed = [r for r in results if not r[1]]
     print("\n%d checks, %d failed" % (len(results), len(failed)))
