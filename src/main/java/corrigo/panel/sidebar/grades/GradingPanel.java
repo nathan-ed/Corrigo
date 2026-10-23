@@ -104,6 +104,10 @@ public class GradingPanel extends VBox {
                 public void exercise(int delta){
                     openExercise(delta);
                 }
+                @Override
+                public void typedGrade(int leaf){
+                    focusField(leaf, false);
+                }
             });
     // The panel shows the grading by lines (setting)
     private final BooleanProperty linesMode = new SimpleBooleanProperty(LineCorrection.isEnabled());
@@ -1254,6 +1258,14 @@ public class GradingPanel extends VBox {
             points.setAlignment(Pos.CENTER); // Right-aligned, the digits would be under the clear button of the focused field
             points.setPromptText("–");
             points.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+                // Grading by lines: the grade typed, back to the text of the exercise (Enter, Tab), or not (Escape)
+                if(linesMode.get() && (e.getCode() == KeyCode.ENTER || e.getCode() == KeyCode.TAB || e.getCode() == KeyCode.ESCAPE)){
+                    e.consume();
+                    if(e.getCode() == KeyCode.ESCAPE) syncPoints();
+                    else applyPoints();
+                    linesEditor.focusAreaNow();
+                    return;
+                }
                 switch(e.getCode()){
                     case ENTER -> {
                         e.consume();

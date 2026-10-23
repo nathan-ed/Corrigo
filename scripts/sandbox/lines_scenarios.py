@@ -471,6 +471,16 @@ def hotel():
     save()
     check("a text of the copy selected, then typing: in the text, on a new line", lines("08_HOTEL").get("text", "").endswith("\nBien\nJuste"),
           lines("08_HOTEL"))
+    # Shift+Tab: the points of the sub-question of the caret; a grade typed by hand, Enter: back to the text
+    click(AREA)
+    key("ctrl+End")
+    key("shift+Tab", .8)
+    type_text("2", .3)
+    key("Return", 1)
+    type_text("Merci")
+    save()
+    check("Shift+Tab, 2, Enter: a typed by hand stays 2", grades("08_HOTEL")[A] == 2.0, grades("08_HOTEL"))
+    check("Shift+Tab, 2, Enter: back to the text, on a new line", lines("08_HOTEL").get("text", "").endswith("\nJuste\nMerci"), lines("08_HOTEL"))
     snapshot = edit("08_HOTEL")
     stop()
     start("08_HOTEL")

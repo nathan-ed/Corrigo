@@ -49,6 +49,7 @@ public final class LinesEditor extends VBox {
         void ungradedCopy(int delta); // Ctrl+Enter, Ctrl+Shift+Enter: the next copy where the exercise is not graded
         void copy(int delta); // Alt+PageDown, Alt+PageUp: the next copy of the list, same exercise
         void exercise(int delta); // Alt+↓, Alt+↑
+        void typedGrade(int leaf); // Shift+Tab: the points of the sub-question of the caret, to type its grade by hand
     }
 
     private static final int CHOICES = 6;
@@ -393,7 +394,8 @@ public final class LinesEditor extends VBox {
             navigation.copy(e.getCode() == KeyCode.PAGE_UP ? -1 : 1);
         }else if(e.getCode() == KeyCode.TAB && !e.isShortcutDown()){
             e.consume(); // Never a tab character in the text
-            if(!choices.isEmpty() && !e.isShiftDown()) take(choices.get(chosen));
+            if(e.isShiftDown()) navigation.typedGrade(Math.max(0, getCaretLeaf()));
+            else if(!choices.isEmpty()) take(choices.get(chosen));
         }else if((e.getCode() == KeyCode.DOWN || e.getCode() == KeyCode.UP) && !choices.isEmpty() && !e.isShortcutDown()){
             e.consume(); // Chooses among the lines shown, the caret stays
             chosen = Math.floorMod(chosen + (e.getCode() == KeyCode.DOWN ? 1 : -1), choices.size());
