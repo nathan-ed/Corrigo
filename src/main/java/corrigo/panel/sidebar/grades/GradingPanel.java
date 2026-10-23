@@ -11,11 +11,15 @@ import fr.clementgre.pdf4teachers.panel.sidebar.grades.GradeTreeView;
 import corrigo.panel.sidebar.grades.tags.TagPicker;
 import corrigo.panel.sidebar.grades.lines.LineCorrection;
 import corrigo.panel.sidebar.grades.lines.LinesEditor;
+import corrigo.panel.sidebar.grades.export.FairnessExport;
+import corrigo.panel.sidebar.grades.tags.ExerciseTags;
 import corrigo.panel.sidebar.grades.tags.ExerciseTagsCard;
 import corrigo.panel.sidebar.grades.tags.EvaluationTags;
 import corrigo.datasaving.simpleconfigs.ExerciseCorrectionData;
+import fr.clementgre.pdf4teachers.datasaving.Config;
 import fr.clementgre.pdf4teachers.document.editions.Edition;
 import fr.clementgre.pdf4teachers.Main;
+import fr.clementgre.pdf4teachers.interfaces.windows.log.Log;
 import fr.clementgre.pdf4teachers.document.editions.elements.Element;
 import fr.clementgre.pdf4teachers.document.editions.elements.GradeElement;
 import fr.clementgre.pdf4teachers.document.editions.elements.TextElement;
@@ -50,9 +54,14 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -325,8 +334,11 @@ public class GradingPanel extends VBox {
         exercisePagesItem.setOnAction(e -> MainWindow.footerBar.editExercisePages());
         MenuItem markScaleItem = new MenuItem(TR.tr("markScale.menu"));
         markScaleItem.setOnAction(e -> MarkScaleDialog.show());
+        // All the grading, anonymous, for a review of its fairness (an AI, a colleague)
+        MenuItem fairnessItem = new MenuItem(TR.tr("fairness.menu"));
+        fairnessItem.setOnAction(e -> exportForReview());
         MenuButton marks = new MenuButton(TR.tr("gradingPanel.moreMenu"), null, markPositionItem, computeMarksItem, markScaleItem,
-                new SeparatorMenuItem(), exercisePagesItem);
+                new SeparatorMenuItem(), exercisePagesItem, new SeparatorMenuItem(), fairnessItem);
         marks.setFocusTraversable(false);
         marks.setMinWidth(Region.USE_PREF_SIZE);
         marks.setTooltip(new Tooltip(TR.tr("marks.position.tooltip") + "\n" + TR.tr("marks.compute.tooltip") + "\n" + TR.tr("gradingPanel.exercisePages.tooltip")));
@@ -1104,6 +1116,48 @@ public class GradingPanel extends VBox {
         commitEdits();
         cancelPending();
         if(!MarksComputation.computeAll()) armMarkPlacement(true); // Where does the mark go?
+    }
+
+    // The grading of all the copies of the evaluation, anonymous (FairnessExport), and the table of the names apart
+    private void exportForReview(){
+        if(!MainWindow.mainScreen.hasDocument(false)) return;
+        commitEdits();
+        MainWindow.mainScreen.document.edition.save(false); // The open copy as it is now
+        List<File> pdfs = new ArrayList<>(ExerciseTags.getFolderCopies());
+        pdfs.sort(Comparator.comparing(File::getName));
+        List<FairnessExport.Copy> copies = new ArrayList<>();
+        try{
+            for(File pdf : pdfs){
+                File editFile = Edition.getEditFile(pdf);
+                Map<String, Object> base = new LinkedHashMap<>();
+                if(editFile.exists()){
+                    Config config = new Config(editFile);
+                    config.load();
+                    base = config.base;
+                }
+                copies.add(new FairnessExport.Copy(pdf.getName().replaceFirst("(?i)\\.pdf$", ""), base));
+            }
+            FileChooser chooser = new FileChooser();
+            File folder = pdfs.isEmpty() ? null : pdfs.getFirst().getParentFile();
+            if(folder != null) chooser.setInitialDirectory(folder);
+            chooser.setInitialFileName(TR.tr("fairness.fileName"));
+            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Markdown", "*.md"));
+            File out = chooser.showSaveDialog(Main.window);
+            if(out == null) return;
+            if(!out.getName().toLowerCase(Locale.ROOT).endsWith(".md")) out = new File(out.getAbsolutePath() + ".md");
+            String text = FairnessExport.build(copies, PNFAnnotationManager.label(), MainWindow.gradesDigFormat, TR::tr);
+            Files.writeString(out.toPath(), text, StandardCharsets.UTF_8);
+            StringBuilder table = new StringBuilder("numero;copie\n");
+            for(int i = 0; i < copies.size(); i++) table.append(FairnessExport.number(i)).append(';').append(pdfs.get(i).getName()).append('\n');
+            File tableFile = new File(out.getParentFile(), out.getName().replaceFirst("\\.md$", "") + TR.tr("fairness.tableSuffix"));
+            Files.writeString(tableFile.toPath(), table.toString(), StandardCharsets.UTF_8);
+            MainWindow.footerBar.showToast(Color.web("#1b5e20"), Color.WHITE, FooterBar.ToastDuration.LONG,
+                    TR.tr("fairness.done").replace("{0}", String.valueOf(copies.size())).replace("{1}", tableFile.getName()));
+        }catch(Exception ex){
+            Log.eNotified(ex, "Unable to write the anonymous export");
+            MainWindow.footerBar.showToast(Color.web("#b71c1c"), Color.WHITE, FooterBar.ToastDuration.LONG,
+                    TR.tr("fairness.error").replace("{0}", String.valueOf(ex.getMessage())));
+        }
     }
 
     // NEXT UNGRADED COPY
