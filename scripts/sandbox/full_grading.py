@@ -8,7 +8,7 @@ missing, nothing extra), the presentation marks and their grade; then every copy
     python3 scripts/sandbox/full_grading.py <tmp> --data <tmp>/xdg [--init-script …] [--offline] [--seed N] [--only A|B]
 
 <tmp>/full/<evaluation> is (re)created. Screenshots of the failures go to <tmp>/full-shots."""
-import argparse, glob, os, random, shutil, signal, subprocess, sys, time, traceback, yaml
+import argparse, glob, os, random, re, shutil, signal, subprocess, sys, time, traceback, unicodedata, yaml
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
@@ -295,11 +295,24 @@ def expected_text(blocks, labels, leaves):
     return "\n\n".join(parts)
 
 
+def words(text):
+    """As LineGrading.normalize, plus the final punctuation removed (the key of a line)."""
+    text = unicodedata.normalize("NFD", text)
+    text = "".join(c for c in text if not unicodedata.combining(c)).lower()
+    return re.sub(r"[\W_]+$", "", re.sub(r"\s+", " ", text).strip())
+
+
+def only_one_starting(start):
+    """A start of line that only one line of the variants has (Tab then takes it whatever was used before)."""
+    keys = {words(line.shown) for variant in VARIANTS for line in variant if line.kind != "PNF"}
+    return len([k for k in keys if k.startswith(words(start))]) == 1
+
+
 def type_line(line, used, rng):
     """Types a line as a teacher does: a line already used on a copy graded before is often taken from the choices
     (its start, then Tab); sometimes Ctrl+S after it. Returns True if it was taken with Tab."""
     taken = line.kind in ("FULL", "ZERO", "COMMENT") and line.shown == line.typed and line.typed[-1].isalpha() \
-        and line.typed in used and rng.random() < .6
+        and line.typed in used and only_one_starting(line.typed[:-1]) and rng.random() < .6
     if taken:
         type_text(line.typed[:-1], .5)
         key("Tab", .5)

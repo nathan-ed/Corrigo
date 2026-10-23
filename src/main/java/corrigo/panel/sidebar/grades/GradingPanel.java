@@ -55,6 +55,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.OptionalInt;
 
 /**
@@ -1125,11 +1126,12 @@ public class GradingPanel extends VBox {
         commitEdits();
         // Each line is placed with a click: lines not placed yet keep the copy open, once
         if(linesMode.get() && !LineCorrection.isAutoPlace()){
-            int unplaced = LineCorrection.countUnplaced();
-            if(unplaced > 0 && System.currentTimeMillis() - unplacedWarningTime > 5000){
+            Map<String, Integer> unplaced = LineCorrection.countUnplaced();
+            if(!unplaced.isEmpty() && System.currentTimeMillis() - unplacedWarningTime > 5000){
                 unplacedWarningTime = System.currentTimeMillis();
+                int count = unplaced.values().stream().mapToInt(Integer::intValue).sum();
                 MainWindow.footerBar.showToast(Color.web("#e65100"), Color.WHITE, FooterBar.ToastDuration.LONG,
-                        TR.tr("lines.unplacedWarning", String.valueOf(unplaced)));
+                        TR.tr("lines.unplacedWarning", String.valueOf(count), String.join(", ", unplaced.keySet())));
                 linesEditor.focusArea();
                 return;
             }

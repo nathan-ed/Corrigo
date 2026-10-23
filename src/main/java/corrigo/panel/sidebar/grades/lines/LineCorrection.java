@@ -424,14 +424,16 @@ public final class LineCorrection {
             if(child instanceof GradeTreeItem exercise && entries.containsKey(exercise.getCore().getPath())) placeAllNextToGrades(exercise);
         }
     }
-    // Number of lines of the copy not placed yet, in all its exercises
-    public static int countUnplaced(){
-        if(GradeTreeView.getTotal() == null) return 0;
-        int count = 0;
+    // Number of lines of the copy not placed yet, by name of exercise (only the exercises that have some)
+    public static LinkedHashMap<String, Integer> countUnplaced(){
+        LinkedHashMap<String, Integer> counts = new LinkedHashMap<>();
+        if(GradeTreeView.getTotal() == null) return counts;
         for(var child : GradeTreeView.getTotal().getChildren()){
-            if(child instanceof GradeTreeItem exercise) count += getUnplaced(exercise).size();
+            if(!(child instanceof GradeTreeItem exercise)) continue;
+            int count = getUnplaced(exercise).size();
+            if(count > 0) counts.put(exercise.getCore().getName(), count);
         }
-        return count;
+        return counts;
     }
 
     // RENAME
