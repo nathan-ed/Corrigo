@@ -91,6 +91,7 @@ class LineGradingTest {
         assertEquals(Kind.PNF, line("PNF : unités manquantes").kind());
         assertEquals("unités manquantes", line("PNF : unités manquantes").comment());
         assertEquals("unités", line("pnf unités").comment());
+        assertEquals("mauvaise écriture", line("PNF mauvaise écriture").comment()); // Without ":" too
         assertEquals(Kind.COMMENT, line("PNFX").kind());
         assertEquals(Kind.PNF, LineGrading.parseLine(0, "Présentation : soin", "Présentation").kind());
     }
