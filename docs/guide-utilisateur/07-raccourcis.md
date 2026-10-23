@@ -53,6 +53,27 @@ Dans le panneau de correction : `1`…`9` ajoutent la n-ième méthode ou erreur
 `=` tous les points, `↑` `↓` sous-note, `←` `→` copie, `Tab` / `Maj+Tab` champs, `C` commentaire, `G` commentaire
 général, `Z` / `Maj+Z` copie non corrigée suivante / précédente, `Échap` retour au document ([détails](03-correction.md#clavier-dans-le-panneau)).
 
+## Correction par lignes
+
+Tout se fait au clavier, sans quitter le texte de l'exercice.
+
+| Touches | Action |
+|---|---|
+| `Entrée` | nouvelle ligne (un texte et ses points : « Notation -0.5 ») |
+| ligne vide | sous-question suivante (« b) » en tête de bloc choisit la sous-question) |
+| `↑` `↓` puis `Tab` | prendre une ligne déjà utilisée, proposée sous le champ en tapant |
+| `Échap` | masquer les lignes proposées ; annuler une marque PNF en attente |
+| « g » après les points | ligne proposée dans tous les exercices du test (« Notation -0.5 g ») |
+| `Alt+Entrée` | placer toutes les lignes à côté des notes |
+| `Maj+Tab` | taper à la main la note de la sous-question du curseur (✎) ; `Entrée` ou `Tab` la valide, `Échap` l'annule, et on revient au texte |
+| `Alt+↑` / `Alt+↓` | exercice précédent / suivant |
+| `Alt+Page préc./suiv.` | copie précédente / suivante, même exercice |
+| `Ctrl+Entrée` / `Ctrl+Maj+Entrée` | copie non corrigée suivante / précédente (deux fois de suite si des lignes ne sont pas encore placées) |
+| `Ctrl+Z` / `Ctrl+Maj+Z`, `Ctrl+Y` | annuler / rétablir dans le texte (juste après un clic de placement : annule ce placement) |
+| `Ctrl+S` | sauvegarder |
+
+Une lettre tapée hors d'un champ (après un clic sur la copie) va dans le texte, sur une nouvelle ligne.
+
 La souris sur la copie, `1`…`9` mettent la n-ième méthode ou erreur de la carte à l'endroit de la souris.
 
 Les raccourcis des figures et des images se définissent par un clic droit sur elles dans l'onglet Dessin.

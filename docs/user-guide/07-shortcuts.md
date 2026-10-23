@@ -53,6 +53,27 @@ In the grading panel: `1`…`9` add the n-th method or mistake, `⌫` remove the
 `↑` `↓` sub-grade, `←` `→` copy, `Tab` / `Shift+Tab` fields, `C` comment, `G` general comment, `Z` / `Shift+Z` next / previous
 ungraded copy, `Esc` back to the document ([details](03-grading.md#keyboard-in-the-panel)).
 
+## Grading by lines
+
+Everything is done with the keyboard, without leaving the text of the exercise.
+
+| Keys | Action |
+|---|---|
+| `Enter` | new line (a text and its points: "Notation -0.5") |
+| blank line | next sub-question ("b)" at the start of a block chooses the sub-question) |
+| `↑` `↓` then `Tab` | take a line already used, offered under the field while typing |
+| `Esc` | hide the offered lines; cancel a pending PNF mark |
+| "g" after the points | line offered in every exercise of the test ("Notation -0.5 g") |
+| `Alt+Enter` | place all the lines next to the grades |
+| `Shift+Tab` | type by hand the grade of the sub-question of the caret (✎); `Enter` or `Tab` applies it, `Esc` cancels it, and the text gets the focus back |
+| `Alt+↑` / `Alt+↓` | previous / next exercise |
+| `Alt+Page Up/Down` | previous / next copy, same exercise |
+| `Ctrl+Enter` / `Ctrl+Shift+Enter` | next / previous ungraded copy (twice in a row if lines are not placed yet) |
+| `Ctrl+Z` / `Ctrl+Shift+Z`, `Ctrl+Y` | undo / redo in the text (right after a click that placed a line: undoes that placement) |
+| `Ctrl+S` | save |
+
+A letter typed outside a field (after a click on the copy) goes to the text, on a new line.
+
 With the mouse on the copy, `1`…`9` put the n-th method or mistake of the card at the mouse position.
 
 The shortcuts of figures and images can be set by right-clicking them in the Paint tab.
