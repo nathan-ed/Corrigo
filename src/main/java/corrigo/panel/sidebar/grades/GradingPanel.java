@@ -403,6 +403,9 @@ public class GradingPanel extends VBox {
     private void reloadNow(){
         commitEdits();
         linesMode.set(LineCorrection.isEnabled());
+        // The focus was in the panel (a key as Alt+PageDown or Alt+↓, caught by the window first): the panel is rebuilt,
+        // the focus goes back to the text, never lost
+        if(linesMode.get() && getScene() != null && isInPanel(getScene().getFocusOwner())) focusOnNextReload = true;
         GradeTreeItem newExercise = getSelectedExercise();
         if(newExercise == null || exercise == null || newExercise.getCore() != exercise.getCore()) active = 0;
         exercise = newExercise;
@@ -800,6 +803,10 @@ public class GradingPanel extends VBox {
     // Grading by lines: a letter or a number typed outside a text field (a text of the copy just selected or moved,
     // the page, a button of the panel) goes to the text of the exercise, on a new line: what is typed is never lost
     // nor taken by a shortcut of the old mode (C, G, Z, digits)
+    private boolean isInPanel(Node node){
+        for(; node != null; node = node.getParent()) if(node == this) return true;
+        return false;
+    }
     private void onWindowKey(KeyEvent e){
         if(!linesMode.get() || exercise == null || MainWindow.gradingTab == null || !MainWindow.gradingTab.isSelected()) return;
         if(e.isShortcutDown() || e.isControlDown() || e.isAltDown() || e.isMetaDown()) return;
