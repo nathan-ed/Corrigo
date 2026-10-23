@@ -481,7 +481,10 @@ public class GradingPanel extends VBox {
 
         if(focusOnNextReload){
             focusOnNextReload = false;
-            Platform.runLater(this::focusPanel);
+            // At once in the text: keys typed meanwhile, already waiting, go to this exercise (a later focus would move
+            // their caret back to the end, or take the focus back from its points)
+            if(linesMode.get() && MainWindow.gradingTab.isSelected()) linesEditor.focusAreaNow();
+            else Platform.runLater(this::focusPanel);
         }
     }
 

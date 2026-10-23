@@ -39,7 +39,15 @@ EVALUATIONS = {
         ("Ex 3", 5.0),
         ("PNF", 2.0),
     ]),
+    # A whole class: nothing gets slow with many copies (the lines of the other copies are read at each one)
+    "C": ("Test-complet-C", ["ALPHA", "BRAVO", "CHARLIE", "DELTA", "ECHO", "FOXTROT", "GOLF", "HOTEL", "INDIA", "JULIETT",
+                             "KILO", "LIMA", "MIKE", "NOVEMBER", "OSCAR", "PAPA", "QUEBEC", "ROMEO", "SIERRA", "TANGO",
+                             "UNIFORM", "VICTOR", "WHISKEY", "XRAY", "YANKEE", "ZULU"], [
+        ("Ex 1", [("a", 2.0), ("b", 2.0)]),
+        ("Ex 2", 3.0),
+    ]),
 }
+TYPED = {}  # (code, exercise, index of the sub-question): a grade typed by hand (Shift+Tab), it stays whatever the lines
 
 
 # LINES: what is typed, and what the rule says about it
@@ -351,6 +359,7 @@ def grade_exercise(blocks, labels, during, leaves, used, rng):
 
 def run_evaluation(key_name):
     title, copies, scale = EVALUATIONS[key_name]
+    TYPED.clear()
     folder = os.path.join(args.tmp, "full", title)
     shutil.rmtree(folder, ignore_errors=True)
     pdfs = make_evaluation(folder, copies, scale)
@@ -362,6 +371,7 @@ def run_evaluation(key_name):
     print("EVALUATION %s: %d copies, %d exercises" % (key_name, len(copies), len([e for e in scale if e[0] != "PNF"])), flush=True)
     start(pdfs[0])
     seen = {}
+    waits = []  # Seconds from Ctrl+Enter to the next copy open
     used = {}  # The lines typed in each exercise on the copies graded before
     for index, (exercise, content) in enumerate(scale):
         if exercise == "PNF": continue
@@ -377,16 +387,25 @@ def run_evaluation(key_name):
             blocks, labels, during = todo[(code, exercise)]
             grade_exercise(blocks, labels, during, leaves, used.setdefault(exercise, set()), rng)
             seen[(code, exercise)] = True
-            key("ctrl+Return", 1)
-            for _ in range(30):  # The next copy not graded for this exercise
+            before = time.time()
+            key("ctrl+Return", .2)
+            for _ in range(60):  # The next copy not graded for this exercise
                 if open_copy() != name: break
-                time.sleep(.5)
+                time.sleep(.25)
+            if n + 1 < len(copies): waits.append(time.time() - before)
             time.sleep(4)
         check("%s %s: graded on every copy" % (key_name, exercise), all((code, exercise) in seen for code in copies), sorted(seen))
+    if waits:
+        check("%s: next copy open in %.1f s on average (at most %.1f s)" % (key_name, sum(waits) / len(waits), max(waits)),
+              sum(waits) / len(waits) < 8 and max(waits) < 15, waits)
     revisit(key_name, scale, todo, names, code_of, rng)
     stop()
     verify(key_name, folder, scale, todo, names, code_of)
     reopen(key_name, folder)
+
+
+def leaves_of(exercise, content):
+    return [(exercise, content)] if isinstance(content, float) else content
 
 
 def revisit(key_name, scale, todo, names, code_of, rng):
@@ -406,11 +425,28 @@ def revisit(key_name, scale, todo, names, code_of, rng):
         check("%s: back to %s" % (key_name, code_of[target]), open_copy() == target, open_copy())
         select_exercise(index)  # From the text: the text of the exercise gets the focus, ready for a new line
         blocks, labels, during = todo[(code_of[target], exercise)]
-        written = sum(1 for _, lines in blocks for line in lines if line.written)
-        type_text("Bonus +0.5", .6)
-        click(SLOTS[written], .9)
         leaf, lines = blocks[-1]
-        blocks[-1] = (leaf, lines + [L("Bonus +0.5", "METHOD", 0.5, "Bonus")])
+        action = rng.choice(["add", "rewrite", "typed"])
+        if action == "add":  # A line added at the end, placed by a click
+            written = sum(1 for _, ls in blocks for line in ls if line.written)
+            type_text("Bonus +0.5", .6)
+            click(SLOTS[written], .9)
+            blocks[-1] = (leaf, lines + [L("Bonus +0.5", "METHOD", 0.5, "Bonus")])
+        elif action == "rewrite":  # The last line typed again: its text on the copy follows it, where it is
+            key("ctrl+End", .3)
+            key("shift+Home", .3)
+            type_text("Erreur -1", .8)
+            key("alt+Return", 1.5)  # A line that was a presentation mark or private is to place now
+            blocks[-1] = (leaf, lines[:-1] + [L("Erreur -1", "MISTAKE", -1, "Erreur")])
+        else:  # A grade typed by hand on the sub-question of the caret: it stays (✎)
+            total = leaves_of(exercise, content)[leaf][1]
+            value = rng.choice([0.0, total / 2, total])
+            key("ctrl+End", .3)
+            key("shift+Tab", .8)
+            type_text(fmt(value), .3)
+            key("Return", 1)
+            TYPED[(code_of[target], exercise, leaf)] = value
+        check("%s: back to %s, %s" % (key_name, code_of[target], action), True)
         key("ctrl+s", 2)
 
 
@@ -537,7 +573,7 @@ def verify(key_name, folder, scale, todo, names, code_of):
             exercise_sum = 0.0
             for leaf, lines in blocks:
                 leaf_path = path if isinstance(content, float) else path + "\\" + leaves[leaf][0]
-                want = model_grade(lines, leaves[leaf][1])
+                want = TYPED.get((code, exercise, leaf), model_grade(lines, leaves[leaf][1]))
                 if abs(grades.get(leaf_path, -9) - want) > 1e-9:
                     problems.append("%s = %s, rule %s (%s)" % (leaf_path, grades.get(leaf_path), want, [l.typed for l in lines]))
                 exercise_sum += max(want, 0)
