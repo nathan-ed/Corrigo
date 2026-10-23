@@ -53,7 +53,8 @@ class FairnessExportTest {
         Map<String, Object> first = copy(1.5, 1, "Correct\nNotation -0.5 (Marie a oublié)\n\nFaux",
                 Map.of("\\Total\\Ex 2\\a", 1.5, "\\Total\\Ex 2\\b", 0.0), // b: 1 typed by hand over the lines (0)
                 Map.of("page0", List.of(text("PNF", "x", 3199, "y", 130459), text("1. I", "x", 3199, "y", 140000)),
-                        "page2", List.of(text("PNF : unités", "pnfExercise", "Ex 2", "correctionLine", "p1"), text("Bravo Marie !"))));
+                        "page2", List.of(text("PNF : unités", "pnfExercise", "Ex 2", "correctionLine", "p1"), text("Bravo Marie !"),
+                                text("Même erreur que Paul")))); // The name of another copy
         Map<String, Object> second = copy(1, 0, "Correct\nNotation -1\n\nPas de réponse",
                 Map.of("\\Total\\Ex 2\\a", 1.0, "\\Total\\Ex 2\\b", 0.0), Map.of());
         String export = FairnessExport.build(List.of(new FairnessExport.Copy("03_DUPONT_Marie", first),
@@ -65,6 +66,7 @@ class FairnessExportTest {
         assertTrue(export.contains("## Copie 02 — 3 / 6"));
         assertTrue(export.contains("  - Notation -0.5 ([élève] a oublié)"));
         assertTrue(export.contains("Bravo [élève] !"));
+        assertTrue(export.contains("Même erreur que [élève]"));
         // The grade scale, the grades, where the points start from, a grade typed by hand
         assertTrue(export.contains("- Ex 2 : /4 (a /2, b /2)"));
         assertTrue(export.contains("- a : 1,5 / 2 — fairness.fromMax"));
@@ -79,7 +81,7 @@ class FairnessExportTest {
 
     @Test
     void wordsOfTheNameOnly(){
-        var hide = FairnessExport.hider("07_LI_Anne-Sophie");
+        var hide = FairnessExport.hider(List.of("07_LI_Anne-Sophie"));
         assertEquals("[élève] [élève] : Limite", hide.apply("Anne Sophie : Limite")); // "Li" too short, not inside "Limite"
         assertEquals("Annexe", hide.apply("Annexe"));
     }

@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 /**
  * The grading of all the copies of an evaluation, anonymous, in one Markdown text: to give to an AI (or a colleague)
  * that reads the fairness of the grading. Each copy is "Copie 01", "Copie 02"… (in the order given); the words of the
- * name of each copy are replaced by [élève] everywhere. For each copy: each exercise and sub-question, its grade, where
+ * names of all the copies are replaced by [élève] everywhere, in every copy. For each copy: each exercise and sub-question, its grade, where
  * its points start from, its lines (or the old scored comments), a grade typed by hand (✎), the presentation marks and
  * the other texts written on the copy. Then the lines used in the class with the copies that got them, the same words
  * with other points first. Does not depend on JavaFX.
@@ -55,11 +55,9 @@ public final class FairnessExport {
 
         // Lines used in the class: exercise → sub-question → words → points → copies
         LinkedHashMap<String, LinkedHashMap<String, LinkedHashMap<String, Use>>> used = new LinkedHashMap<>();
-        for(int i = 0; i < copies.size(); i++){
-            String number = number(i);
-            Copy copy = copies.get(i);
-            copy(w, number, copy, hider(copy.name()), pnfLabel, used);
-        }
+        // The names of all the copies hidden in every copy ("même erreur que Paul" on the copy of another student)
+        Function<String, String> hide = hider(copies.stream().map(Copy::name).toList());
+        for(int i = 0; i < copies.size(); i++) copy(w, number(i), copies.get(i), hide, pnfLabel, used);
         uses(w, used);
         return w.text();
     }
@@ -254,12 +252,15 @@ public final class FairnessExport {
 
     // ANONYMOUS
 
-    // The words of the name of the copy (3 letters or more, not numbers), as whole words, without case
-    static Function<String, String> hider(String name){
+    // The words of the names of the copies (3 letters or more, not numbers), as whole words, without case
+    static Function<String, String> hider(List<String> names){
         List<Pattern> words = new ArrayList<>();
-        for(String word : name.split("[\\s_.,;\\-]+")){
-            if(word.length() < 3 || word.chars().allMatch(Character::isDigit)) continue;
-            words.add(Pattern.compile("(?<![\\p{L}\\p{N}])" + Pattern.quote(word) + "(?![\\p{L}\\p{N}])", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE));
+        Set<String> seen = new HashSet<>();
+        for(String name : names){
+            for(String word : name.split("[\\s_.,;\\-]+")){
+                if(word.length() < 3 || word.chars().allMatch(Character::isDigit) || !seen.add(word.toLowerCase(Locale.ROOT))) continue;
+                words.add(Pattern.compile("(?<![\\p{L}\\p{N}])" + Pattern.quote(word) + "(?![\\p{L}\\p{N}])", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE));
+            }
         }
         words.sort(Comparator.comparingInt((Pattern p) -> -p.pattern().length())); // The longest first
         return text -> {
