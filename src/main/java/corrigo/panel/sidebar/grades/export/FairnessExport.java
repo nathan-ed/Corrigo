@@ -207,7 +207,7 @@ public final class FairnessExport {
     // TEXTS OF THE COPY
 
     @SuppressWarnings("unchecked")
-    private static List<Map<String, Object>> texts(Map<String, Object> base){
+    static List<Map<String, Object>> texts(Map<String, Object> base){
         ArrayList<Map<String, Object>> all = new ArrayList<>();
         if(!(base.get("texts") instanceof Map<?, ?> pages)) return all;
         // In the order of the pages, then from the top
@@ -245,7 +245,7 @@ public final class FairnessExport {
 
     // GRADES OF A COPY
 
-    private static final class Grades {
+    static final class Grades {
         final Map<String, Object> root;
         final Map<String, List<Map<String, Object>>> children = new HashMap<>();
         @SuppressWarnings("unchecked")
@@ -303,22 +303,22 @@ public final class FairnessExport {
             return text.toString();
         }
     }
-    private static String path(Map<String, Object> grade){
+    static String path(Map<String, Object> grade){
         return str(grade.get("parentPath")) + "\\" + str(grade.get("name"));
     }
-    private static String name(Map<String, Object> grade){
+    static String name(Map<String, Object> grade){
         return str(grade.get("name"));
     }
-    private static double value(Map<String, Object> grade){
+    static double value(Map<String, Object> grade){
         return num(grade.get("value"), -1);
     }
-    private static double total(Map<String, Object> grade){
+    static double total(Map<String, Object> grade){
         return num(grade.get("total"), 0);
     }
-    private static String str(Object value){
+    static String str(Object value){
         return value == null ? "" : String.valueOf(value);
     }
-    private static Double num(Object value, double defaultValue){
+    static Double num(Object value, double defaultValue){
         if(value instanceof Number number) return number.doubleValue();
         try{
             return Double.parseDouble(String.valueOf(value));

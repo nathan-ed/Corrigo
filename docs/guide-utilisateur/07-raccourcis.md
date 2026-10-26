@@ -71,6 +71,7 @@ Tout se fait au clavier, sans quitter le texte de l'exercice.
 | `Ctrl+Entrée` / `Ctrl+Maj+Entrée` | copie non corrigée suivante / précédente (deux fois de suite si des lignes ne sont pas encore placées) |
 | `Ctrl+Z` / `Ctrl+Maj+Z`, `Ctrl+Y` | annuler / rétablir dans le texte (juste après un clic de placement : annule ce placement) |
 | `Ctrl+S` | sauvegarder |
+| `Ctrl+Maj+L` | points à vérifier sur toutes les copies (copies pas corrigées, lignes pas placées, notes ✎, sous-questions pas notées) : `Entrée` ouvre la copie sur l'exercice et cache la liste, `Ctrl+Maj+L` la ramène, relue |
 
 Une lettre tapée hors d'un champ (après un clic sur la copie) va dans le texte, sur une nouvelle ligne.
 

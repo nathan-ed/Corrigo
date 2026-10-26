@@ -71,6 +71,7 @@ Everything is done with the keyboard, without leaving the text of the exercise.
 | `Ctrl+Enter` / `Ctrl+Shift+Enter` | next / previous ungraded copy (twice in a row if lines are not placed yet) |
 | `Ctrl+Z` / `Ctrl+Shift+Z`, `Ctrl+Y` | undo / redo in the text (right after a click that placed a line: undoes that placement) |
 | `Ctrl+S` | save |
+| `Ctrl+Shift+L` | left to check on all the copies (copies not graded, lines not placed, ✎ grades, sub-questions not graded): `Enter` opens the copy on the exercise and hides the list, `Ctrl+Shift+L` brings it back, read again |
 
 A letter typed outside a field (after a click on the copy) goes to the text, on a new line.
 

@@ -7,6 +7,7 @@
 package fr.clementgre.pdf4teachers.interfaces;
 
 
+import corrigo.panel.sidebar.grades.CopyChecksWindow;
 import corrigo.panel.sidebar.grades.tags.TagPicker;
 import fr.clementgre.pdf4teachers.Main;
 import fr.clementgre.pdf4teachers.components.KeyableHBox;
@@ -190,6 +191,12 @@ public class KeyboardShortcuts {
                 new KeyCodeCombination(KeyCode.G, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN), e -> {
             if(!MainWindow.mainScreen.hasDocument(false)) return;
             MainWindow.gradingPanel.focusPanel();
+            e.consume();
+        }));
+        shortcuts.add(new ShortcutRecord(TR.tr("checks.title"),
+                new KeyCodeCombination(KeyCode.L, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN), e -> {
+            if(!MainWindow.mainScreen.hasDocument(false)) return;
+            CopyChecksWindow.showChecks();
             e.consume();
         }));
         // Alt+1 to 9: jump to the page of the n-th exercise

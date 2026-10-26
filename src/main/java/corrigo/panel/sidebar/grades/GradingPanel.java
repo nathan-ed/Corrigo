@@ -149,6 +149,7 @@ public class GradingPanel extends VBox {
     private boolean markThenCompute;
 
     private boolean focusOnNextReload;
+    private File focusOnOpen; // A copy being opened from the list of checks: the text gets the focus once it shows it
     private final EventHandler<KeyEvent> windowKeyFilter = this::onWindowKey;
     private boolean swallowNextTyped;
     private final PauseTransition followPageDelay = new PauseTransition(Duration.millis(250));
@@ -341,8 +342,11 @@ public class GradingPanel extends VBox {
         // All the grading, anonymous, for a review of its fairness (an AI, a colleague)
         MenuItem fairnessItem = new MenuItem(TR.tr("fairness.menu"));
         fairnessItem.setOnAction(e -> exportForReview());
-        MenuButton marks = new MenuButton(TR.tr("gradingPanel.moreMenu"), null, markPositionItem, computeMarksItem, markScaleItem,
-                new SeparatorMenuItem(), exercisePagesItem, new SeparatorMenuItem(), fairnessItem);
+        // What is left to check on all the copies (Ctrl+Shift+L)
+        MenuItem checksItem = new MenuItem(TR.tr("checks.menu"));
+        checksItem.setOnAction(e -> CopyChecksWindow.showChecks());
+        MenuButton marks = new MenuButton(TR.tr("gradingPanel.moreMenu"), null, checksItem, new SeparatorMenuItem(), markPositionItem,
+                computeMarksItem, markScaleItem, new SeparatorMenuItem(), exercisePagesItem, new SeparatorMenuItem(), fairnessItem);
         marks.setFocusTraversable(false);
         marks.setMinWidth(Region.USE_PREF_SIZE);
         marks.setTooltip(new Tooltip(TR.tr("marks.position.tooltip") + "\n" + TR.tr("marks.compute.tooltip") + "\n" + TR.tr("gradingPanel.exercisePages.tooltip")));
@@ -482,6 +486,10 @@ public class GradingPanel extends VBox {
         bindValue(exercise.getCore(), this::updateHeader);
         refresh();
 
+        if(focusOnOpen != null && MainWindow.mainScreen.document.getFile().getAbsoluteFile().equals(focusOnOpen)){
+            focusOnOpen = null;
+            focusOnNextReload = true;
+        }
         if(focusOnNextReload){
             focusOnNextReload = false;
             // At once in the text: keys typed meanwhile, already waiting, go to this exercise (a later focus would move
@@ -1176,6 +1184,23 @@ public class GradingPanel extends VBox {
 
     // NEXT UNGRADED COPY
 
+    // A copy of the folder, on the exercise at this index, the panel ready to type once it shows it (CopyChecksWindow)
+    public void openCopyAt(File pdf, int exerciseIndex){
+        if(!MainWindow.mainScreen.hasDocument(false)) return;
+        commitEdits();
+        if(MainWindow.mainScreen.document.getFile().getAbsoluteFile().equals(pdf.getAbsoluteFile())){
+            // Another exercise: the panel is rebuilt, then focused; the same one: only its page shown again
+            focusOnNextReload = MainWindow.footerBar.getSelectedExerciseIndex() != exerciseIndex;
+            if(!jumpToExercise(exerciseIndex)) focusOnNextReload = false;
+            if(!focusOnNextReload) focusPanel();
+            return;
+        }
+        jumpToExercise(exerciseIndex); // Selected here first: the other copy opens on its page
+        focusOnOpen = pdf.getAbsoluteFile(); // Its reload, not the one of the exercise selected here, gives the focus
+        active = 0;
+        exercise = null;
+        MainWindow.filesTab.openFileAtExercisePage(pdf);
+    }
     // The previous (-1) or next (1) exercise of the copy, the panel ready to type once it shows it
     private void openExercise(int delta){
         focusOnNextReload = true;
