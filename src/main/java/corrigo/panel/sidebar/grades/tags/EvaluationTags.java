@@ -378,6 +378,10 @@ public class EvaluationTags {
         removed.forEach(use -> remove(copy, use.id()));
         return removed;
     }
+    // Removes the occurrences of all the tags on all the copies (the tags stay).
+    public void clearUses(){
+        copies.clear();
+    }
     // Sets the sub-grade of the occurrences that have none (made before the points existed). Returns true if some had none.
     public boolean fillGrades(String copy, java.util.function.Function<String, String> gradeOfExercise){
         boolean changed = false;
