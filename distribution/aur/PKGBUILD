@@ -1,0 +1,24 @@
+# Maintainer: Nathan Scheinmann <hey at naths dot ch>
+# Corrigo: grading of PDF student copies (a modified version of PDF4Teachers). Binary package from the GitHub release.
+pkgname=corrigo-bin
+pkgver=1.7.0
+pkgrel=1
+pkgdesc="Grading of PDF student copies: grade scale, comments, methods and mistakes, Moodle export"
+arch=('x86_64')
+url="https://github.com/nathan-ed/Corrigo"
+license=('Apache-2.0')
+depends=('gtk3' 'libxtst' 'alsa-lib' 'freetype2' 'fontconfig')
+provides=('corrigo')
+conflicts=('corrigo')
+options=('!strip' '!debug')
+source=("Corrigo-Linux-${pkgver}.tar.gz::${url}/releases/download/v${pkgver}/Corrigo-Linux-${pkgver}.tar.gz")
+sha256sums=('f0d367c283ac1366afcd6bfed1da6c2f7db3cb5e3dd438b9fce065ca30011a23')
+
+package() {
+    install -d "${pkgdir}/opt"
+    cp -a "${srcdir}/corrigo" "${pkgdir}/opt/corrigo"
+    install -d "${pkgdir}/usr/bin"
+    ln -s /opt/corrigo/bin/Corrigo "${pkgdir}/usr/bin/corrigo"
+    install -Dm644 "${srcdir}/corrigo/corrigo.desktop" "${pkgdir}/usr/share/applications/corrigo.desktop"
+    install -Dm644 "${srcdir}/corrigo/lib/Corrigo.png" "${pkgdir}/usr/share/pixmaps/corrigo.png"
+}
